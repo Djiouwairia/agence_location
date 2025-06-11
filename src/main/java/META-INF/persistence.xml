@@ -1,26 +1,37 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<persistence version="2.2"
-             xmlns="http://xmlns.jcp.org/xml/ns/persistence"
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<persistence xmlns="http://xmlns.jcp.org/xml/ns/persistence"
              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-             xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://xmlns.jcp.org/xml/ns/persistence/persistence_2_2.xsd">
-
-    <persistence-unit name="agenceLocationPU" transaction-type="RESOURCE_LOCAL">
+             xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://xmlns.jcp.org/xml/ns/persistence/persistence_2_2.xsd"
+             version="2.2">
+    <!-- Définit une unité de persistance nommée 'agencePU' -->
+    <persistence-unit name="agencePU" transaction-type="RESOURCE_LOCAL">
+        <!-- Spécifie le fournisseur JPA (Hibernate) -->
+        <!-- Notez le package 'org.hibernate.jpa.HibernatePersistenceProvider' qui est commun. -->
         <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
 
-        <!-- Déclaration de TOUTES les classes d'entités JPA pour qu'Hibernate les gère -->
+        <!-- Liste de toutes les classes d'entités JPA de votre application -->
+        <!-- Assurez-vous que vos classes d'entités utilisent bien les annotations javax.persistence.* -->
         <class>com.agence.location.model.Client</class>
+        <class>com.agence.location.model.Voiture</class>
+        <class>com.agence.location.model.Utilisateur</class>
+        <class>com.agence.location.model.Location</class>
 
         <properties>
-            <!-- Propriétés de connexion à la base de données (avec 'javax.persistence') -->
+            <!-- Propriétés de connexion à la base de données MySQL -->
             <property name="javax.persistence.jdbc.driver" value="com.mysql.cj.jdbc.Driver"/>
-            <property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/agence_location_db?useSSL=false&amp;serverTimezone=UTC"/>
+            <property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/agence_location?serverTimezone=UTC&amp;useSSL=false"/>
             <property name="javax.persistence.jdbc.user" value="root"/>
-            <property name="javax.persistence.jdbc.password" value="your_password"/> <!-- IMPORTANT : REMPLACEZ 'your_password' PAR VOTRE VRAI MOT DE PASSE MYSQL -->
+            <property name="javax.persistence.jdbc.password" value="votre_mot_de_passe_mysql"/> <!-- REMPLACEZ CECI PAR VOTRE VRAI MOT DE PASSE -->
 
             <!-- Propriétés spécifiques à Hibernate -->
+            <!-- Le dialecte MySQL 8 est nécessaire pour MySQL 8.x -->
             <property name="hibernate.dialect" value="org.hibernate.dialect.MySQL8Dialect"/>
-            <property name="hibernate.hbm2ddl.auto" value="update"/> <!-- 'update' pour mettre à jour le schéma, 'create-drop' pour créer et supprimer à chaque démarrage -->
+            <!-- 'update' met à jour le schéma de la BD en fonction des entités.
+                 Soyez prudent avec 'create' ou 'create-drop' en production car ils suppriment les données existantes. -->
+            <property name="hibernate.hbm2ddl.auto" value="update"/>
+            <!-- Affiche les requêtes SQL générées par Hibernate dans la console -->
             <property name="hibernate.show_sql" value="true"/>
+            <!-- Formate les requêtes SQL pour une meilleure lisibilité -->
             <property name="hibernate.format_sql" value="true"/>
         </properties>
     </persistence-unit>

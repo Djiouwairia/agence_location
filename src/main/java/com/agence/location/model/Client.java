@@ -1,23 +1,24 @@
 package com.agence.location.model;
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.List;
 
-@Entity // Indique que cette classe est une entité JPA
-@Table(name = "Client") // Spécifie le nom de la table dans la base de données
+@Entity
+@Table(name = "Client")
 public class Client implements Serializable {
 
-    @Id // Indique que ce champ est la clé primaire
-    @Column(name = "cin", length = 20) // Spécifie le nom de la colonne et sa longueur
+    @Id // Indique que 'cin' est la clé primaire
+    @Column(name = "cin", length = 20)
     private String cin;
 
-    @Column(name = "prenom", nullable = false, length = 100) // Non nul, longueur max 100
+    @Column(name = "prenom", length = 100, nullable = false)
     private String prenom;
 
-    @Column(name = "nom", nullable = false, length = 100)
+    @Column(name = "nom", length = 100, nullable = false)
     private String nom;
 
     @Column(name = "sexe", length = 10)
-    private String sexe;
+    private String sexe; // 'Homme' ou 'Femme'
 
     @Column(name = "adresse", length = 255)
     private String adresse;
@@ -28,11 +29,16 @@ public class Client implements Serializable {
     @Column(name = "telephone", length = 20)
     private String telephone;
 
-    // Constructeurs
+    // Relation OneToMany avec la table Location
+    // Un client peut avoir plusieurs locations
+    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Location> locations;
+
+    // Constructeur par défaut (obligatoire pour JPA)
     public Client() {
-        // Constructeur par défaut requis par JPA
     }
 
+    // Constructeur avec tous les champs (sauf id généré)
     public Client(String cin, String prenom, String nom, String sexe, String adresse, String email, String telephone) {
         this.cin = cin;
         this.prenom = prenom;
@@ -43,7 +49,8 @@ public class Client implements Serializable {
         this.telephone = telephone;
     }
 
-    // Getters et Setters pour tous les champs
+    // --- Getters et Setters ---
+
     public String getCin() {
         return cin;
     }
@@ -98,5 +105,22 @@ public class Client implements Serializable {
 
     public void setTelephone(String telephone) {
         this.telephone = telephone;
+    }
+
+    public List<Location> getLocations() {
+        return locations;
+    }
+
+    public void setLocations(List<Location> locations) {
+        this.locations = locations;
+    }
+
+    @Override
+    public String toString() {
+        return "Client{" +
+               "cin='" + cin + '\'' +
+               ", prenom='" + prenom + '\'' +
+               ", nom='" + nom + '\'' +
+               '}';
     }
 }
