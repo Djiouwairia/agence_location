@@ -17,7 +17,11 @@ import java.io.IOException;
 @WebServlet("/auth") // Mappe cette servlet à l'URL /auth
 public class AuthServlet extends HttpServlet {
 
-    private UtilisateurDAO utilisateurDAO;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private UtilisateurDAO utilisateurDAO;
 
     @Override
     public void init() throws ServletException {
