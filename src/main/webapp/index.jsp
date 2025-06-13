@@ -1,3 +1,5 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -6,14 +8,14 @@
     <title>Accueil - Agence de Location de Voitures</title>
 </head>
 <body>
-    <%-- Redirige vers la page de connexion si l'utilisateur n'est pas connecté --%>
+    <%-- Redirige vers la page de connexion si l'utilisateur n'est pas connectÃ© --%>
     <% 
         if (session.getAttribute("utilisateur") == null) {
             response.sendRedirect("login.jsp");
-            return; // Arrête l'exécution de la JSP
+            return; // ArrÃªte l'exÃ©cution de la JSP
         }
     %>
-    <%-- Si connecté, redirige vers le tableau de bord approprié --%>
+    <%-- Si connectÃ©, redirige vers le tableau de bord appropriÃ© --%>
     <% 
         String role = (String) session.getAttribute("role");
         if ("ChefAgence".equals(role)) {
@@ -21,7 +23,7 @@
         } else if ("Gestionnaire".equals(role)) {
             response.sendRedirect("dashboard?role=gestionnaire");
         } else {
-            // En cas de rôle inattendu, rediriger vers la page de connexion avec un message d'erreur
+            // En cas de rÃ´le inattendu, rediriger vers la page de connexion avec un message d'erreur
             response.sendRedirect("login.jsp?error=role_inconnu");
         }
     %>
