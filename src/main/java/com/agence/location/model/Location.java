@@ -126,13 +126,14 @@ public class Location implements Serializable {
         this.nombreJours = nombreJours;
     }
 
-    public LocalDate getDateRetourPrevie() {
+    // CORRECTION : Renommé de getDateRetourPrevie() à getDateRetourPrevue()
+    public LocalDate getDateRetourPrevue() {
         return dateRetourPrevue;
     }
 
-    public void setDateRetourPrevue(LocalDate dateRetourPrevue) { // C'est CORRECT
+    public void setDateRetourPrevue(LocalDate dateRetourPrevue) {
         this.dateRetourPrevue = dateRetourPrevue;
-            this.dateRetourPrevue = dateRetourPrevue;
+        // Ligne dupliquée supprimée : this.dateRetourPrevue = dateRetourPrevue;
     }
 
     public LocalDate getDateRetourReelle() {
@@ -178,10 +179,10 @@ public class Location implements Serializable {
     @Override
     public String toString() {
         return "Location{" +
-               "id=" + id +
-               ", dateDebut=" + dateDebut +
-               ", voiture=" + (voiture != null ? voiture.getImmatriculation() : "N/A") +
-               ", client=" + (client != null ? client.getNom() : "N/A") +
-               '}';
+                "id=" + id +
+                ", dateDebut=" + dateDebut +
+                ", voiture=" + (voiture != null ? voiture.getImmatriculation() : "N/A") +
+                ", client=" + (client != null ? client.getNom() : "N/A") +
+                '}';
     }
 }
