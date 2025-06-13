@@ -117,7 +117,7 @@
                 </table>
             </c:when>
             <c:otherwise>
-                <p>Aucune voiture trouvée.</p>
+                <p>Aucune voiture trouvée</p>
             </c:otherwise>
         </c:choose>
     </div>
