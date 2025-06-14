@@ -1,12 +1,14 @@
 package com.agence.location.dao;
 
 import com.agence.location.model.Utilisateur;
+import javax.persistence.EntityManager; // Importez EntityManager
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 
 /**
  * DAO spécifique pour l'entité Utilisateur (Gestionnaire ou Chef d'agence).
  * Étend GenericDAO pour hériter des opérations CRUD de base.
+ * Les opérations de modification sont gérées par la couche Service via les méthodes de GenericDAO.
  */
 public class UtilisateurDAO extends GenericDAO<Utilisateur, Long> {
 
@@ -20,11 +22,12 @@ public class UtilisateurDAO extends GenericDAO<Utilisateur, Long> {
     /**
      * Recherche un utilisateur par son nom d'utilisateur.
      * Utilisé principalement pour l'authentification.
+     * Cette méthode de lecture obtient et ferme son propre EntityManager.
      * @param username Le nom d'utilisateur à rechercher.
      * @return L'utilisateur trouvé, ou null si aucun utilisateur avec ce nom d'utilisateur n'est trouvé.
      */
     public Utilisateur findByUsername(String username) {
-        em = getEntityManager();
+        EntityManager em = JPAUtil.getEntityManager(); // Obtient un EntityManager depuis JPAUtil
         Utilisateur utilisateur = null;
         try {
             TypedQuery<Utilisateur> query = em.createQuery("SELECT u FROM Utilisateur u WHERE u.username = :username", Utilisateur.class);
@@ -38,12 +41,9 @@ public class UtilisateurDAO extends GenericDAO<Utilisateur, Long> {
             e.printStackTrace();
         } finally {
             if (em != null && em.isOpen()) {
-                em.close();
+                em.close(); // Ferme l'EntityManager après utilisation
             }
         }
         return utilisateur;
     }
-
-    // Vous pouvez ajouter d'autres méthodes de recherche ou de gestion des utilisateurs ici,
-    // comme findByRole, etc.
 }

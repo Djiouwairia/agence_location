@@ -1,18 +1,19 @@
-@charset "UTF-8";
 /* style.css */
 
-/* Styles généraux pour le corps */
+/* Styles généraux pour le corps de la page */
 body {
     font-family: 'Inter', sans-serif; /* Utilise Inter ou une police sans-serif par défaut */
     margin: 0;
     padding: 0;
     line-height: 1.6;
     color: #333;
+    -webkit-font-smoothing: antialiased; /* Améliore le rendu des polices sur WebKit */
+    -moz-osx-font-smoothing: grayscale; /* Améliore le rendu des polices sur Firefox */
 }
 
-/* Utilitaires pour simuler Tailwind sans le framework */
+/* Utilitaires pour simuler le comportement de classes comme Tailwind CSS */
 .bg-gray-100 {
-    background-color: #f7fafc; /* gris très clair */
+    background-color: #f7fafc; /* Gris très clair */
 }
 
 .flex {
@@ -27,71 +28,99 @@ body {
     justify-content: center;
 }
 
+.justify-between {
+    justify-content: space-between;
+}
+
+.self-end {
+    align-self: flex-end;
+}
+
 .min-h-screen {
     min-height: 100vh;
 }
 
+/* Typographie */
 .text-2xl {
     font-size: 1.5rem; /* 24px */
-}
-
-.font-bold {
-    font-weight: 700;
-}
-
-.text-center {
-    text-align: center;
-}
-
-.mb-6 {
-    margin-bottom: 1.5rem; /* 24px */
-}
-
-.login-container {
-    background-color: #ffffff;
-    padding: 2.5rem; /* 40px */
-    border-radius: 0.75rem; /* 12px */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    max-width: 400px;
-    width: 100%;
-}
-
-.error-message {
-    color: #dc2626; /* rouge 600 */
-    background-color: #fee2e2; /* rouge 100 */
-    border: 1px solid #ef4444; /* rouge 500 */
-    padding: 0.75rem;
-    margin-bottom: 1rem;
-    border-radius: 0.375rem; /* 6px */
-    text-align: center;
-}
-
-.space-y-4 > *:not([hidden]) ~ *:not([hidden]) {
-    margin-top: 1rem; /* 16px */
-}
-
-.block {
-    display: block;
 }
 
 .text-sm {
     font-size: 0.875rem; /* 14px */
 }
 
+.text-xs {
+    font-size: 0.75rem; /* 12px */
+}
+
+.font-bold {
+    font-weight: 700;
+}
+
 .font-medium {
     font-weight: 500;
 }
 
+.text-center {
+    text-align: center;
+}
+
+/* Couleurs de texte */
 .text-gray-700 {
-    color: #4a5568; /* gris 700 */
+    color: #4a5568; /* Gris 700 */
+}
+
+.text-gray-500 {
+    color: #6b7280; /* Gris 500 */
+}
+
+.text-gray-600 {
+    color: #4b5563; /* Gris 600 */
+}
+
+.text-white {
+    color: #ffffff;
+}
+
+.text-blue-600 {
+    color: #2563eb; /* Bleu 600 */
+}
+
+.text-red-600 {
+    color: #dc2626; /* Rouge 600 */
+}
+
+.text-yellow-600 {
+    color: #d97706; /* Jaune 600 */
+}
+
+.text-purple-600 {
+    color: #9333ea; /* Violet 600 */
+}
+
+/* Espacement (Marges et Paddings) */
+.mb-4 {
+    margin-bottom: 1rem; /* 16px */
+}
+
+.mb-6 {
+    margin-bottom: 1.5rem; /* 24px */
 }
 
 .mt-1 {
     margin-top: 0.25rem; /* 4px */
 }
 
-.w-full {
-    width: 100%;
+.mt-2 {
+    margin-top: 0.5rem; /* 8px */
+}
+
+.mt-4 {
+    margin-top: 1rem; /* 16px */
+}
+
+.mr-2 {
+    margin-right: 0.5rem; /* 8px */
 }
 
 .px-3 {
@@ -104,12 +133,38 @@ body {
     padding-bottom: 0.5rem; /* 8px */
 }
 
+.space-y-4 > *:not([hidden]) ~ *:not([hidden]) {
+    margin-top: 1rem; /* 16px */
+}
+
+.space-y-6 > *:not([hidden]) ~ *:not([hidden]) {
+    margin-top: 1.5rem; /* 24px */
+}
+
+.space-x-2 > *:not([hidden]) ~ *:not([hidden]) {
+    margin-left: 0.5rem; /* 8px */
+}
+
+/* Largeur et Hauteur */
+.w-full {
+    width: 100%;
+}
+
+.inline-block {
+    display: inline-block;
+}
+
+.block {
+    display: block;
+}
+
+/* Bordures et Ombres */
 .border {
     border-width: 1px;
 }
 
 .border-gray-300 {
-    border-color: #e2e8f0; /* gris 300 */
+    border-color: #e2e8f0; /* Gris 300 */
 }
 
 .rounded-md {
@@ -120,55 +175,111 @@ body {
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
+/* États de focus */
 .focus\:outline-none:focus {
     outline: 0;
 }
 
 .focus\:ring-blue-500:focus {
-    --tw-ring-color: #3b82f6; /* bleu 500 */
+    --tw-ring-color: #3b82f6; /* Bleu 500 */
     --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
     --tw-ring-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow, 0 0 #0000);
     box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow, 0 0 #0000);
 }
 
 .focus\:border-blue-500:focus {
-    border-color: #3b82f6; /* bleu 500 */
+    border-color: #3b82f6; /* Bleu 500 */
 }
 
-.sm\:text-sm {
-    font-size: 0.875rem; /* 14px */
-}
-
-.text-white {
-    color: #ffffff;
-}
-
+/* Boutons et Liens */
 .bg-blue-600 {
-    background-color: #2563eb; /* bleu 600 */
+    background-color: #2563eb; /* Bleu 600 */
 }
 
 .hover\:bg-blue-700:hover {
-    background-color: #1d4ed8; /* bleu 700 */
+    background-color: #1d4ed8; /* Bleu 700 */
 }
 
-/* Styles pour les tables, formulaires, etc. (ajoutez au fur et à mesure) */
+.bg-green-600 {
+    background-color: #16a34a; /* Vert 600 */
+}
+
+.hover\:bg-green-700:hover {
+    background-color: #15803d; /* Vert 700 */
+}
+
+.bg-purple-600 {
+    background-color: #9333ea; /* Violet 600 */
+}
+
+.hover\:bg-purple-700:hover {
+    background-color: #7e22ce; /* Violet 700 */
+}
+
+.hover\:underline:hover {
+    text-decoration: underline;
+}
+
+/* Conteneur de connexion (login.jsp) */
+.login-container {
+    background-color: #ffffff;
+    padding: 2.5rem; /* 40px */
+    border-radius: 0.75rem; /* 12px */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    width: 100%;
+}
+
+/* Messages (erreur et succès) */
+.error-message {
+    color: #dc2626; /* Rouge 600 */
+    background-color: #fee2e2; /* Rouge 100 */
+    border: 1px solid #ef4444; /* Rouge 500 */
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    border-radius: 0.375rem; /* 6px */
+    text-align: center;
+}
+
+.success-message {
+    color: #16a34a; /* Vert 600 */
+    background-color: #dcfce7; /* Vert 100 */
+    border: 1px solid #22c55e; /* Vert 500 */
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    border-radius: 0.375rem; /* 6px */
+    text-align: center;
+}
+
+/* Styles pour les tableaux */
 table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 1rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    border-radius: 0.375rem;
+    overflow: hidden; /* Important pour les coins arrondis avec un overflow de cellules */
 }
 
 th, td {
-    border: 1px solid #ddd;
-    padding: 8px;
+    border: 1px solid #e2e8f0; /* Gris 200 */
+    padding: 0.75rem 1rem; /* 12px 16px */
     text-align: left;
 }
 
 th {
-    background-color: #f2f2f2;
+    background-color: #edf2f7; /* Gris 100 */
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem; /* 12px */
+    color: #4a5568; /* Gris 700 */
 }
 
-/* Styles pour la barre de navigation */
+tr:nth-child(even) {
+    background-color: #f9fafb; /* Lignes paires légèrement différentes pour la lisibilité */
+}
+
+/* Styles pour la barre de navigation (navbar.jsp) */
 .navbar {
     background-color: #333;
     padding: 1rem 0;
@@ -214,7 +325,7 @@ th {
     background-color: #555;
 }
 
-/* Styles pour les tableaux de bord */
+/* Styles pour les tableaux de bord et formulaires */
 .dashboard-container {
     max-width: 1200px;
     margin: 2rem auto;
@@ -234,4 +345,53 @@ th {
     font-weight: bold;
     margin-bottom: 1rem;
     color: #333;
+}
+
+/* Styles des éléments de formulaire */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group input[type="email"],
+.form-group input[type="date"],
+.form-group input[type="password"],
+.form-group select {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box; /* Inclut le padding et la bordure dans la largeur totale */
+}
+
+/* Styles spécifiques pour les résultats de recherche dans les formulaires (ex: locationForm.jsp) */
+.search-results {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.375rem;
+    margin-top: 0.5rem;
+    background-color: #ffffff;
+}
+
+.search-results div {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    border-bottom: 1px solid #edf2f7;
+    transition: background-color 0.2s ease;
+}
+
+.search-results div:last-child {
+    border-bottom: none;
+}
+
+.search-results div:hover {
+    background-color: #f7fafc;
 }

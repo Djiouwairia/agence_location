@@ -1,18 +1,17 @@
 package com.agence.location.dao;
 
+import com.agence.location.model.Client;
 import com.agence.location.model.Location;
 import com.agence.location.model.Voiture;
-import com.agence.location.model.Client;
-
+import javax.persistence.EntityManager; // Importez EntityManager
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
-import java.time.LocalDate;
 import java.util.List;
-import java.time.Month; // Pour le bilan financier mensuel
 
 /**
  * DAO spécifique pour l'entité Location.
  * Étend GenericDAO pour hériter des opérations CRUD de base.
+ * Les opérations de modification sont gérées par la couche Service via les méthodes de GenericDAO.
  */
 public class LocationDAO extends GenericDAO<Location, Long> {
 
@@ -25,11 +24,12 @@ public class LocationDAO extends GenericDAO<Location, Long> {
 
     /**
      * Récupère les informations sur le client ayant loué une voiture donnée.
+     * Cette méthode de lecture obtient et ferme son propre EntityManager.
      * @param immatriculationVoiture Le numéro d'immatriculation de la voiture.
      * @return Le client ayant loué la voiture, ou null si la voiture n'est pas louée ou non trouvée.
      */
     public Client getClientByVoitureLouee(String immatriculationVoiture) {
-        em = getEntityManager();
+        EntityManager em = JPAUtil.getEntityManager();
         Client client = null;
         try {
             // Recherche la location en cours pour la voiture donnée
@@ -40,6 +40,10 @@ public class LocationDAO extends GenericDAO<Location, Long> {
             query.setParameter("immat", immatriculationVoiture);
             Location location = query.getSingleResult();
             if (location != null) {
+                // S'assure que le client est initialisé si FetchType.LAZY est utilisé
+                // Si le client n'est pas déjà initialisé, un appel à getClient() pourrait entraîner une LazyInitializationException
+                // si l'EntityManager est fermé. Pour les rapports, on pourrait faire un FETCH JOIN.
+                // Pour l'instant, on suppose que l'accès à client.nom/prenom dans la JSP va déclencher l'initialisation.
                 client = location.getClient();
             }
         } catch (NoResultException e) {
@@ -58,16 +62,15 @@ public class LocationDAO extends GenericDAO<Location, Long> {
     /**
      * Établit le bilan financier mensuel.
      * Calcule le montant total des locations terminées pour un mois et une année donnés.
+     * Cette méthode de lecture obtient et ferme son propre EntityManager.
      * @param year L'année du bilan.
      * @param month Le mois du bilan (1 pour Janvier, 12 pour Décembre).
      * @return Le montant total des locations pour le mois spécifié.
      */
     public double getBilanFinancierMensuel(int year, int month) {
-        em = getEntityManager();
+        EntityManager em = JPAUtil.getEntityManager();
         double montantTotal = 0.0;
         try {
-            // On calcule le montant total des locations dont la date de début ou de retour est dans le mois et qui sont terminées.
-            // Il est plus précis de regarder les locations dont la date_retour_reelle est dans le mois.
             TypedQuery<Double> query = em.createQuery(
                 "SELECT SUM(l.montantTotal) FROM Location l WHERE l.statut = 'Terminee' " +
                 "AND YEAR(l.dateRetourReelle) = :year AND MONTH(l.dateRetourReelle) = :month",
@@ -96,11 +99,12 @@ public class LocationDAO extends GenericDAO<Location, Long> {
     /**
      * Visualise les voitures les plus recherchées (ici, les plus louées).
      * Retourne une liste de voitures avec le nombre de fois qu'elles ont été louées, triées par fréquence.
+     * Cette méthode de lecture obtient et ferme son propre EntityManager.
      * @param limit Le nombre maximum de voitures à retourner.
      * @return Une liste d'objets (Voiture, Long) représentant la voiture et le nombre de locations.
      */
     public List<Object[]> getVoituresLesPlusRecherches(int limit) {
-        em = getEntityManager();
+        EntityManager em = JPAUtil.getEntityManager();
         List<Object[]> result = null;
         try {
             // JPQL pour regrouper par voiture et compter le nombre de locations
@@ -120,13 +124,5 @@ public class LocationDAO extends GenericDAO<Location, Long> {
             }
         }
         return result;
-    }
-
-    /**
-     * Récupère toutes les locations.
-     * @return Une liste de toutes les locations.
-     */
-    public List<Location> getAllLocations() {
-        return findAll(); // Utilise la méthode findAll de GenericDAO
     }
 }

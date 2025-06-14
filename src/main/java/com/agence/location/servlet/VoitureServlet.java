@@ -1,8 +1,8 @@
 package com.agence.location.servlet;
 
-import com.agence.location.dao.VoitureDAO;
+import com.agence.location.service.VoitureService;
 import com.agence.location.model.Voiture;
-import com.agence.location.model.Utilisateur; // Pour vérifier le rôle
+import com.agence.location.model.Utilisateur;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -17,72 +17,54 @@ import java.util.List;
 
 /**
  * Servlet pour gérer les opérations CRUD sur les voitures.
- * Mappée à l'URL /voitures.
+ * Délègue la logique métier à VoitureService.
  */
 @WebServlet("/voitures")
 public class VoitureServlet extends HttpServlet {
 
-    private VoitureDAO voitureDAO;
+    private VoitureService voitureService;
 
     @Override
     public void init() throws ServletException {
         super.init();
-        voitureDAO = new VoitureDAO();
+        voitureService = new VoitureService();
     }
 
-    /**
-     * Gère les requêtes GET pour afficher la liste des voitures ou un formulaire d'édition.
-     * @param request L'objet HttpServletRequest.
-     * @param response L'objet HttpServletResponse.
-     * @throws ServletException Si une erreur de servlet survient.
-     * @throws IOException Si une erreur d'entrée/sortie survient.
-     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         HttpSession session = request.getSession(false);
 
-        // Vérification de l'authentification et du rôle (seul le gestionnaire peut gérer les voitures)
         if (session == null || session.getAttribute("utilisateur") == null || !"Gestionnaire".equals(session.getAttribute("role"))) {
-            response.sendRedirect("login.jsp"); // Redirige vers la page de connexion si non autorisé
+            response.sendRedirect("login.jsp");
             return;
         }
 
         String action = request.getParameter("action");
         if (action == null) {
-            action = "list"; // Action par défaut
+            action = "list";
         }
 
         switch (action) {
             case "new":
-                // Affiche le formulaire pour une nouvelle voiture
                 request.getRequestDispatcher("/WEB-INF/views/voitureForm.jsp").forward(request, response);
                 break;
             case "edit":
-                // Affiche le formulaire pour modifier une voiture existante
                 String immatToEdit = request.getParameter("immatriculation");
-                Voiture voitureToEdit = voitureDAO.findById(immatToEdit);
+                Voiture voitureToEdit = voitureService.getVoitureByImmatriculation(immatToEdit);
                 request.setAttribute("voiture", voitureToEdit);
                 request.getRequestDispatcher("/WEB-INF/views/voitureForm.jsp").forward(request, response);
                 break;
             case "delete":
-                // Supprime une voiture
                 String immatToDelete = request.getParameter("immatriculation");
-                Voiture voitureToDelete = voitureDAO.findById(immatToDelete);
-                if (voitureToDelete != null) {
-                    try {
-                        voitureDAO.delete(voitureToDelete);
-                        request.setAttribute("message", "Voiture supprimée avec succès !");
-                    } catch (RuntimeException e) {
-                        request.setAttribute("error", "Erreur lors de la suppression de la voiture : " + e.getMessage());
-                    }
-                } else {
-                    request.setAttribute("error", "Voiture non trouvée pour suppression.");
+                try {
+                    voitureService.deleteVoiture(immatToDelete);
+                    request.setAttribute("message", "Voiture supprimée avec succès !");
+                } catch (RuntimeException e) {
+                    request.setAttribute("error", "Erreur lors de la suppression de la voiture : " + e.getMessage());
                 }
-                // Après suppression, redirige vers la liste
                 response.sendRedirect("voitures?action=list");
                 break;
             case "search":
-                // Récupère les critères de recherche
                 String marque = request.getParameter("marque");
                 Double kilometrageMax = null;
                 try {
@@ -108,27 +90,19 @@ public class VoitureServlet extends HttpServlet {
                 String categorie = request.getParameter("categorie");
                 String statut = request.getParameter("statut");
 
-                List<Voiture> searchResults = voitureDAO.searchVoitures(marque, kilometrageMax, anneeMiseCirculationMin, typeCarburant, categorie, statut);
+                List<Voiture> searchResults = voitureService.searchVoitures(marque, kilometrageMax, anneeMiseCirculationMin, typeCarburant, categorie, statut);
                 request.setAttribute("voitures", searchResults);
                 request.getRequestDispatcher("/WEB-INF/views/voitureList.jsp").forward(request, response);
                 break;
             case "list":
             default:
-                // Affiche la liste de toutes les voitures
-                List<Voiture> voitures = voitureDAO.findAll();
+                List<Voiture> voitures = voitureService.getAllVoitures();
                 request.setAttribute("voitures", voitures);
                 request.getRequestDispatcher("/WEB-INF/views/voitureList.jsp").forward(request, response);
                 break;
         }
     }
 
-    /**
-     * Gère les requêtes POST pour soumettre les données des formulaires (ajout/modification).
-     * @param request L'objet HttpServletRequest.
-     * @param response L'objet HttpServletResponse.
-     * @throws ServletException Si une erreur de servlet survient.
-     * @throws IOException Si une erreur d'entrée/sortie survient.
-     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         HttpSession session = request.getSession(false);
@@ -161,7 +135,6 @@ public class VoitureServlet extends HttpServlet {
             prixLocationJ = Integer.parseInt(prixLocationJStr);
         } catch (NumberFormatException | DateTimeParseException e) {
             request.setAttribute("error", "Erreur de format de données pour les nombres ou la date : " + e.getMessage());
-            // Important : remettre les données du formulaire pour ne pas les perdre
             Voiture tempVoiture = new Voiture(immatriculation, nbPlaces, marque, modele,
                                              dateMiseCirculation, kilometrage, typeCarburant,
                                              categorie, prixLocationJ, statut);
@@ -176,47 +149,20 @@ public class VoitureServlet extends HttpServlet {
 
         try {
             if ("add".equals(action)) {
-                // Vérifie si une voiture avec la même immatriculation existe déjà
-                if (voitureDAO.findById(immatriculation) != null) {
-                    request.setAttribute("error", "Une voiture avec cette immatriculation existe déjà.");
-                    request.setAttribute("voiture", voiture); // Remettre les données du formulaire
-                    request.getRequestDispatcher("/WEB-INF/views/voitureForm.jsp").forward(request, response);
-                    return;
-                }
-                voitureDAO.save(voiture);
+                voitureService.addVoiture(voiture);
                 request.setAttribute("message", "Voiture ajoutée avec succès !");
             } else if ("update".equals(action)) {
-                // Récupère la voiture existante pour s'assurer qu'elle existe avant la mise à jour
-                Voiture existingVoiture = voitureDAO.findById(immatriculation);
-                if (existingVoiture != null) {
-                    // Met à jour les champs de l'objet existant
-                    existingVoiture.setNbPlaces(nbPlaces);
-                    existingVoiture.setMarque(marque);
-                    existingVoiture.setModele(modele);
-                    existingVoiture.setDateMiseCirculation(dateMiseCirculation);
-                    existingVoiture.setKilometrage(kilometrage);
-                    existingVoiture.setTypeCarburant(typeCarburant);
-                    existingVoiture.setCategorie(categorie);
-                    existingVoiture.setPrixLocationJ(prixLocationJ);
-                    existingVoiture.setStatut(statut);
-                    voitureDAO.save(existingVoiture); // Utilise save() qui gère aussi l'update
-                    request.setAttribute("message", "Voiture mise à jour avec succès !");
-                } else {
-                    request.setAttribute("error", "Voiture non trouvée pour la mise à jour.");
-                    request.setAttribute("voiture", voiture);
-                    request.getRequestDispatcher("/WEB-INF/views/voitureForm.jsp").forward(request, response);
-                    return;
-                }
+                voitureService.updateVoiture(voiture);
+                request.setAttribute("message", "Voiture mise à jour avec succès !");
             }
         } catch (RuntimeException e) {
             request.setAttribute("error", "Erreur lors de l'opération sur la voiture : " + e.getMessage());
             e.printStackTrace();
-            request.setAttribute("voiture", voiture); // Repopulate form
+            request.setAttribute("voiture", voiture);
             request.getRequestDispatcher("/WEB-INF/views/voitureForm.jsp").forward(request, response);
             return;
         }
 
-        // Redirige toujours vers la liste après une opération réussie
         response.sendRedirect("voitures?action=list");
     }
 }
