@@ -21,7 +21,7 @@
             <property name="javax.persistence.jdbc.driver" value="com.mysql.cj.jdbc.Driver"/>
             <property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/agence_location?serverTimezone=UTC&amp;useSSL=false"/>
             <property name="javax.persistence.jdbc.user" value="root"/>
-            <property name="javax.persistence.jdbc.password" value="votre_mot_de_passe_mysql"/> <!-- REMPLACEZ CECI PAR VOTRE VRAI MOT DE PASSE -->
+            <property name="javax.persistence.jdbc.password" value=""/> <!-- REMPLACEZ CECI PAR VOTRE VRAI MOT DE PASSE -->
 
             <!-- Propriétés spécifiques à Hibernate -->
             <!-- Le dialecte MySQL 8 est nécessaire pour MySQL 8.x -->
