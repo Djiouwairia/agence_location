@@ -6,11 +6,9 @@
     <!-- Définit une unité de persistance nommée 'agencePU' -->
     <persistence-unit name="agencePU" transaction-type="RESOURCE_LOCAL">
         <!-- Spécifie le fournisseur JPA (Hibernate) -->
-        <!-- Notez le package 'org.hibernate.jpa.HibernatePersistenceProvider' qui est commun. -->
         <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
 
         <!-- Liste de toutes les classes d'entités JPA de votre application -->
-        <!-- Assurez-vous que vos classes d'entités utilisent bien les annotations javax.persistence.* -->
         <class>com.agence.location.model.Client</class>
         <class>com.agence.location.model.Voiture</class>
         <class>com.agence.location.model.Utilisateur</class>
@@ -24,14 +22,9 @@
             <property name="javax.persistence.jdbc.password" value=""/> <!-- REMPLACEZ CECI PAR VOTRE VRAI MOT DE PASSE -->
 
             <!-- Propriétés spécifiques à Hibernate -->
-            <!-- Le dialecte MySQL 8 est nécessaire pour MySQL 8.x -->
             <property name="hibernate.dialect" value="org.hibernate.dialect.MySQL8Dialect"/>
-            <!-- 'update' met à jour le schéma de la BD en fonction des entités.
-                 Soyez prudent avec 'create' ou 'create-drop' en production car ils suppriment les données existantes. -->
             <property name="hibernate.hbm2ddl.auto" value="update"/>
-            <!-- Affiche les requêtes SQL générées par Hibernate dans la console -->
             <property name="hibernate.show_sql" value="true"/>
-            <!-- Formate les requêtes SQL pour une meilleure lisibilité -->
             <property name="hibernate.format_sql" value="true"/>
         </properties>
     </persistence-unit>

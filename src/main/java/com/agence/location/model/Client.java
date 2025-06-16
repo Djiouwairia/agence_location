@@ -1,8 +1,14 @@
 package com.agence.location.model;
+
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.List;
 
+/**
+ * Entité représentant un client de l'agence de location.
+ * Mappe à la table 'Client' dans la base de données.
+ * Inclut le champ 'permis'.
+ */
 @Entity
 @Table(name = "Client")
 public class Client implements Serializable {
@@ -11,14 +17,18 @@ public class Client implements Serializable {
     @Column(name = "cin", length = 20)
     private String cin;
 
+    // CORRECTION ICI: permis est maintenant nullable = true pour correspondre au schéma de la BDD
+    @Column(name = "permis", length = 50, unique = true, nullable = true)
+    private String permis; // Le numéro de permis de conduire
+
     @Column(name = "prenom", length = 100, nullable = false)
     private String prenom;
 
     @Column(name = "nom", length = 100, nullable = false)
     private String nom;
 
-    @Column(name = "sexe", length = 10)
-    private String sexe; // 'Homme' ou 'Femme'
+    @Column(name = "sexe", length = 10) // 'Homme' ou 'Femme'
+    private String sexe;
 
     @Column(name = "adresse", length = 255)
     private String adresse;
@@ -39,8 +49,9 @@ public class Client implements Serializable {
     }
 
     // Constructeur avec tous les champs (sauf id généré)
-    public Client(String cin, String prenom, String nom, String sexe, String adresse, String email, String telephone) {
+    public Client(String cin, String permis, String prenom, String nom, String sexe, String adresse, String email, String telephone) {
         this.cin = cin;
+        this.permis = permis; // Initialisation du permis
         this.prenom = prenom;
         this.nom = nom;
         this.sexe = sexe;
@@ -57,6 +68,14 @@ public class Client implements Serializable {
 
     public void setCin(String cin) {
         this.cin = cin;
+    }
+
+    public String getPermis() { // Getter pour permis
+        return permis;
+    }
+
+    public void setPermis(String permis) { // Setter pour permis
+        this.permis = permis;
     }
 
     public String getPrenom() {
@@ -119,8 +138,13 @@ public class Client implements Serializable {
     public String toString() {
         return "Client{" +
                "cin='" + cin + '\'' +
+               ", permis='" + permis + '\'' +
                ", prenom='" + prenom + '\'' +
                ", nom='" + nom + '\'' +
+               ", sexe='" + sexe + '\'' +
+               ", adresse='" + adresse + '\'' +
+               ", email='" + email + '\'' +
+               ", telephone='" + telephone + '\'' +
                '}';
     }
 }

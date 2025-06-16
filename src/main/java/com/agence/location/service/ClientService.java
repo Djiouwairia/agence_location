@@ -1,7 +1,7 @@
 package com.agence.location.service;
 
 import com.agence.location.dao.ClientDAO;
-import com.agence.location.dao.JPAUtil; // Import pour EntityManager
+import com.agence.location.dao.JPAUtil;
 import com.agence.location.model.Client;
 
 import javax.persistence.EntityManager;
@@ -21,15 +21,24 @@ public class ClientService {
     }
 
     public List<Client> getAllClients() {
-        return clientDAO.findAll(); // findAll gère déjà son propre EM.
+        System.out.println("ClientService: Appel de getAllClients...");
+        List<Client> clients = clientDAO.findAll();
+        System.out.println("ClientService: Nombre de clients récupérés: " + (clients != null ? clients.size() : "null"));
+        return clients;
     }
 
     public Client getClientByCin(String cin) {
-        return clientDAO.findById(cin); // findById gère déjà son propre EM.
+        System.out.println("ClientService: Recherche client par CIN: " + cin);
+        Client client = clientDAO.findById(cin);
+        System.out.println("ClientService: Client trouvé par CIN: " + (client != null ? client.getCin() : "null"));
+        return client;
     }
 
     public Client getClientByNom(String nom) {
-        return clientDAO.findByNom(nom); // findByNom gère déjà son propre EM.
+        System.out.println("ClientService: Recherche client par Nom: " + nom);
+        Client client = clientDAO.findByNom(nom);
+        System.out.println("ClientService: Client trouvé par Nom: " + (client != null ? client.getNom() : "null"));
+        return client;
     }
 
     /**
@@ -39,25 +48,41 @@ public class ClientService {
      * @throws RuntimeException Si le client existe déjà ou si une erreur de persistance survient.
      */
     public Client addClient(Client client) {
-        EntityManager em = JPAUtil.getEntityManager();
-        EntityTransaction transaction = em.getTransaction();
+        System.out.println("ClientService: Tentative d'ajout du client: " + client);
+        EntityManager em = null;
+        EntityTransaction transaction = null;
         try {
-            transaction.begin();
-            // Vérifier si le client existe déjà
+            // Vérification préliminaire du CIN (avant transaction)
             if (clientDAO.findById(client.getCin()) != null) {
+                System.out.println("ClientService: Erreur - Un client avec ce CIN existe déjà: " + client.getCin());
                 throw new RuntimeException("Un client avec ce CIN existe déjà.");
             }
-            clientDAO.persist(em, client);
+            // Optional: check for duplicate permis if it needs to be unique and isn't caught by DB
+            // if (clientDAO.findByPermis(client.getPermis()) != null) { /* ... */ }
+
+            em = JPAUtil.getEntityManager();
+            transaction = em.getTransaction();
+            System.out.println("ClientService: Début de la transaction pour addClient.");
+            transaction.begin();
+            
+            clientDAO.persist(em, client); // Appel à la méthode persist du GenericDAO
+            System.out.println("ClientService: Client " + client.getCin() + " en cours de persistance (en attente de commit).");
+
             transaction.commit();
+            System.out.println("ClientService: Transaction addClient COMMITTED pour le client: " + client.getCin());
             return client;
         } catch (RuntimeException e) {
-            if (transaction.isActive()) {
+            if (transaction != null && transaction.isActive()) {
                 transaction.rollback();
+                System.out.println("ClientService: Transaction addClient ROLLED BACK pour le client: " + client.getCin());
             }
-            throw e;
+            System.err.println("ClientService: Erreur lors de l'ajout du client: " + e.getMessage());
+            e.printStackTrace(); // Afficher la stack trace complète
+            throw e; // Rejeter l'exception
         } finally {
-            if (em.isOpen()) {
+            if (em != null && em.isOpen()) {
                 em.close();
+                System.out.println("ClientService: EntityManager fermé après addClient.");
             }
         }
     }
@@ -69,17 +94,23 @@ public class ClientService {
      * @throws RuntimeException Si le client n'est pas trouvé ou si une erreur de persistance survient.
      */
     public Client updateClient(Client client) {
-        EntityManager em = JPAUtil.getEntityManager();
-        EntityTransaction transaction = em.getTransaction();
+        System.out.println("ClientService: Tentative de mise à jour du client: " + client.getCin());
+        EntityManager em = null;
+        EntityTransaction transaction = null;
         try {
+            em = JPAUtil.getEntityManager();
+            transaction = em.getTransaction();
+            System.out.println("ClientService: Début de la transaction pour updateClient.");
             transaction.begin();
-            // Vérifier si le client existe
-            Client existingClient = clientDAO.findById(client.getCin()); // Cet appel à findById ferme son EM, à gérer si on veut un EM unique pour la transaction.
-                                                                        // Pour la simplicité de ce setup, ça passe, mais pas optimal.
+            
+            Client existingClient = em.find(Client.class, client.getCin());
             if (existingClient == null) {
+                System.out.println("ClientService: Erreur - Client non trouvé pour la mise à jour: " + client.getCin());
                 throw new RuntimeException("Client non trouvé pour la mise à jour.");
             }
-            // Copier les propriétés mises à jour sur l'entité gérée par l'EM actuel
+            
+            // Copier les propriétés mises à jour
+            existingClient.setPermis(client.getPermis());
             existingClient.setPrenom(client.getPrenom());
             existingClient.setNom(client.getNom());
             existingClient.setSexe(client.getSexe());
@@ -87,17 +118,24 @@ public class ClientService {
             existingClient.setEmail(client.getEmail());
             existingClient.setTelephone(client.getTelephone());
 
-            client = clientDAO.merge(em, existingClient); // Fusionne l'entité
+            // Pas besoin d'appeler merge explicitement si existingClient est managé
+            System.out.println("ClientService: Client " + client.getCin() + " en cours de mise à jour (en attente de commit).");
+
             transaction.commit();
-            return client;
+            System.out.println("ClientService: Transaction updateClient COMMITTED pour le client: " + client.getCin());
+            return existingClient;
         } catch (RuntimeException e) {
-            if (transaction.isActive()) {
+            if (transaction != null && transaction.isActive()) {
                 transaction.rollback();
+                System.out.println("ClientService: Transaction updateClient ROLLED BACK pour le client: " + client.getCin());
             }
+            System.err.println("ClientService: Erreur lors de la mise à jour du client: " + e.getMessage());
+            e.printStackTrace(); // Afficher la stack trace complète
             throw e;
         } finally {
-            if (em.isOpen()) {
+            if (em != null && em.isOpen()) {
                 em.close();
+                System.out.println("ClientService: EntityManager fermé après updateClient.");
             }
         }
     }
@@ -108,24 +146,38 @@ public class ClientService {
      * @throws RuntimeException Si le client n'est pas trouvé ou si une erreur de persistance survient.
      */
     public void deleteClient(String cin) {
-        EntityManager em = JPAUtil.getEntityManager();
-        EntityTransaction transaction = em.getTransaction();
+        System.out.println("ClientService: Tentative de suppression du client: " + cin);
+        EntityManager em = null;
+        EntityTransaction transaction = null;
         try {
+            em = JPAUtil.getEntityManager();
+            transaction = em.getTransaction();
+            System.out.println("ClientService: Début de la transaction pour deleteClient.");
             transaction.begin();
-            Client clientToDelete = clientDAO.findById(cin); // Cet appel à findById ferme son EM.
+            
+            Client clientToDelete = em.find(Client.class, cin);
             if (clientToDelete == null) {
+                System.out.println("ClientService: Erreur - Client non trouvé pour suppression: " + cin);
                 throw new RuntimeException("Client non trouvé pour suppression.");
             }
-            clientDAO.remove(em, clientToDelete);
+            
+            clientDAO.remove(em, clientToDelete); // Appel à la méthode remove du GenericDAO
+            System.out.println("ClientService: Client " + cin + " en cours de suppression (en attente de commit).");
+
             transaction.commit();
+            System.out.println("ClientService: Transaction deleteClient COMMITTED pour le client: " + cin);
         } catch (RuntimeException e) {
-            if (transaction.isActive()) {
+            if (transaction != null && transaction.isActive()) {
                 transaction.rollback();
+                System.out.println("ClientService: Transaction deleteClient ROLLED BACK pour le client: " + cin);
             }
+            System.err.println("ClientService: Erreur lors de la suppression du client: " + e.getMessage());
+            e.printStackTrace(); // Afficher la stack trace complète
             throw e;
         } finally {
-            if (em.isOpen()) {
+            if (em != null && em.isOpen()) {
                 em.close();
+                System.out.println("ClientService: EntityManager fermé après deleteClient.");
             }
         }
     }

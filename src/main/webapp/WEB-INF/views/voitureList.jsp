@@ -1,14 +1,14 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
-    pageEncoding="UTF-8"%>
+         pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Liste des Voitures</title>
+    <title>Gestion des Voitures</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
     <jsp:include page="navbar.jsp"/>
@@ -16,7 +16,7 @@
     <div class="dashboard-container">
         <h2 class="text-2xl font-bold mb-6">Gestion des Voitures</h2>
 
-        <%-- Message de succès ou d'erreur --%>
+        <%-- Messages de succès ou d'erreur --%>
         <c:if test="${not empty requestScope.message}">
             <p class="success-message">${requestScope.message}</p>
         </c:if>
@@ -24,102 +24,109 @@
             <p class="error-message">${requestScope.error}</p>
         </c:if>
 
-        <div class="mb-4 flex justify-between items-center">
-            <a href="voitures?action=new" class="inline-block bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700">Ajouter une nouvelle voiture</a>
-            
-            <%-- Formulaire de recherche --%>
-            <form action="voitures" method="get" class="flex space-x-2 items-end">
+        <div class="flex justify-between items-center mb-4">
+            <a href="voitures?action=new" class="btn-primary">
+                <i class="fas fa-plus-circle mr-2"></i> Ajouter une nouvelle voiture
+            </a>
+            <form action="voitures" method="get" class="flex space-x-2">
                 <input type="hidden" name="action" value="search">
-                <div>
-                    <label for="marque" class="block text-sm font-medium text-gray-700">Marque :</label>
-                    <input type="text" id="marque" name="marque" placeholder="Marque" class="px-3 py-2 border rounded-md">
-                </div>
-                <div>
-                    <label for="kilometrageMax" class="block text-sm font-medium text-gray-700">Kilométrage Max :</label>
-                    <input type="number" id="kilometrageMax" name="kilometrageMax" placeholder="Km Max" class="px-3 py-2 border rounded-md">
-                </div>
-                <div>
-                    <label for="anneeMiseCirculationMin" class="block text-sm font-medium text-gray-700">Année Min :</label>
-                    <input type="number" id="anneeMiseCirculationMin" name="anneeMiseCirculationMin" placeholder="Année Min" class="px-3 py-2 border rounded-md">
-                </div>
-                <div>
-                    <label for="typeCarburant" class="block text-sm font-medium text-gray-700">Carburant :</label>
-                    <select id="typeCarburant" name="typeCarburant" class="px-3 py-2 border rounded-md">
-                        <option value="">Tous</option>
-                        <option value="Essence">Essence</option>
-                        <option value="Diesel">Diesel</option>
-                        <option value="Électrique">Électrique</option>
-                        <option value="Hybride">Hybride</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="categorie" class="block text-sm font-medium text-gray-700">Catégorie :</label>
-                    <select id="categorie" name="categorie" class="px-3 py-2 border rounded-md">
-                        <option value="">Toutes</option>
-                        <option value="Compacte">Compacte</option>
-                        <option value="SUV">SUV</option>
-                        <option value="Berline">Berline</option>
-                        <option value="Luxe">Luxe</option>
-                        <option value="Utilitaire">Utilitaire</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="statut" class="block text-sm font-medium text-gray-700">Statut :</label>
-                    <select id="statut" name="statut" class="px-3 py-2 border rounded-md">
-                        <option value="">Tous</option>
-                        <option value="Disponible">Disponible</option>
-                        <option value="Louee">Louée</option>
-                        <option value="En maintenance">En maintenance</option>
-                    </select>
-                </div>
-                <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">Rechercher</button>
+                <input type="text" name="marque" placeholder="Rechercher par marque" class="form-input">
+                <input type="number" name="kilometrageMax" placeholder="Kilométrage max" class="form-input" step="0.1">
+                <input type="number" name="anneeMiseCirculationMin" placeholder="Année min (circ.)" class="form-input">
+                <select name="typeCarburant" class="form-select">
+                    <option value="">Type Carburant</option>
+                    <option value="Essence">Essence</option>
+                    <option value="Diesel">Diesel</option>
+                    <option value="Électrique">Électrique</option>
+                    <option value="Hybride">Hybride</option>
+                </select>
+                <select name="categorie" class="form-select">
+                    <option value="">Catégorie</option>
+                    <option value="Compacte">Compacte</option>
+                    <option value="SUV">SUV</option>
+                    <option value="Berline">Berline</option>
+                    <option value="Luxe">Luxe</option>
+                    <option value="Utilitaire">Utilitaire</option>
+                    <option value="Sportive">Sportive</option>
+                </select>
+                <select name="statut" class="form-select">
+                    <option value="">Statut</option>
+                    <option value="Disponible">Disponible</option>
+                    <option value="Louee">Louée</option>
+                    <option value="En maintenance">En maintenance</option>
+                </select>
+                <button type="submit" class="btn-secondary">
+                    <i class="fas fa-search mr-2"></i> Rechercher
+                </button>
             </form>
         </div>
 
-        <c:choose>
-            <c:when test="${not empty requestScope.voitures}">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Immatriculation</th>
-                            <th>Places</th>
-                            <th>Marque</th>
-                            <th>Modèle</th>
-                            <th>Date MEC</th>
-                            <th>Kilométrage</th>
-                            <th>Carburant</th>
-                            <th>Catégorie</th>
-                            <th>Prix/Jour</th>
-                            <th>Statut</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <c:forEach var="voiture" items="${requestScope.voitures}">
+        <div class="overflow-x-auto bg-white rounded-lg shadow">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Immatriculation</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Marque</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Modèle</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Places</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Circ.</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kilométrage</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Carburant</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Catégorie</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prix/Jour</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    <c:choose>
+                        <c:when test="${not empty requestScope.voitures}">
+                            <c:forEach var="voiture" items="${requestScope.voitures}">
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${voiture.immatriculation}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${voiture.marque}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${voiture.modele}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${voiture.nbPlaces}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${voiture.dateMiseCirculation}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${voiture.kilometrage} km</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${voiture.typeCarburant}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${voiture.categorie}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${voiture.prixLocationJ} €</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                                            <c:choose>
+                                                <c:when test="${voiture.statut eq 'Disponible'}">bg-green-100 text-green-800</c:when>
+                                                <c:when test="${voiture.statut eq 'Louee'}">bg-yellow-100 text-yellow-800</c:when>
+                                                <c:when test="${voiture.statut eq 'En maintenance'}">bg-red-100 text-red-800</c:when>
+                                                <c:otherwise>bg-gray-100 text-gray-800</c:otherwise>
+                                            </c:choose>
+                                        ">
+                                            ${voiture.statut}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <a href="voitures?action=edit&immatriculation=${voiture.immatriculation}" class="text-indigo-600 hover:text-indigo-900 mr-4">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="voitures?action=delete&immatriculation=${voiture.immatriculation}" class="text-red-600 hover:text-red-900"
+                                           onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette voiture ?');">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </c:forEach>
+                        </c:when>
+                        <c:otherwise>
                             <tr>
-                                <td>${voiture.immatriculation}</td>
-                                <td>${voiture.nbPlaces}</td>
-                                <td>${voiture.marque}</td>
-                                <td>${voiture.modele}</td>
-                                <td><fmt:formatDate value="${voiture.dateMiseCirculation}" pattern="dd/MM/yyyy" /></td>
-                                <td><fmt:formatNumber value="${voiture.kilometrage}" pattern="#,##0.0" /> km</td>
-                                <td>${voiture.typeCarburant}</td>
-                                <td>${voiture.categorie}</td>
-                                <td><fmt:formatNumber value="${voiture.prixLocationJ}" type="currency" currencySymbol="€" /></td>
-                                <td>${voiture.statut}</td>
-                                <td>
-                                    <a href="voitures?action=edit&immatriculation=${voiture.immatriculation}" class="text-blue-600 hover:underline mr-2">Modifier</a>
-                                    <a href="voitures?action=delete&immatriculation=${voiture.immatriculation}" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette voiture ?');" class="text-red-600 hover:underline">Supprimer</a>
+                                <td colspan="11" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                                    Aucune voiture trouvée.
                                 </td>
                             </tr>
-                        </c:forEach>
-                    </tbody>
-                </table>
-            </c:when>
-            <c:otherwise>
-                <p>Aucune voiture trouvée</p>
-            </c:otherwise>
-        </c:choose>
+                        </c:otherwise>
+                    </c:choose>
+                </tbody>
+            </table>
+        </div>
     </div>
 </body>
 </html>

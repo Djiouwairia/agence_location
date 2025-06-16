@@ -2,7 +2,7 @@ package com.agence.location.dao;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
-import javax.persistence.NoResultException;
+import java.util.Collections; // Import nécessaire
 import java.util.List;
 
 /**
@@ -48,22 +48,23 @@ public abstract class GenericDAO<T, ID> {
 
     /**
      * Récupère toutes les entités de ce type.
-     * @return Une liste de toutes les entités.
+     * @return Une liste de toutes les entités. Retourne une liste vide si aucune entité n'est trouvée ou en cas d'erreur.
      */
     public List<T> findAll() {
         EntityManager em = JPAUtil.getEntityManager(); // Obtient un EntityManager
-        List<T> entities = null;
+        List<T> entities = Collections.emptyList(); // Initialisé à une liste vide, PAS à null
         try {
             entities = em.createQuery("SELECT o FROM " + entityClass.getSimpleName() + " o", entityClass).getResultList();
         } catch (Exception e) {
             System.err.println("Erreur lors de la récupération de toutes les entités pour " + entityClass.getSimpleName() + ": " + e.getMessage());
             e.printStackTrace();
+            // En cas d'exception, 'entities' reste une liste vide, évitant les NullPointerException.
         } finally {
             if (em != null && em.isOpen()) {
                 em.close(); // Ferme l'EntityManager
             }
         }
-        return entities;
+        return entities; // Retourne toujours une List (vide ou avec des données), jamais null.
     }
 
     /**
