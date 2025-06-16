@@ -1,1 +1,3 @@
 /build/
+# Ignorer le fichier de configuration de persistance local
+agence_location/src/main/resources/META-INF/persistence.xml
