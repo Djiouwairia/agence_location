@@ -16,12 +16,15 @@
     <div class="dashboard-container">
         <h2 class="text-2xl font-bold mb-6">Gestion des Locations</h2>
 
-        <%-- Message de succès ou d'erreur --%>
-        <c:if test="${not empty requestScope.message}">
-            <p class="success-message">${requestScope.message}</p>
+        <%-- Message de succès depuis la session --%>
+        <c:if test="${not empty sessionScope.message}">
+            <p class="success-message">${sessionScope.message}</p>
+            <c:remove var="message" scope="session"/> <%-- Supprime le message après affichage --%>
         </c:if>
-        <c:if test="${not empty requestScope.error}">
-            <p class="error-message">${requestScope.error}</p>
+        <%-- Message d'erreur depuis la session --%>
+        <c:if test="${not empty sessionScope.error}">
+            <p class="error-message">${sessionScope.error}</p>
+            <c:remove var="error" scope="session"/> <%-- Supprime l'erreur après affichage --%>
         </c:if>
 
         <div class="mb-4">
@@ -70,7 +73,9 @@
                                     <c:if test="${location.statut eq 'En cours'}">
                                         <a href="locations?action=return&id=${location.id}" class="text-yellow-600 hover:underline mr-2">Retourner</a>
                                     </c:if>
-                                    <a href="locations?action=generateInvoice&locationId=${location.id}" class="text-purple-600 hover:underline">Facture PDF</a>
+                                    <c:if test="${location.statut eq 'Terminee'}">
+                                        <a href="locations?action=generateInvoice&locationId=${location.id}" class="text-purple-600 hover:underline">Facture PDF</a>
+                                    </c:if>
                                 </td>
                             </tr>
                         </c:forEach>
