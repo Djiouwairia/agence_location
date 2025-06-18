@@ -2,7 +2,8 @@ package com.agence.location.model;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.time.LocalDate; // Utilisez LocalDate pour les dates
+import java.time.LocalDate;
+import java.time.ZoneId; // Ajouté pour la conversion
 
 /**
  * Entité représentant une location de voiture.
@@ -76,113 +77,76 @@ public class Location implements Serializable {
         this.kilometrageDepart = kilometrageDepart;
     }
 
-    // --- Getters et Setters ---
+    // --- Getters et Setters existants (aucune modification nécessaire ici) ---
 
-    public Long getId() {
-        return id;
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public Client getClient() { return client; }
+    public void setClient(Client client) { this.client = client; }
+    public Voiture getVoiture() { return voiture; }
+    public void setVoiture(Voiture voiture) { this.voiture = voiture; }
+    public Utilisateur getUtilisateur() { return utilisateur; }
+    public void setUtilisateur(Utilisateur utilisateur) { this.utilisateur = utilisateur; }
+    public LocalDate getDateDebut() { return dateDebut; }
+    public void setDateDebut(LocalDate dateDebut) { this.dateDebut = dateDebut; }
+    public int getNombreJours() { return nombreJours; }
+    public void setNombreJours(int nombreJours) { this.nombreJours = nombreJours; }
+    public LocalDate getDateRetourPrevue() { return dateRetourPrevue; }
+    public void setDateRetourPrevue(LocalDate dateRetourPrevue) { this.dateRetourPrevue = dateRetourPrevue; }
+    public LocalDate getDateRetourReelle() { return dateRetourReelle; }
+    public void setDateRetourReelle(LocalDate dateRetourReelle) { this.dateRetourReelle = dateRetourReelle; }
+    public double getMontantTotal() { return montantTotal; }
+    public void setMontantTotal(double montantTotal) { this.montantTotal = montantTotal; }
+    public double getKilometrageDepart() { return kilometrageDepart; }
+    public void setKilometrageDepart(double kilometrageDepart) { this.kilometrageDepart = kilometrageDepart; }
+    public double getKilometrageRetour() { return kilometrageRetour; }
+    public void setKilometrageRetour(double kilometrageRetour) { this.kilometrageRetour = kilometrageRetour; }
+    public String getStatut() { return statut; }
+    public void setStatut(String statut) { this.statut = statut; }
+
+    // --- NOUVEAUX GETTERS POUR COMPATIBILITÉ JSTL fmt:formatDate ---
+
+    /**
+     * Convertit dateDebut (LocalDate) en java.util.Date pour compatibilité avec JSTL fmt:formatDate.
+     * @return java.util.Date de la date de début ou null si dateDebut est null.
+     */
+    public java.util.Date getLegacyDateDebut() {
+        if (this.dateDebut == null) {
+            return null;
+        }
+        // Conversion de LocalDate en java.util.Date
+        return java.util.Date.from(this.dateDebut.atStartOfDay(ZoneId.systemDefault()).toInstant());
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    /**
+     * Convertit dateRetourPrevue (LocalDate) en java.util.Date pour compatibilité avec JSTL fmt:formatDate.
+     * @return java.util.Date de la date de retour prévue ou null si dateRetourPrevue est null.
+     */
+    public java.util.Date getLegacyDateRetourPrevue() {
+        if (this.dateRetourPrevue == null) {
+            return null;
+        }
+        return java.util.Date.from(this.dateRetourPrevue.atStartOfDay(ZoneId.systemDefault()).toInstant());
     }
 
-    public Client getClient() {
-        return client;
-    }
-
-    public void setClient(Client client) {
-        this.client = client;
-    }
-
-    public Voiture getVoiture() {
-        return voiture;
-    }
-
-    public void setVoiture(Voiture voiture) {
-        this.voiture = voiture;
-    }
-
-    public Utilisateur getUtilisateur() {
-        return utilisateur;
-    }
-
-    public void setUtilisateur(Utilisateur utilisateur) {
-        this.utilisateur = utilisateur;
-    }
-
-    public LocalDate getDateDebut() {
-        return dateDebut;
-    }
-
-    public void setDateDebut(LocalDate dateDebut) {
-        this.dateDebut = dateDebut;
-    }
-
-    public int getNombreJours() {
-        return nombreJours;
-    }
-
-    public void setNombreJours(int nombreJours) {
-        this.nombreJours = nombreJours;
-    }
-
-    // CORRECTION : Renommé de getDateRetourPrevie() à getDateRetourPrevue()
-    public LocalDate getDateRetourPrevue() {
-        return dateRetourPrevue;
-    }
-
-    public void setDateRetourPrevue(LocalDate dateRetourPrevue) {
-        this.dateRetourPrevue = dateRetourPrevue;
-        // Ligne dupliquée supprimée : this.dateRetourPrevue = dateRetourPrevue;
-    }
-
-    public LocalDate getDateRetourReelle() {
-        return dateRetourReelle;
-    }
-
-    public void setDateRetourReelle(LocalDate dateRetourReelle) {
-        this.dateRetourReelle = dateRetourReelle;
-    }
-
-    public double getMontantTotal() {
-        return montantTotal;
-    }
-
-    public void setMontantTotal(double montantTotal) {
-        this.montantTotal = montantTotal;
-    }
-
-    public double getKilometrageDepart() {
-        return kilometrageDepart;
-    }
-
-    public void setKilometrageDepart(double kilometrageDepart) {
-        this.kilometrageDepart = kilometrageDepart;
-    }
-
-    public double getKilometrageRetour() {
-        return kilometrageRetour;
-    }
-
-    public void setKilometrageRetour(double kilometrageRetour) {
-        this.kilometrageRetour = kilometrageRetour;
-    }
-
-    public String getStatut() {
-        return statut;
-    }
-
-    public void setStatut(String statut) {
-        this.statut = statut;
+    /**
+     * Convertit dateRetourReelle (LocalDate) en java.util.Date pour compatibilité avec JSTL fmt:formatDate.
+     * @return java.util.Date de la date de retour réelle ou null si dateRetourReelle est null.
+     */
+    public java.util.Date getLegacyDateRetourReelle() {
+        if (this.dateRetourReelle == null) {
+            return null;
+        }
+        return java.util.Date.from(this.dateRetourReelle.atStartOfDay(ZoneId.systemDefault()).toInstant());
     }
 
     @Override
     public String toString() {
         return "Location{" +
-                "id=" + id +
-                ", dateDebut=" + dateDebut +
-                ", voiture=" + (voiture != null ? voiture.getImmatriculation() : "N/A") +
-                ", client=" + (client != null ? client.getNom() : "N/A") +
-                '}';
+               "id=" + id +
+               ", dateDebut=" + dateDebut +
+               ", voiture=" + (voiture != null ? voiture.getImmatriculation() : "N/A") +
+               ", client=" + (client != null ? client.getNom() : "N/A") +
+               '}';
     }
 }

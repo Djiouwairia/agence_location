@@ -56,14 +56,17 @@
                                 <td>${location.client.cin} - ${location.client.nom}</td>
                                 <td>${location.voiture.immatriculation} - ${location.voiture.marque}</td>
                                 <td>${location.utilisateur.nom}</td>
-                                <td><fmt:formatDate value="${location.dateDebut}" pattern="dd/MM/yyyy" /></td>
+                                <%-- MODIFICATION ICI : Utilisation de getLegacyDateDebut() --%>
+                                <td><fmt:formatDate value="${location.legacyDateDebut}" pattern="dd/MM/yyyy" /></td>
                                 <td>${location.nombreJours}</td>
-                                <td><fmt:formatDate value="${location.dateRetourPrevue}" pattern="dd/MM/yyyy" /></td>
+                                <%-- MODIFICATION ICI : Utilisation de getLegacyDateRetourPrevue() --%>
+                                <td><fmt:formatDate value="${location.legacyDateRetourPrevue}" pattern="dd/MM/yyyy" /></td>
                                 <td>
-                                    <c:if test="${location.dateRetourReelle != null}">
-                                        <fmt:formatDate value="${location.dateRetourReelle}" pattern="dd/MM/yyyy" />
+                                    <%-- MODIFICATION ICI : Utilisation de getLegacyDateRetourReelle() --%>
+                                    <c:if test="${location.legacyDateRetourReelle != null}">
+                                        <fmt:formatDate value="${location.legacyDateRetourReelle}" pattern="dd/MM/yyyy" />
                                     </c:if>
-                                    <c:if test="${location.dateRetourReelle == null}">
+                                    <c:if test="${location.legacyDateRetourReelle == null}">
                                         N/A
                                     </c:if>
                                 </td>
