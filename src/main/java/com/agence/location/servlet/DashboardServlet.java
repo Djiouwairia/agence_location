@@ -13,6 +13,7 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.logging.Logger; // Import pour Logger
 
 /**
  * Servlet pour afficher les tableaux de bord du chef d'agence et des gestionnaires.
@@ -21,12 +22,15 @@ import java.util.List;
 @WebServlet("/dashboard")
 public class DashboardServlet extends HttpServlet {
 
+    private static final Logger LOGGER = Logger.getLogger(DashboardServlet.class.getName()); // Initialisation du logger
+
     private ReportService reportService;
 
     @Override
     public void init() throws ServletException {
         super.init();
         reportService = new ReportService();
+        LOGGER.info("DashboardServlet initialized.");
     }
 
     @Override
@@ -41,10 +45,17 @@ public class DashboardServlet extends HttpServlet {
         Utilisateur utilisateur = (Utilisateur) session.getAttribute("utilisateur");
         String role = utilisateur.getRole();
 
+        request.setAttribute("utilisateur", utilisateur);
+        request.setAttribute("role", role);
+
+        LOGGER.info("DashboardServlet - doGet for user role: " + role);
+
         // Récupération des données du parking via ReportService pour les deux rôles
         request.setAttribute("nombreTotalVoitures", reportService.getTotalNumberOfCars());
         request.setAttribute("nombreVoituresDisponibles", reportService.getNumberOfAvailableCars());
         request.setAttribute("nombreVoituresLouees", reportService.getNumberOfRentedCars());
+        
+        // C'est ici que la méthode corrigée sera appelée
         request.setAttribute("voituresLoueesAvecInfosLocataires", reportService.getRentedCarsWithTenantInfo());
 
         if ("ChefAgence".equals(role)) {
