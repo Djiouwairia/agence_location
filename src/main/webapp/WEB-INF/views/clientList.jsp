@@ -8,6 +8,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Liste des Clients</title>
     <link rel="stylesheet" href="css/style.css">
+    <%-- AJOUTEZ CETTE LIGNE POUR FONT AWESOME --%>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
     <jsp:include page="navbar.jsp"/>
@@ -24,53 +26,70 @@
         </c:if>
 
         <div class="mb-4 flex justify-between items-center">
-            <a href="clients?action=new" class="inline-block bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700">Ajouter un nouveau client</a>
+            <div class="flex space-x-2"> <%-- MODIFIEZ CE DIV EN AJOUTANT class="flex space-x-2" --%>
+                <a href="clients?action=new" class="inline-block bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700"> <%-- J'ai aussi retiré le mr-2 du bouton vert, car space-x-2 le rend redondant --%>
+                    <i class="fas fa-plus-circle mr-2"></i> Ajouter un nouveau client
+                </a>
+                <%-- NOUVEAU BOUTON D'EXPORTATION PDF --%>
+                <a href="clients?action=exportPdf" class="inline-block bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700">
+                    <i class="fas fa-file-pdf mr-2"></i> Exporter PDF
+                </a>
+            </div>
             
             <%-- Formulaire de recherche --%>
             <form action="clients" method="get" class="flex space-x-2">
                 <input type="hidden" name="action" value="search">
                 <input type="text" name="searchCin" placeholder="Rechercher par CIN" class="px-3 py-2 border rounded-md">
                 <input type="text" name="searchNom" placeholder="Rechercher par Nom" class="px-3 py-2 border rounded-md">
-                <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">Rechercher</button>
+                <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">
+                    <i class="fas fa-search mr-2"></i> Rechercher
+                </button>
             </form>
         </div>
 
         <c:choose>
             <c:when test="${not empty requestScope.clients}">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>CIN</th>
-                            <th>Prénom</th>
-                            <th>Nom</th>
-                            <th>Sexe</th>
-                            <th>Adresse</th>
-                            <th>Email</th>
-                            <th>Téléphone</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <c:forEach var="client" items="${requestScope.clients}">
+                <%-- AJOUT DE CLASSES TAILWIND POUR UN MEILLEUR STYLE DE TABLE --%>
+                <div class="overflow-x-auto bg-white rounded-lg shadow">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
                             <tr>
-                                <td>${client.cin}</td>
-                                <td>${client.prenom}</td>
-                                <td>${client.nom}</td>
-                                <td>${client.sexe}</td>
-                                <td>${client.adresse}</td>
-                                <td>${client.email}</td>
-                                <td>${client.telephone}</td>
-                                <td>
-                                    <a href="clients?action=edit&cin=${client.cin}" class="text-blue-600 hover:underline mr-2">Modifier</a>
-                                    <a href="clients?action=delete&cin=${client.cin}" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce client ?');" class="text-red-600 hover:underline">Supprimer</a>
-                                </td>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CIN</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prénom</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nom</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sexe</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Adresse</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Téléphone</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                             </tr>
-                        </c:forEach>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <c:forEach var="client" items="${requestScope.clients}">
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${client.cin}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${client.prenom}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${client.nom}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${client.sexe}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${client.adresse}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${client.email}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${client.telephone}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <a href="clients?action=edit&cin=${client.cin}" class="text-indigo-600 hover:text-indigo-900 mr-4">
+                                            <i class="fas fa-edit"></i> Modifier
+                                        </a>
+                                        <a href="clients?action=delete&cin=${client.cin}" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce client ?');" class="text-red-600 hover:text-red-900">
+                                            <i class="fas fa-trash-alt"></i> Supprimer
+                                        </a>
+                                    </td>
+                                </tr>
+                            </c:forEach>
+                        </tbody>
+                    </table>
+                </div>
             </c:when>
             <c:otherwise>
-                <p>Aucun client trouvé.</p>
+                <p class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">Aucun client trouvé.</p>
             </c:otherwise>
         </c:choose>
     </div>

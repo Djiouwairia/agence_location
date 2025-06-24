@@ -17,9 +17,11 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.ZoneId;   // NOUVEL IMPORT NÉCESSAIRE
+import java.util.Date;     // NOUVEL IMPORT NÉCESSAIRE
 import java.time.format.DateTimeParseException;
 import java.util.List;
-import java.util.logging.Logger; // Import ajouté pour le logger
+import java.util.logging.Logger;
 
 /**
  * Servlet pour gérer les opérations liées aux locations de voitures.
@@ -28,7 +30,7 @@ import java.util.logging.Logger; // Import ajouté pour le logger
 @WebServlet("/locations")
 public class LocationServlet extends HttpServlet {
 
-    private static final Logger LOGGER = Logger.getLogger(LocationServlet.class.getName()); // Ajout du logger
+    private static final Logger LOGGER = Logger.getLogger(LocationServlet.class.getName());
 
     private ClientService clientService;
     private LocationService locationService;
@@ -67,8 +69,6 @@ public class LocationServlet extends HttpServlet {
                 }
                 String voitureImmat = request.getParameter("voitureImmat");
                 if (voitureImmat != null && !voitureImmat.isEmpty()) {
-                    // Utiliser getLocationByIdWithDetails si vous avez une méthode similaire pour Voiture par immatriculation
-                    // Sinon, si voitureService.getVoitureByImmatriculation(immat) est suffisant, le laisser
                     request.setAttribute("selectedVoiture", voitureService.getVoitureByImmatriculation(voitureImmat));
                 }
                 request.getRequestDispatcher("/WEB-INF/views/locationForm.jsp").forward(request, response);
@@ -76,13 +76,11 @@ public class LocationServlet extends HttpServlet {
             case "searchAvailableCars":
                 String marque = request.getParameter("marque");
                 String categorie = request.getParameter("categorie");
-                // Le service LocationService a déjà la bonne méthode searchAvailableCars
                 List<Voiture> availableCars = locationService.searchAvailableCars(marque, categorie);
                 request.setAttribute("availableCars", availableCars);
                 request.setAttribute("currentSearchClientCin", request.getParameter("clientCin"));
-                // Les paramètres de marque et catégorie doivent être repassés pour que le formulaire les conserve
-                request.setAttribute("param_marque", marque); // Ajout pour persister le champ marque
-                request.setAttribute("param_categorie", categorie); // Ajout pour persister le champ categorie
+                request.setAttribute("param_marque", marque);
+                request.setAttribute("param_categorie", categorie);
                 request.getRequestDispatcher("/WEB-INF/views/locationForm.jsp").forward(request, response);
                 break;
             case "return":
@@ -95,11 +93,31 @@ public class LocationServlet extends HttpServlet {
                     response.sendRedirect("locations?action=list");
                     return;
                 }
-                // CORRECTION: Utilisation de getLocationByIdWithDetails
                 Location locationToReturn = locationService.getLocationByIdWithDetails(locationIdToReturn);
                 if (locationToReturn != null && "En cours".equals(locationToReturn.getStatut())) {
                     request.setAttribute("locationToReturn", locationToReturn);
+
+                    // ***** DÉBUT DE LA CORRECTION : Conversion des LocalDate en java.util.Date *****
+                    Date utilDateDebut = null;
+                    if (locationToReturn.getDateDebut() != null) {
+                        utilDateDebut = Date.from(locationToReturn.getDateDebut().atStartOfDay(ZoneId.systemDefault()).toInstant());
+                    }
+
+                    Date utilDateRetourPrevue = null;
+                    if (locationToReturn.getDateRetourPrevue() != null) {
+                        utilDateRetourPrevue = Date.from(locationToReturn.getDateRetourPrevue().atStartOfDay(ZoneId.systemDefault()).toInstant());
+                    }
+
+                    // Définir les attributs convertis pour être utilisés dans la JSP
+                    request.setAttribute("utilDateDebut", utilDateDebut);
+                    request.setAttribute("utilDateRetourPrevue", utilDateRetourPrevue);
+                    // ***** FIN DE LA CORRECTION *****
+
                     request.getRequestDispatcher("/WEB-INF/views/returnCarForm.jsp").forward(request, response);
+                    // IMPORTANT : Assurez-vous que le nom du fichier JSP est bien "returnCarForm.jsp"
+                    // comme indiqué dans la stacktrace, et non "retur.jsp" que vous avez fourni.
+                    // Si votre fichier s'appelle "retur.jsp", changez la ligne ci-dessus en:
+                    // request.getRequestDispatcher("/WEB-INF/views/retur.jsp").forward(request, response);
                 } else {
                     LOGGER.warning("Location " + locationIdToReturn + " non trouvée ou déjà terminée pour le retour.");
                     session.setAttribute("error", "Location non trouvée ou déjà terminée.");
@@ -116,7 +134,6 @@ public class LocationServlet extends HttpServlet {
                     response.sendRedirect("locations?action=list");
                     return;
                 }
-                // CORRECTION: Utilisation de getLocationByIdWithDetails
                 Location invoiceLocation = locationService.getLocationByIdWithDetails(invoiceLocationId);
 
                 if (invoiceLocation != null) {
@@ -128,7 +145,7 @@ public class LocationServlet extends HttpServlet {
                     } catch (IOException e) {
                         LOGGER.severe("Erreur IOException lors de la génération de la facture pour ID " + invoiceLocationId + ": " + e.getMessage());
                         session.setAttribute("error", "Erreur lors de la génération de la facture (IO) : " + e.getMessage());
-                        response.sendRedirect("locations?action=list"); // Redirige plutôt que forward pour éviter double soumission
+                        response.sendRedirect("locations?action=list");
                     } catch (RuntimeException e) {
                         LOGGER.severe("Erreur RuntimeException lors de la génération de la facture pour ID " + invoiceLocationId + ": " + e.getMessage());
                         session.setAttribute("error", "Erreur inattendue lors de la génération de la facture : " + e.getMessage());
@@ -146,7 +163,6 @@ public class LocationServlet extends HttpServlet {
                 break;
             case "list":
             default:
-                // CORRECTION: Utilisation de getAllLocationsWithDetails
                 List<Location> locations = locationService.getAllLocationsWithDetails();
                 request.setAttribute("locations", locations);
                 request.getRequestDispatcher("/WEB-INF/views/locationList.jsp").forward(request, response);
@@ -172,32 +188,27 @@ public class LocationServlet extends HttpServlet {
             String voitureImmat = request.getParameter("voitureImmat");
             String nombreJoursStr = request.getParameter("nombreJours");
             String dateDebutStr = request.getParameter("dateDebut");
-            // Le kilométrage de départ est maintenant envoyé par le champ caché dans locationForm.jsp
             String kilometrageDepartStr = request.getParameter("kilometrageDepart");
 
             try {
                 int nombreJours = Integer.parseInt(nombreJoursStr);
                 LocalDate dateDebut = LocalDate.parse(dateDebutStr);
-                // Le kilometrageDepart est géré au niveau du service via la voiture
 
                 Location newLocation = locationService.createLocation(clientCin, voitureImmat, currentGestionnaire, dateDebut, nombreJours);
 
-                // Redirige vers le doGet pour générer la facture et la télécharger
-                session.setAttribute("message", "Location enregistrée avec succès !"); // Ajout d'un message de succès
+                session.setAttribute("message", "Location enregistrée avec succès !");
                 response.sendRedirect("locations?action=generateInvoice&locationId=" + newLocation.getId());
 
             } catch (NumberFormatException | DateTimeParseException e) {
                 LOGGER.severe("Erreur de format lors de l'ajout de location: " + e.getMessage());
                 request.setAttribute("error", "Format de données invalide pour les jours, la date ou le kilométrage : " + e.getMessage());
-                // Repopuler les attributs pour que le formulaire affiche les valeurs saisies
                 request.setAttribute("selectedClient", clientService.getClientByCin(clientCin));
                 request.setAttribute("selectedVoiture", voitureService.getVoitureByImmatriculation(voitureImmat));
                 request.getRequestDispatcher("/WEB-INF/views/locationForm.jsp").forward(request, response);
             } catch (RuntimeException e) {
                 LOGGER.severe("Erreur Runtime lors de l'enregistrement de la location: " + e.getMessage());
                 request.setAttribute("error", "Erreur lors de l'enregistrement de la location : " + e.getMessage());
-                e.printStackTrace(); // Pour voir la stack trace complète dans les logs du serveur
-                // Repopuler les attributs pour que le formulaire affiche les valeurs saisies
+                e.printStackTrace();
                 request.setAttribute("selectedClient", clientService.getClientByCin(clientCin));
                 request.setAttribute("selectedVoiture", voitureService.getVoitureByImmatriculation(voitureImmat));
                 request.getRequestDispatcher("/WEB-INF/views/locationForm.jsp").forward(request, response);
@@ -209,7 +220,7 @@ public class LocationServlet extends HttpServlet {
             } catch (NumberFormatException e) {
                 LOGGER.warning("ID de location invalide pour le retour (POST): " + request.getParameter("locationId"));
                 session.setAttribute("error", "ID de location invalide.");
-                response.sendRedirect("locations?action=list"); // Redirige en cas d'erreur grave
+                response.sendRedirect("locations?action=list");
                 return;
             }
 
@@ -225,15 +236,41 @@ public class LocationServlet extends HttpServlet {
             } catch (NumberFormatException e) {
                 LOGGER.severe("Format de kilométrage invalide lors du retour: " + e.getMessage());
                 request.setAttribute("error", "Format de kilométrage invalide.");
-                // CORRECTION: Utilisation de getLocationByIdWithDetails pour repopuler le formulaire
-                request.setAttribute("locationToReturn", locationService.getLocationByIdWithDetails(locationId));
+                // CORRECTION: Assurez-vous de repasser les dates converties si vous redirigez vers le même formulaire d'erreur
+                Location locationToRepopulate = locationService.getLocationByIdWithDetails(locationId);
+                if (locationToRepopulate != null) {
+                    request.setAttribute("locationToReturn", locationToRepopulate);
+                    Date utilDateDebut = null;
+                    if (locationToRepopulate.getDateDebut() != null) {
+                        utilDateDebut = Date.from(locationToRepopulate.getDateDebut().atStartOfDay(ZoneId.systemDefault()).toInstant());
+                    }
+                    Date utilDateRetourPrevue = null;
+                    if (locationToRepopulate.getDateRetourPrevue() != null) {
+                        utilDateRetourPrevue = Date.from(locationToRepopulate.getDateRetourPrevue().atStartOfDay(ZoneId.systemDefault()).toInstant());
+                    }
+                    request.setAttribute("utilDateDebut", utilDateDebut);
+                    request.setAttribute("utilDateRetourPrevue", utilDateRetourPrevue);
+                }
                 request.getRequestDispatcher("/WEB-INF/views/returnCarForm.jsp").forward(request, response);
             } catch (RuntimeException e) {
                 LOGGER.severe("Erreur Runtime lors de l'enregistrement du retour: " + e.getMessage());
                 request.setAttribute("error", "Erreur lors de l'enregistrement du retour : " + e.getMessage());
                 e.printStackTrace();
-                // CORRECTION: Utilisation de getLocationByIdWithDetails pour repopuler le formulaire
-                request.setAttribute("locationToReturn", locationService.getLocationByIdWithDetails(locationId));
+                // CORRECTION: Assurez-vous de repasser les dates converties si vous redirigez vers le même formulaire d'erreur
+                Location locationToRepopulate = locationService.getLocationByIdWithDetails(locationId);
+                if (locationToRepopulate != null) {
+                    request.setAttribute("locationToReturn", locationToRepopulate);
+                    Date utilDateDebut = null;
+                    if (locationToRepopulate.getDateDebut() != null) {
+                        utilDateDebut = Date.from(locationToRepopulate.getDateDebut().atStartOfDay(ZoneId.systemDefault()).toInstant());
+                    }
+                    Date utilDateRetourPrevue = null;
+                    if (locationToRepopulate.getDateRetourPrevue() != null) {
+                        utilDateRetourPrevue = Date.from(locationToRepopulate.getDateRetourPrevue().atStartOfDay(ZoneId.systemDefault()).toInstant());
+                    }
+                    request.setAttribute("utilDateDebut", utilDateDebut);
+                    request.setAttribute("utilDateRetourPrevue", utilDateRetourPrevue);
+                }
                 request.getRequestDispatcher("/WEB-INF/views/returnCarForm.jsp").forward(request, response);
             }
         }

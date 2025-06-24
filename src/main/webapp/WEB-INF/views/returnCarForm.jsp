@@ -34,8 +34,10 @@
                     <p><strong>ID Location :</strong> ${locationToReturn.id}</p>
                     <p><strong>Client :</strong> ${locationToReturn.client.prenom} ${locationToReturn.client.nom} (CIN: ${locationToReturn.client.cin})</p>
                     <p><strong>Voiture :</strong> ${locationToReturn.voiture.marque} ${locationToReturn.voiture.modele} (Immat: ${locationToReturn.voiture.immatriculation})</p>
-                    <p><strong>Date Début :</strong> <fmt:formatDate value="${locationToReturn.dateDebut}" pattern="dd/MM/yyyy" /></p>
-                    <p><strong>Date Retour Prévue :</strong> <fmt:formatDate value="${locationToReturn.dateRetourPrevue}" pattern="dd/MM/yyyy" /></p>
+                    <%-- ***** MODIFICATION ICI ***** --%>
+                    <p><strong>Date Début :</strong> <fmt:formatDate value="${utilDateDebut}" pattern="dd/MM/yyyy" /></p>
+                    <p><strong>Date Retour Prévue :</strong> <fmt:formatDate value="${utilDateRetourPrevue}" pattern="dd/MM/yyyy" /></p>
+                    <%-- ***** FIN DE LA MODIFICATION ***** --%>
                     <p><strong>Kilométrage au départ :</strong> ${locationToReturn.kilometrageDepart} km</p>
                     <p><strong>Kilométrage actuel voiture :</strong> ${locationToReturn.voiture.kilometrage} km</p>
                 </div>

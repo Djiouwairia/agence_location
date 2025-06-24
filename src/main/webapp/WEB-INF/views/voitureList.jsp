@@ -25,9 +25,11 @@
         </c:if>
 
         <div class="flex justify-between items-center mb-4">
-            <a href="voitures?action=new" class="btn-primary">
-                <i class="fas fa-plus-circle mr-2"></i> Ajouter une nouvelle voiture
+            <%-- DÉBUT DE LA MODIFICATION ICI --%>
+            <a href="voitures?action=new" class="inline-block bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700">
+                <i class="fas fa-plus-circle mr-2"></i>Ajouter une voiture
             </a>
+            <%-- FIN DE LA MODIFICATION --%>
             <form action="voitures" method="get" class="flex space-x-2">
                 <input type="hidden" name="action" value="search">
                 <input type="text" name="marque" placeholder="Rechercher par marque" class="form-input">
