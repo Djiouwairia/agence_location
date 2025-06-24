@@ -395,3 +395,11 @@ tr:nth-child(even) {
 .search-results div:hover {
     background-color: #f7fafc;
 }
+
+
+/* Styles spécifiques pour les boutons "Ajouter client" et "Exporter PDF" */
+.client-actions-group {
+    display: flex;
+    gap: 0.5rem; /* C'est l'équivalent de Tailwind space-x-2 */
+    /* Vous pouvez ajuster gap si 0.5rem ne donne pas l'espacement voulu */
+}

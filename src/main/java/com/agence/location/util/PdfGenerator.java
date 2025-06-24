@@ -26,18 +26,10 @@ import java.util.List;
 
 public class PdfGenerator {
 
-    private static PdfFont timesRomanNormal;
-    private static PdfFont timesRomanBold;
-
-    static {
-        try {
-            timesRomanNormal = PdfFontFactory.createFont(StandardFonts.TIMES_ROMAN);
-            timesRomanBold = PdfFontFactory.createFont(StandardFonts.TIMES_BOLD);
-        } catch (IOException e) {
-            System.err.println("Erreur lors du chargement des polices iText: " + e.getMessage());
-            throw new RuntimeException("Impossible de charger les polices iText", e);
-        }
-    }
+    // SUPPRIMER CES DÉCLARATIONS STATIC ET LE BLOC STATIC{}
+    // private static PdfFont timesRomanNormal;
+    // private static PdfFont timesRomanBold;
+    // static { ... } // Ce bloc doit être supprimé
 
     private static float CAT_FONT_SIZE = 18f;
     private static float SUB_FONT_SIZE = 16f;
@@ -55,6 +47,10 @@ public class PdfGenerator {
         PdfWriter writer = new PdfWriter(os);
         PdfDocument pdf = new PdfDocument(writer);
         Document document = new Document(pdf);
+
+        // INITIALISATION DES POLICES À L'INTÉRIEUR DE LA MÉTHODE
+        PdfFont timesRomanNormal = PdfFontFactory.createFont(StandardFonts.TIMES_ROMAN);
+        PdfFont timesRomanBold = PdfFontFactory.createFont(StandardFonts.TIMES_BOLD);
 
         Paragraph title = new Paragraph("FACTURE DE LOCATION DE VOITURE")
                                  .setFont(timesRomanBold)
@@ -116,7 +112,6 @@ public class PdfGenerator {
                                  .setMarginTop(10f)
                                  .setMarginBottom(10f);
 
-        // Pas de couleur de fond pour les cellules de facture par défaut, laissez null
         addCell(table, "Description", timesRomanBold, SMALL_BOLD_FONT_SIZE, TextAlignment.CENTER, true, null);
         addCell(table, "Quantité", timesRomanBold, SMALL_BOLD_FONT_SIZE, TextAlignment.CENTER, true, null);
         addCell(table, "Prix Unitaire", timesRomanBold, SMALL_BOLD_FONT_SIZE, TextAlignment.CENTER, true, null);
@@ -163,37 +158,36 @@ public class PdfGenerator {
         PdfDocument pdf = new PdfDocument(writer);
         Document document = new Document(pdf);
 
+        // INITIALISATION DES POLICES À L'INTÉRIEUR DE LA MÉTHODE
+        PdfFont timesRomanNormal = PdfFontFactory.createFont(StandardFonts.TIMES_ROMAN);
+        PdfFont timesRomanBold = PdfFontFactory.createFont(StandardFonts.TIMES_BOLD);
+
         document.add(new Paragraph("LISTE DES CLIENTS DE L'AGENCE")
                                  .setFont(timesRomanBold)
                                  .setFontSize(CAT_FONT_SIZE)
                                  .setTextAlignment(TextAlignment.CENTER));
         document.add(new Paragraph(""));
 
-        // MODIFICATION ICI: 7 colonnes pour correspondre à la JSP (CIN, Prénom, Nom, Sexe, Adresse, Email, Téléphone)
-        // Ajustez les largeurs relatives si nécessaire. La somme des floats peut être n'importe quoi, c'est leur ratio qui compte.
         Table table = new Table(UnitValue.createPercentArray(new float[]{1.2f, 1.5f, 1.5f, 0.8f, 2.5f, 2.0f, 1.5f})) // Ajusté à 7 colonnes
                                  .setWidth(UnitValue.createPercentValue(100))
                                  .setMarginTop(10f);
 
-        // Définissez une couleur de fond pour les en-têtes (similaire au gris de Tailwind)
-        DeviceRgb headerBgColor = new DeviceRgb(74, 85, 104); // Un gris foncé (par exemple, bg-gray-700)
+        DeviceRgb headerBgColor = new DeviceRgb(74, 85, 104);
 
-        // En-têtes du tableau (MAJ pour inclure 'Adresse' et couleur de fond)
         addCell(table, "CIN", timesRomanBold, SMALL_BOLD_FONT_SIZE, TextAlignment.CENTER, true, headerBgColor);
         addCell(table, "Prénom", timesRomanBold, SMALL_BOLD_FONT_SIZE, TextAlignment.CENTER, true, headerBgColor);
         addCell(table, "Nom", timesRomanBold, SMALL_BOLD_FONT_SIZE, TextAlignment.CENTER, true, headerBgColor);
         addCell(table, "Sexe", timesRomanBold, SMALL_BOLD_FONT_SIZE, TextAlignment.CENTER, true, headerBgColor);
-        addCell(table, "Adresse", timesRomanBold, SMALL_BOLD_FONT_SIZE, TextAlignment.CENTER, true, headerBgColor); // NOUVELLE COLONNE
+        addCell(table, "Adresse", timesRomanBold, SMALL_BOLD_FONT_SIZE, TextAlignment.CENTER, true, headerBgColor);
         addCell(table, "Email", timesRomanBold, SMALL_BOLD_FONT_SIZE, TextAlignment.CENTER, true, headerBgColor);
         addCell(table, "Téléphone", timesRomanBold, SMALL_BOLD_FONT_SIZE, TextAlignment.CENTER, true, headerBgColor);
 
-        // Données des clients (MAJ pour inclure 'Adresse')
         for (Client client : clients) {
             addCell(table, client.getCin(), timesRomanNormal, NORMAL_FONT_SIZE, TextAlignment.LEFT, false, null);
             addCell(table, client.getPrenom(), timesRomanNormal, NORMAL_FONT_SIZE, TextAlignment.LEFT, false, null);
             addCell(table, client.getNom(), timesRomanNormal, NORMAL_FONT_SIZE, TextAlignment.LEFT, false, null);
             addCell(table, client.getSexe(), timesRomanNormal, NORMAL_FONT_SIZE, TextAlignment.CENTER, false, null);
-            addCell(table, client.getAdresse(), timesRomanNormal, NORMAL_FONT_SIZE, TextAlignment.LEFT, false, null); // NOUVELLE COLONNE
+            addCell(table, client.getAdresse(), timesRomanNormal, NORMAL_FONT_SIZE, TextAlignment.LEFT, false, null);
             addCell(table, client.getEmail(), timesRomanNormal, NORMAL_FONT_SIZE, TextAlignment.LEFT, false, null);
             addCell(table, client.getTelephone(), timesRomanNormal, NORMAL_FONT_SIZE, TextAlignment.LEFT, false, null);
         }
@@ -213,6 +207,10 @@ public class PdfGenerator {
         PdfDocument pdf = new PdfDocument(writer);
         Document document = new Document(pdf);
 
+        // INITIALISATION DES POLICES À L'INTÉRIEUR DE LA MÉTHODE
+        PdfFont timesRomanNormal = PdfFontFactory.createFont(StandardFonts.TIMES_ROMAN);
+        PdfFont timesRomanBold = PdfFontFactory.createFont(StandardFonts.TIMES_BOLD);
+
         document.add(new Paragraph("LISTE DES VOITURES LOUÉES AVEC INFORMATIONS SUR LES LOCATAIRES")
                                  .setFont(timesRomanBold)
                                  .setFontSize(CAT_FONT_SIZE)
@@ -223,7 +221,6 @@ public class PdfGenerator {
                                  .setWidth(UnitValue.createPercentValue(100))
                                  .setMarginTop(10f);
 
-        // Définissez une couleur de fond pour les en-têtes (similaire au gris de Tailwind)
         DeviceRgb headerBgColor = new DeviceRgb(74, 85, 104);
 
         addCell(table, "Immat.", timesRomanBold, SMALL_BOLD_FONT_SIZE, TextAlignment.CENTER, true, headerBgColor);

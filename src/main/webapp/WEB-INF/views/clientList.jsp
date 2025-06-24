@@ -26,15 +26,13 @@
         </c:if>
 
         <div class="mb-4 flex justify-between items-center">
-            <div class="flex space-x-2"> <%-- MODIFIEZ CE DIV EN AJOUTANT class="flex space-x-2" --%>
-                <a href="clients?action=new" class="inline-block bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700"> <%-- J'ai aussi retiré le mr-2 du bouton vert, car space-x-2 le rend redondant --%>
+            <%-- MODIFICATION IMPORTANTE ICI : Utilisation de la nouvelle classe CSS --%>
+            <div class="client-actions-group"> <%-- Remplacez "flex space-x-2" par "client-actions-group" --%>
+                <a href="clients?action=new" class="inline-block bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700"> <%-- Assurez-vous que mr-2 est retiré ici --%>
                     <i class="fas fa-plus-circle mr-2"></i> Ajouter un nouveau client
                 </a>
                 <%-- NOUVEAU BOUTON D'EXPORTATION PDF --%>
-                <a href="clients?action=exportPdf" class="inline-block bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700">
-                    <i class="fas fa-file-pdf mr-2"></i> Exporter PDF
-                </a>
-            </div>
+<a href="clients?action=exportPdf" class="inline-block bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700"><i class="fas fa-download mr-2"></i> Télécharger</a>            </div>
             
             <%-- Formulaire de recherche --%>
             <form action="clients" method="get" class="flex space-x-2">
