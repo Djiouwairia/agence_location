@@ -3,6 +3,7 @@ package com.agence.location.util;
 import com.agence.location.model.Client;
 import com.agence.location.model.Location;
 import com.agence.location.model.Voiture;
+import com.agence.location.model.Utilisateur; // Importez Utilisateur si vous l'utilisez dans votre modèle Location
 
 // IMPORTS ITEXT 8.x
 import com.itextpdf.kernel.pdf.PdfDocument;
@@ -16,7 +17,7 @@ import com.itextpdf.layout.properties.UnitValue;
 import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.font.PdfFontFactory;
 import com.itextpdf.io.font.constants.StandardFonts;
-import com.itextpdf.kernel.colors.DeviceRgb; // Importez DeviceRgb pour les couleurs
+import com.itextpdf.kernel.colors.DeviceRgb;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -25,11 +26,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class PdfGenerator {
-
-    // SUPPRIMER CES DÉCLARATIONS STATIC ET LE BLOC STATIC{}
-    // private static PdfFont timesRomanNormal;
-    // private static PdfFont timesRomanBold;
-    // static { ... } // Ce bloc doit être supprimé
 
     private static float CAT_FONT_SIZE = 18f;
     private static float SUB_FONT_SIZE = 16f;
@@ -48,7 +44,6 @@ public class PdfGenerator {
         PdfDocument pdf = new PdfDocument(writer);
         Document document = new Document(pdf);
 
-        // INITIALISATION DES POLICES À L'INTÉRIEUR DE LA MÉTHODE
         PdfFont timesRomanNormal = PdfFontFactory.createFont(StandardFonts.TIMES_ROMAN);
         PdfFont timesRomanBold = PdfFontFactory.createFont(StandardFonts.TIMES_BOLD);
 
@@ -197,53 +192,89 @@ public class PdfGenerator {
     }
 
     /**
-     * Génère une liste PDF de voitures louées avec des informations sur les locataires.
+     * Génère une liste PDF des locations.
      * @param locations La liste des locations (qui inclut les voitures louées et les clients).
      * @param os L'OutputStream où le PDF sera écrit.
      * @throws IOException Si une erreur d'entrée/sortie survient.
      */
-    public static void generateRentedCarsListPdf(List<Location> locations, OutputStream os) throws IOException {
+    public static void generateLocationsListPdf(List<Location> locations, OutputStream os) throws IOException {
         PdfWriter writer = new PdfWriter(os);
         PdfDocument pdf = new PdfDocument(writer);
-        Document document = new Document(pdf);
+        Document document = new Document(pdf); // Par défaut A4 portrait
+
+        // Pour une table avec beaucoup de colonnes, passer en paysage est une bonne idée
+        // document = new Document(pdf, PageSize.A4.rotate()); // Optionnel, si la table est trop large
 
         // INITIALISATION DES POLICES À L'INTÉRIEUR DE LA MÉTHODE
         PdfFont timesRomanNormal = PdfFontFactory.createFont(StandardFonts.TIMES_ROMAN);
         PdfFont timesRomanBold = PdfFontFactory.createFont(StandardFonts.TIMES_BOLD);
 
-        document.add(new Paragraph("LISTE DES VOITURES LOUÉES AVEC INFORMATIONS SUR LES LOCATAIRES")
+        document.add(new Paragraph("LISTE DES LOCATIONS DE VOITURE")
                                  .setFont(timesRomanBold)
                                  .setFontSize(CAT_FONT_SIZE)
                                  .setTextAlignment(TextAlignment.CENTER));
-        document.add(new Paragraph(""));
+        document.add(new Paragraph("")); // Ligne vide
 
-        Table table = new Table(UnitValue.createPercentArray(new float[]{1, 1, 1, 2, 1, 1, 1})) // 7 colonnes
+        if (locations == null || locations.isEmpty()) {
+            document.add(new Paragraph("Aucune location à afficher.")
+                                 .setFont(timesRomanNormal)
+                                 .setFontSize(NORMAL_FONT_SIZE)
+                                 .setTextAlignment(TextAlignment.CENTER));
+        } else {
+            // Définir les largeurs des colonnes pour 10 colonnes (doit correspondre au nombre de headers)
+            // Vous devrez ajuster ces valeurs float pour qu'elles s'adaptent au mieux à votre contenu
+            Table table = new Table(UnitValue.createPercentArray(new float[]{
+                                            0.5f,  // ID
+                                            1.5f,  // Client (CIN)
+                                            1.5f,  // Voiture (Immat.)
+                                            1.0f,  // Gestionnaire
+                                            1.0f,  // Date Début
+                                            0.5f,  // Jours
+                                            1.0f,  // Date Retour Prévue
+                                            1.0f,  // Date Retour Réelle
+                                            0.8f,  // Montant Total
+                                            0.7f   // Statut
+                                         }))
                                  .setWidth(UnitValue.createPercentValue(100))
                                  .setMarginTop(10f);
 
-        DeviceRgb headerBgColor = new DeviceRgb(74, 85, 104);
+            DeviceRgb headerBgColor = new DeviceRgb(74, 85, 104); // Gris foncé/bleu pour les en-têtes
 
-        addCell(table, "Immat.", timesRomanBold, SMALL_BOLD_FONT_SIZE, TextAlignment.CENTER, true, headerBgColor);
-        addCell(table, "Marque", timesRomanBold, SMALL_BOLD_FONT_SIZE, TextAlignment.CENTER, true, headerBgColor);
-        addCell(table, "Modèle", timesRomanBold, SMALL_BOLD_FONT_SIZE, TextAlignment.CENTER, true, headerBgColor);
-        addCell(table, "Locataire", timesRomanBold, SMALL_BOLD_FONT_SIZE, TextAlignment.CENTER, true, headerBgColor);
-        addCell(table, "CIN Locataire", timesRomanBold, SMALL_BOLD_FONT_SIZE, TextAlignment.CENTER, true, headerBgColor);
-        addCell(table, "Date Début", timesRomanBold, SMALL_BOLD_FONT_SIZE, TextAlignment.CENTER, true, headerBgColor);
-        addCell(table, "Jours", timesRomanBold, SMALL_BOLD_FONT_SIZE, TextAlignment.CENTER, true, headerBgColor);
+            // En-têtes de la table
+            addCell(table, "ID", timesRomanBold, SMALL_BOLD_FONT_SIZE, TextAlignment.CENTER, true, headerBgColor);
+            addCell(table, "Client (CIN)", timesRomanBold, SMALL_BOLD_FONT_SIZE, TextAlignment.CENTER, true, headerBgColor);
+            addCell(table, "Voiture (Immat.)", timesRomanBold, SMALL_BOLD_FONT_SIZE, TextAlignment.CENTER, true, headerBgColor);
+            addCell(table, "Gestionnaire", timesRomanBold, SMALL_BOLD_FONT_SIZE, TextAlignment.CENTER, true, headerBgColor);
+            addCell(table, "Date Début", timesRomanBold, SMALL_BOLD_FONT_SIZE, TextAlignment.CENTER, true, headerBgColor);
+            addCell(table, "Jours", timesRomanBold, SMALL_BOLD_FONT_SIZE, TextAlignment.CENTER, true, headerBgColor);
+            addCell(table, "Retour Prévue", timesRomanBold, SMALL_BOLD_FONT_SIZE, TextAlignment.CENTER, true, headerBgColor);
+            addCell(table, "Retour Réelle", timesRomanBold, SMALL_BOLD_FONT_SIZE, TextAlignment.CENTER, true, headerBgColor);
+            addCell(table, "Montant Total", timesRomanBold, SMALL_BOLD_FONT_SIZE, TextAlignment.CENTER, true, headerBgColor);
+            addCell(table, "Statut", timesRomanBold, SMALL_BOLD_FONT_SIZE, TextAlignment.CENTER, true, headerBgColor);
 
-        for (Location loc : locations) {
-            Voiture v = loc.getVoiture();
-            Client c = loc.getClient();
+            // Données
+            for (Location loc : locations) {
+                // Client
+                String clientInfo = (loc.getClient() != null && loc.getClient().getCin() != null && loc.getClient().getNom() != null) ? loc.getClient().getCin() + " - " + loc.getClient().getNom() : "N/A";
+                // Voiture
+                String voitureInfo = (loc.getVoiture() != null && loc.getVoiture().getImmatriculation() != null && loc.getVoiture().getMarque() != null) ? loc.getVoiture().getImmatriculation() + " - " + loc.getVoiture().getMarque() : "N/A";
+                // Gestionnaire
+                String gestionnaireInfo = (loc.getUtilisateur() != null && loc.getUtilisateur().getNom() != null) ? loc.getUtilisateur().getNom() : "N/A";
 
-            addCell(table, v.getImmatriculation(), timesRomanNormal, NORMAL_FONT_SIZE, TextAlignment.LEFT, false, null);
-            addCell(table, v.getMarque(), timesRomanNormal, NORMAL_FONT_SIZE, TextAlignment.LEFT, false, null);
-            addCell(table, v.getModele(), timesRomanNormal, NORMAL_FONT_SIZE, TextAlignment.LEFT, false, null);
-            addCell(table, c.getPrenom() + " " + c.getNom(), timesRomanNormal, NORMAL_FONT_SIZE, TextAlignment.LEFT, false, null);
-            addCell(table, c.getCin(), timesRomanNormal, NORMAL_FONT_SIZE, TextAlignment.LEFT, false, null);
-            addCell(table, loc.getDateDebut().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), timesRomanNormal, NORMAL_FONT_SIZE, TextAlignment.CENTER, false, null);
-            addCell(table, String.valueOf(loc.getNombreJours()), timesRomanNormal, NORMAL_FONT_SIZE, TextAlignment.CENTER, false, null);
+                addCell(table, String.valueOf(loc.getId()), timesRomanNormal, NORMAL_FONT_SIZE, TextAlignment.LEFT, false, null);
+                addCell(table, clientInfo, timesRomanNormal, NORMAL_FONT_SIZE, TextAlignment.LEFT, false, null);
+                addCell(table, voitureInfo, timesRomanNormal, NORMAL_FONT_SIZE, TextAlignment.LEFT, false, null);
+                addCell(table, gestionnaireInfo, timesRomanNormal, NORMAL_FONT_SIZE, TextAlignment.LEFT, false, null);
+                addCell(table, loc.getDateDebut() != null ? loc.getDateDebut().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "N/A", timesRomanNormal, NORMAL_FONT_SIZE, TextAlignment.CENTER, false, null);
+                addCell(table, String.valueOf(loc.getNombreJours()), timesRomanNormal, NORMAL_FONT_SIZE, TextAlignment.CENTER, false, null);
+                addCell(table, loc.getDateRetourPrevue() != null ? loc.getDateRetourPrevue().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "N/A", timesRomanNormal, NORMAL_FONT_SIZE, TextAlignment.CENTER, false, null);
+                addCell(table, loc.getDateRetourReelle() != null ? loc.getDateRetourReelle().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "N/A", timesRomanNormal, NORMAL_FONT_SIZE, TextAlignment.CENTER, false, null);
+                addCell(table, String.format("%.2f", loc.getMontantTotal()) + " €", timesRomanNormal, NORMAL_FONT_SIZE, TextAlignment.RIGHT, false, null);
+                addCell(table, loc.getStatut(), timesRomanNormal, NORMAL_FONT_SIZE, TextAlignment.CENTER, false, null);
+            }
+            document.add(table);
         }
-        document.add(table);
+
         document.close();
         pdf.close();
     }
@@ -264,7 +295,6 @@ public class PdfGenerator {
         if (bgColor != null) {
             cell.setBackgroundColor(bgColor);
             if (isHeader) {
-                // Pour les en-têtes avec un fond sombre, le texte doit être blanc pour la lisibilité
                 cell.setFontColor(new DeviceRgb(255, 255, 255));
             }
         }

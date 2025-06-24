@@ -111,9 +111,11 @@
                 <button type="submit" class="bg-green-600 text-white py-2 px-6 rounded-md hover:bg-green-700">
                     Enregistrer
                 </button>
-                <a href="<c:url value="/clients"/>" class="bg-gray-500 text-white py-2 px-6 rounded-md hover:bg-gray-600">
+                <%-- MODIFICATION ICI : Transformation du lien "Annuler" en bouton --%>
+                <button type="button" onclick="window.location.href='<c:url value="/clients"/>'"
+                        class="bg-green-600 text-white py-2 px-6 rounded-md hover:bg-green-700">
                     Annuler
-                </a>
+                </button>
             </div>
         </form>
     </div>

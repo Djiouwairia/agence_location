@@ -9,6 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Liste des Locations</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
     <jsp:include page="navbar.jsp"/>
@@ -27,8 +28,11 @@
             <c:remove var="error" scope="session"/> <%-- Supprime l'erreur après affichage --%>
         </c:if>
 
-        <div class="mb-4">
+        <div class="mb-4 flex space-x-2"> <%-- Ajout de flex et space-x-2 pour espacer les boutons --%>
             <a href="locations?action=new" class="inline-block bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700">Enregistrer une nouvelle location</a>
+            
+            <%-- NOUVEAU BOUTON POUR TÉLÉCHARGER LA LISTE DES LOCATIONS --%>
+            <a href="locations?action=exportList" class="inline-block bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">Télécharger la liste PDF</a>
         </div>
 
         <c:choose>
@@ -56,13 +60,10 @@
                                 <td>${location.client.cin} - ${location.client.nom}</td>
                                 <td>${location.voiture.immatriculation} - ${location.voiture.marque}</td>
                                 <td>${location.utilisateur.nom}</td>
-                                <%-- MODIFICATION ICI : Utilisation de getLegacyDateDebut() --%>
                                 <td><fmt:formatDate value="${location.legacyDateDebut}" pattern="dd/MM/yyyy" /></td>
                                 <td>${location.nombreJours}</td>
-                                <%-- MODIFICATION ICI : Utilisation de getLegacyDateRetourPrevue() --%>
                                 <td><fmt:formatDate value="${location.legacyDateRetourPrevue}" pattern="dd/MM/yyyy" /></td>
                                 <td>
-                                    <%-- MODIFICATION ICI : Utilisation de getLegacyDateRetourReelle() --%>
                                     <c:if test="${location.legacyDateRetourReelle != null}">
                                         <fmt:formatDate value="${location.legacyDateRetourReelle}" pattern="dd/MM/yyyy" />
                                     </c:if>

@@ -150,6 +150,30 @@ public class LocationServlet extends HttpServlet {
                     response.sendRedirect("locations?action=list");
                 }
                 break;
+
+            // NOUVEAU CASE POUR EXPORTER LA LISTE DES LOCATIONS
+            case "exportList":
+                try {
+                    List<Location> allLocations = locationService.getAllLocationsWithDetails();
+                    response.setContentType("application/pdf");
+                    response.setHeader("Content-Disposition", "attachment; filename=liste_locations_" + LocalDate.now() + ".pdf");
+                    PdfGenerator.generateLocationsListPdf(allLocations, response.getOutputStream()); // Appel à la nouvelle méthode
+                    LOGGER.info("Liste des locations exportée en PDF.");
+                } catch (IOException e) {
+                    LOGGER.severe("Erreur lors de l'exportation de la liste des locations: " + e.getMessage());
+                    session.setAttribute("error", "Erreur lors de l'exportation de la liste des locations : " + e.getMessage());
+                    response.sendRedirect("locations?action=list");
+                } catch (RuntimeException e) {
+                    LOGGER.severe("Erreur Runtime lors de l'exportation de la liste des locations: " + e.getMessage());
+                    session.setAttribute("error", "Erreur inattendue lors de l'exportation de la liste des locations : " + e.getMessage());
+                    response.sendRedirect("locations?action=list");
+                } catch (Exception e) {
+                    LOGGER.severe("Erreur générale lors de l'exportation de la liste des locations: " + e.getMessage());
+                    session.setAttribute("error", "Erreur inattendue lors de l'exportation de la liste des locations : " + e.getMessage());
+                    response.sendRedirect("locations?action=list");
+                }
+                return; // Important après la génération du PDF
+
             case "list":
             default:
                 List<Location> locations = locationService.getAllLocationsWithDetails();
@@ -177,10 +201,6 @@ public class LocationServlet extends HttpServlet {
             String voitureImmat = request.getParameter("voitureImmat");
             String nombreJoursStr = request.getParameter("nombreJours");
             String dateDebutStr = request.getParameter("dateDebut");
-            // REMARQUE: "kilometrageDepart" n'est pas un champ dans locationForm.jsp pour l'ajout.
-            // Il faudrait l'ajouter si vous voulez le capturer au moment de la création de la location.
-            // Actuellement, il est passé à 0.0 dans LocationService.createLocation.
-            // String kilometrageDepartStr = request.getParameter("kilometrageDepart"); // Non utilisé ici
 
             try {
                 int nombreJours = Integer.parseInt(nombreJoursStr);
@@ -189,27 +209,8 @@ public class LocationServlet extends HttpServlet {
                 Location newLocation = locationService.createLocation(clientCin, voitureImmat, currentGestionnaire, dateDebut, nombreJours);
 
                 session.setAttribute("message", "Location enregistrée avec succès !");
-
-                // *** MODIFICATION ICI : Choisissez l'une des options suivantes ***
-
-                // OPTION 1: Rediriger directement vers la liste des locations (sans générer la facture automatiquement)
                 response.sendRedirect(request.getContextPath() + "/locations?action=list");
-                // IMPORTANT: ajoutez `return;` après `response.sendRedirect` pour arrêter l'exécution.
                 return;
-
-                /*
-                // OPTION 2: Rediriger pour télécharger la facture *ET* revenir ensuite à la liste
-                // C'est plus complexe et implique JavaScript côté client ou un mécanisme de "double redirection".
-                // Pour une application simple, la première option est souvent préférable.
-                // Sinon, vous pourriez avoir une page intermédiaire qui dit "Location enregistrée. Cliquez ici pour la facture / ou pour revenir à la liste."
-                // Si vous voulez absolument la génération de facture immédiate ET la redirection,
-                // il faudrait le faire via AJAX pour la facture et une redirection normale ensuite,
-                // ou une JSP intermédiaire comme mentionné.
-                // Pour le moment, nous allons privilégier la redirection vers la liste.
-                */
-                // La ligne d'origine qui téléchargeait la facture mais laissait l'utilisateur sur la page de formulaire:
-                // response.sendRedirect("locations?action=generateInvoice&locationId=" + newLocation.getId());
-
 
             } catch (NumberFormatException | DateTimeParseException e) {
                 LOGGER.severe("Erreur de format lors de l'ajout de location: " + e.getMessage());
@@ -220,7 +221,7 @@ public class LocationServlet extends HttpServlet {
             } catch (RuntimeException e) {
                 LOGGER.severe("Erreur Runtime lors de l'enregistrement de la location: " + e.getMessage());
                 request.setAttribute("error", "Erreur lors de l'enregistrement de la location : " + e.getMessage());
-                e.printStackTrace(); // Utile pour le débogage, mais à enlever en production
+                e.printStackTrace();
                 request.setAttribute("selectedClient", clientService.getClientByCin(clientCin));
                 request.setAttribute("selectedVoiture", voitureService.getVoitureByImmatriculation(voitureImmat));
                 request.getRequestDispatcher("/WEB-INF/views/locationForm.jsp").forward(request, response);
@@ -243,8 +244,8 @@ public class LocationServlet extends HttpServlet {
                 locationService.recordCarReturn(locationId, kilometrageRetour);
 
                 session.setAttribute("message", "Retour de voiture enregistré avec succès !");
-                response.sendRedirect("locations?action=list"); // Redirige vers la liste après un retour
-                return; // Important
+                response.sendRedirect("locations?action=list");
+                return;
 
             } catch (NumberFormatException e) {
                 LOGGER.severe("Format de kilométrage invalide lors du retour: " + e.getMessage());
