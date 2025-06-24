@@ -17,16 +17,12 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.time.ZoneId;   // NOUVEL IMPORT NÉCESSAIRE
-import java.util.Date;     // NOUVEL IMPORT NÉCESSAIRE
+import java.time.ZoneId;
+import java.util.Date;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.logging.Logger;
 
-/**
- * Servlet pour gérer les opérations liées aux locations de voitures.
- * Délègue la logique métier à LocationService, ClientService et VoitureService.
- */
 @WebServlet("/locations")
 public class LocationServlet extends HttpServlet {
 
@@ -97,7 +93,6 @@ public class LocationServlet extends HttpServlet {
                 if (locationToReturn != null && "En cours".equals(locationToReturn.getStatut())) {
                     request.setAttribute("locationToReturn", locationToReturn);
 
-                    // ***** DÉBUT DE LA CORRECTION : Conversion des LocalDate en java.util.Date *****
                     Date utilDateDebut = null;
                     if (locationToReturn.getDateDebut() != null) {
                         utilDateDebut = Date.from(locationToReturn.getDateDebut().atStartOfDay(ZoneId.systemDefault()).toInstant());
@@ -108,16 +103,10 @@ public class LocationServlet extends HttpServlet {
                         utilDateRetourPrevue = Date.from(locationToReturn.getDateRetourPrevue().atStartOfDay(ZoneId.systemDefault()).toInstant());
                     }
 
-                    // Définir les attributs convertis pour être utilisés dans la JSP
                     request.setAttribute("utilDateDebut", utilDateDebut);
                     request.setAttribute("utilDateRetourPrevue", utilDateRetourPrevue);
-                    // ***** FIN DE LA CORRECTION *****
 
                     request.getRequestDispatcher("/WEB-INF/views/returnCarForm.jsp").forward(request, response);
-                    // IMPORTANT : Assurez-vous que le nom du fichier JSP est bien "returnCarForm.jsp"
-                    // comme indiqué dans la stacktrace, et non "retur.jsp" que vous avez fourni.
-                    // Si votre fichier s'appelle "retur.jsp", changez la ligne ci-dessus en:
-                    // request.getRequestDispatcher("/WEB-INF/views/retur.jsp").forward(request, response);
                 } else {
                     LOGGER.warning("Location " + locationIdToReturn + " non trouvée ou déjà terminée pour le retour.");
                     session.setAttribute("error", "Location non trouvée ou déjà terminée.");
@@ -188,7 +177,10 @@ public class LocationServlet extends HttpServlet {
             String voitureImmat = request.getParameter("voitureImmat");
             String nombreJoursStr = request.getParameter("nombreJours");
             String dateDebutStr = request.getParameter("dateDebut");
-            String kilometrageDepartStr = request.getParameter("kilometrageDepart");
+            // REMARQUE: "kilometrageDepart" n'est pas un champ dans locationForm.jsp pour l'ajout.
+            // Il faudrait l'ajouter si vous voulez le capturer au moment de la création de la location.
+            // Actuellement, il est passé à 0.0 dans LocationService.createLocation.
+            // String kilometrageDepartStr = request.getParameter("kilometrageDepart"); // Non utilisé ici
 
             try {
                 int nombreJours = Integer.parseInt(nombreJoursStr);
@@ -197,7 +189,27 @@ public class LocationServlet extends HttpServlet {
                 Location newLocation = locationService.createLocation(clientCin, voitureImmat, currentGestionnaire, dateDebut, nombreJours);
 
                 session.setAttribute("message", "Location enregistrée avec succès !");
-                response.sendRedirect("locations?action=generateInvoice&locationId=" + newLocation.getId());
+
+                // *** MODIFICATION ICI : Choisissez l'une des options suivantes ***
+
+                // OPTION 1: Rediriger directement vers la liste des locations (sans générer la facture automatiquement)
+                response.sendRedirect(request.getContextPath() + "/locations?action=list");
+                // IMPORTANT: ajoutez `return;` après `response.sendRedirect` pour arrêter l'exécution.
+                return;
+
+                /*
+                // OPTION 2: Rediriger pour télécharger la facture *ET* revenir ensuite à la liste
+                // C'est plus complexe et implique JavaScript côté client ou un mécanisme de "double redirection".
+                // Pour une application simple, la première option est souvent préférable.
+                // Sinon, vous pourriez avoir une page intermédiaire qui dit "Location enregistrée. Cliquez ici pour la facture / ou pour revenir à la liste."
+                // Si vous voulez absolument la génération de facture immédiate ET la redirection,
+                // il faudrait le faire via AJAX pour la facture et une redirection normale ensuite,
+                // ou une JSP intermédiaire comme mentionné.
+                // Pour le moment, nous allons privilégier la redirection vers la liste.
+                */
+                // La ligne d'origine qui téléchargeait la facture mais laissait l'utilisateur sur la page de formulaire:
+                // response.sendRedirect("locations?action=generateInvoice&locationId=" + newLocation.getId());
+
 
             } catch (NumberFormatException | DateTimeParseException e) {
                 LOGGER.severe("Erreur de format lors de l'ajout de location: " + e.getMessage());
@@ -208,7 +220,7 @@ public class LocationServlet extends HttpServlet {
             } catch (RuntimeException e) {
                 LOGGER.severe("Erreur Runtime lors de l'enregistrement de la location: " + e.getMessage());
                 request.setAttribute("error", "Erreur lors de l'enregistrement de la location : " + e.getMessage());
-                e.printStackTrace();
+                e.printStackTrace(); // Utile pour le débogage, mais à enlever en production
                 request.setAttribute("selectedClient", clientService.getClientByCin(clientCin));
                 request.setAttribute("selectedVoiture", voitureService.getVoitureByImmatriculation(voitureImmat));
                 request.getRequestDispatcher("/WEB-INF/views/locationForm.jsp").forward(request, response);
@@ -231,12 +243,12 @@ public class LocationServlet extends HttpServlet {
                 locationService.recordCarReturn(locationId, kilometrageRetour);
 
                 session.setAttribute("message", "Retour de voiture enregistré avec succès !");
-                response.sendRedirect("locations?action=list");
+                response.sendRedirect("locations?action=list"); // Redirige vers la liste après un retour
+                return; // Important
 
             } catch (NumberFormatException e) {
                 LOGGER.severe("Format de kilométrage invalide lors du retour: " + e.getMessage());
                 request.setAttribute("error", "Format de kilométrage invalide.");
-                // CORRECTION: Assurez-vous de repasser les dates converties si vous redirigez vers le même formulaire d'erreur
                 Location locationToRepopulate = locationService.getLocationByIdWithDetails(locationId);
                 if (locationToRepopulate != null) {
                     request.setAttribute("locationToReturn", locationToRepopulate);
@@ -256,7 +268,6 @@ public class LocationServlet extends HttpServlet {
                 LOGGER.severe("Erreur Runtime lors de l'enregistrement du retour: " + e.getMessage());
                 request.setAttribute("error", "Erreur lors de l'enregistrement du retour : " + e.getMessage());
                 e.printStackTrace();
-                // CORRECTION: Assurez-vous de repasser les dates converties si vous redirigez vers le même formulaire d'erreur
                 Location locationToRepopulate = locationService.getLocationByIdWithDetails(locationId);
                 if (locationToRepopulate != null) {
                     request.setAttribute("locationToReturn", locationToRepopulate);
