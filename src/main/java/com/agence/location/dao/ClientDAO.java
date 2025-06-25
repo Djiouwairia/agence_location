@@ -1,7 +1,7 @@
 package com.agence.location.dao;
 
 import com.agence.location.model.Client;
-import javax.persistence.EntityManager; // Importez EntityManager
+import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 import java.util.List;
@@ -49,7 +49,36 @@ public class ClientDAO extends GenericDAO<Client, String> {
         return client;
     }
 
+    /**
+     * Recherche un client par son CIN et son mot de passe.
+     * Cette méthode de lecture obtient et ferme son propre EntityManager.
+     * @param cin Le CIN du client à rechercher.
+     * @param password Le mot de passe du client.
+     * @return Le client trouvé, ou null si aucun client avec ce CIN et mot de passe n'est trouvé.
+     */
+    public Client findByCinAndPassword(String cin, String password) {
+        EntityManager em = JPAUtil.getEntityManager();
+        Client client = null;
+        try {
+            TypedQuery<Client> query = em.createQuery(
+                "SELECT c FROM Client c WHERE c.cin = :cin AND c.password = :password", Client.class);
+            query.setParameter("cin", cin);
+            query.setParameter("password", password);
+            client = query.getSingleResult();
+        } catch (NoResultException e) {
+            System.out.println("Aucun client trouvé avec le CIN: " + cin + " et le mot de passe fourni.");
+        } catch (Exception e) {
+            System.err.println("Erreur lors de la recherche du client par CIN et mot de passe: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            if (em != null && em.isOpen()) {
+                em.close();
+            }
+        }
+        return client;
+    }
+
     // Les méthodes comme save(), delete() etc. ne sont plus définies ici,
     // car la couche Service appellera persist(), merge(), remove() de GenericDAO
-    // en lui passant l'EntityManager pour la gestion transactionnelle.
+    // en lui passant l'EntityManager pour la gestion transaction...
 }

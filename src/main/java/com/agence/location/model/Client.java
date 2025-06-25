@@ -17,7 +17,6 @@ public class Client implements Serializable {
     @Column(name = "cin", length = 20)
     private String cin;
 
-    // CORRECTION ICI: permis est maintenant nullable = true pour correspondre au schéma de la BDD
     @Column(name = "permis", length = 50, unique = true, nullable = true)
     private String permis; // Le numéro de permis de conduire
 
@@ -39,28 +38,47 @@ public class Client implements Serializable {
     @Column(name = "telephone", length = 20)
     private String telephone;
 
-    // Relation OneToMany avec la table Location
+    // NOUVEAU: Champ pour le mot de passe du client
+    @Column(name = "password", length = 255) // Adaptez la longueur si vous utilisez un hachage fort
+    private String password;
+
+    // Relation OneToMany avec Location
     // Un client peut avoir plusieurs locations
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Location> locations;
 
-    // Constructeur par défaut (obligatoire pour JPA)
+    // Constructeurs
     public Client() {
     }
 
-    // Constructeur avec tous les champs (sauf id généré)
+    // Ancien constructeur, mettons à jour pour inclure le mot de passe si possible
     public Client(String cin, String permis, String prenom, String nom, String sexe, String adresse, String email, String telephone) {
         this.cin = cin;
-        this.permis = permis; // Initialisation du permis
+        this.permis = permis;
         this.prenom = prenom;
         this.nom = nom;
         this.sexe = sexe;
         this.adresse = adresse;
         this.email = email;
         this.telephone = telephone;
+        // Mot de passe non défini ici, devra être défini via setter ou un autre constructeur
     }
 
-    // --- Getters et Setters ---
+    // NOUVEAU Constructeur incluant le mot de passe
+    public Client(String cin, String permis, String prenom, String nom, String sexe, String adresse, String email, String telephone, String password) {
+        this.cin = cin;
+        this.permis = permis;
+        this.prenom = prenom;
+        this.nom = nom;
+        this.sexe = sexe;
+        this.adresse = adresse;
+        this.email = email;
+        this.telephone = telephone;
+        this.password = password;
+    }
+
+
+    // Getters et Setters
 
     public String getCin() {
         return cin;
@@ -70,11 +88,11 @@ public class Client implements Serializable {
         this.cin = cin;
     }
 
-    public String getPermis() { // Getter pour permis
+    public String getPermis() {
         return permis;
     }
 
-    public void setPermis(String permis) { // Setter pour permis
+    public void setPermis(String permis) {
         this.permis = permis;
     }
 
@@ -126,6 +144,15 @@ public class Client implements Serializable {
         this.telephone = telephone;
     }
 
+    // NOUVEAU: Getter et Setter pour le mot de passe
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
     public List<Location> getLocations() {
         return locations;
     }
@@ -145,6 +172,7 @@ public class Client implements Serializable {
                ", adresse='" + adresse + '\'' +
                ", email='" + email + '\'' +
                ", telephone='" + telephone + '\'' +
+               ", password='[PROTECTED]'" + // Ne pas afficher le mot de passe
                '}';
     }
 }

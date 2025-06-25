@@ -21,6 +21,7 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.logging.Level; // Import pour Level
 import java.util.logging.Logger;
 
 @WebServlet("/locations")
@@ -45,11 +46,15 @@ public class LocationServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         HttpSession session = request.getSession(false);
 
-        if (session == null || session.getAttribute("utilisateur") == null || !"Gestionnaire".equals(session.getAttribute("role"))) {
-            response.sendRedirect("login.jsp");
+        // Vérification de l'authentification et du rôle du personnel
+        // Seuls les gestionnaires et Chefs d'Agence peuvent accéder à cette servlet
+        if (session == null || session.getAttribute("utilisateur") == null || 
+            (!"Gestionnaire".equals(session.getAttribute("role")) && !"ChefAgence".equals(session.getAttribute("role")))) {
+            response.sendRedirect(request.getContextPath() + "/login.jsp");
             return;
         }
 
+        Utilisateur currentUtilisateur = (Utilisateur) session.getAttribute("utilisateur"); // Récupérer l'utilisateur connecté
         String action = request.getParameter("action");
         if (action == null) {
             action = "list";
@@ -86,7 +91,7 @@ public class LocationServlet extends HttpServlet {
                 } catch (NumberFormatException e) {
                     LOGGER.warning("ID de location invalide pour le retour: " + request.getParameter("id"));
                     session.setAttribute("error", "ID de location invalide.");
-                    response.sendRedirect("locations?action=list");
+                    response.sendRedirect(request.getContextPath() + "/locations?action=list");
                     return;
                 }
                 Location locationToReturn = locationService.getLocationByIdWithDetails(locationIdToReturn);
@@ -110,7 +115,7 @@ public class LocationServlet extends HttpServlet {
                 } else {
                     LOGGER.warning("Location " + locationIdToReturn + " non trouvée ou déjà terminée pour le retour.");
                     session.setAttribute("error", "Location non trouvée ou déjà terminée.");
-                    response.sendRedirect("locations?action=list");
+                    response.sendRedirect(request.getContextPath() + "/locations?action=list");
                 }
                 break;
             case "generateInvoice":
@@ -120,7 +125,7 @@ public class LocationServlet extends HttpServlet {
                 } catch (NumberFormatException e) {
                     LOGGER.warning("ID de location invalide pour la facture: " + request.getParameter("locationId"));
                     session.setAttribute("error", "ID de location invalide pour la facture.");
-                    response.sendRedirect("locations?action=list");
+                    response.sendRedirect(request.getContextPath() + "/locations?action=list");
                     return;
                 }
                 Location invoiceLocation = locationService.getLocationByIdWithDetails(invoiceLocationId);
@@ -132,47 +137,81 @@ public class LocationServlet extends HttpServlet {
                         PdfGenerator.generateInvoice(invoiceLocation, response.getOutputStream());
                         LOGGER.info("Facture générée avec succès pour la location ID: " + invoiceLocationId);
                     } catch (IOException e) {
-                        LOGGER.severe("Erreur IOException lors de la génération de la facture pour ID " + invoiceLocationId + ": " + e.getMessage());
+                        LOGGER.log(Level.SEVERE, "Erreur IOException lors de la génération de la facture pour ID " + invoiceLocationId + ": " + e.getMessage(), e);
                         session.setAttribute("error", "Erreur lors de la génération de la facture (IO) : " + e.getMessage());
-                        response.sendRedirect("locations?action=list");
+                        response.sendRedirect(request.getContextPath() + "/locations?action=list");
                     } catch (RuntimeException e) {
-                        LOGGER.severe("Erreur RuntimeException lors de la génération de la facture pour ID " + invoiceLocationId + ": " + e.getMessage());
+                        LOGGER.log(Level.SEVERE, "Erreur RuntimeException lors de la génération de la facture pour ID " + invoiceLocationId + ": " + e.getMessage(), e);
                         session.setAttribute("error", "Erreur inattendue lors de la génération de la facture : " + e.getMessage());
-                        response.sendRedirect("locations?action=list");
+                        response.sendRedirect(request.getContextPath() + "/locations?action=list");
                     } catch (Exception e) {
-                        LOGGER.severe("Erreur générale lors de la génération de la facture pour ID " + invoiceLocationId + ": " + e.getMessage());
+                        LOGGER.log(Level.SEVERE, "Erreur générale lors de la génération de la facture pour ID " + invoiceLocationId + ": " + e.getMessage(), e);
                         session.setAttribute("error", "Erreur inattendue lors de la génération de la facture : " + e.getMessage());
-                        response.sendRedirect("locations?action=list");
+                        response.sendRedirect(request.getContextPath() + "/locations?action=list");
                     }
                 } else {
                     LOGGER.warning("Location " + invoiceLocationId + " non trouvée pour la génération de facture.");
                     session.setAttribute("error", "Location non trouvée pour la génération de facture.");
-                    response.sendRedirect("locations?action=list");
+                    response.sendRedirect(request.getContextPath() + "/locations?action=list");
                 }
                 break;
 
-            // NOUVEAU CASE POUR EXPORTER LA LISTE DES LOCATIONS
             case "exportList":
                 try {
                     List<Location> allLocations = locationService.getAllLocationsWithDetails();
                     response.setContentType("application/pdf");
                     response.setHeader("Content-Disposition", "attachment; filename=liste_locations_" + LocalDate.now() + ".pdf");
-                    PdfGenerator.generateLocationsListPdf(allLocations, response.getOutputStream()); // Appel à la nouvelle méthode
+                    PdfGenerator.generateLocationsListPdf(allLocations, response.getOutputStream());
                     LOGGER.info("Liste des locations exportée en PDF.");
                 } catch (IOException e) {
-                    LOGGER.severe("Erreur lors de l'exportation de la liste des locations: " + e.getMessage());
+                    LOGGER.log(Level.SEVERE, "Erreur lors de l'exportation de la liste des locations: " + e.getMessage(), e);
                     session.setAttribute("error", "Erreur lors de l'exportation de la liste des locations : " + e.getMessage());
-                    response.sendRedirect("locations?action=list");
+                    response.sendRedirect(request.getContextPath() + "/locations?action=list");
                 } catch (RuntimeException e) {
-                    LOGGER.severe("Erreur Runtime lors de l'exportation de la liste des locations: " + e.getMessage());
+                    LOGGER.log(Level.SEVERE, "Erreur Runtime lors de l'exportation de la liste des locations: " + e.getMessage(), e);
                     session.setAttribute("error", "Erreur inattendue lors de l'exportation de la liste des locations : " + e.getMessage());
-                    response.sendRedirect("locations?action=list");
+                    response.sendRedirect(request.getContextPath() + "/locations?action=list");
                 } catch (Exception e) {
-                    LOGGER.severe("Erreur générale lors de l'exportation de la liste des locations: " + e.getMessage());
+                    LOGGER.log(Level.SEVERE, "Erreur générale lors de l'exportation de la liste des locations: " + e.getMessage(), e);
                     session.setAttribute("error", "Erreur inattendue lors de l'exportation de la liste des locations : " + e.getMessage());
-                    response.sendRedirect("locations?action=list");
+                    response.sendRedirect(request.getContextPath() + "/locations?action=list");
                 }
-                return; // Important après la génération du PDF
+                return;
+
+            // NOUVEAUX CAS POUR ACCEPTER OU DÉCLINER UNE DEMANDE
+            case "acceptRequest":
+                Long acceptLocationId = null;
+                try {
+                    acceptLocationId = Long.parseLong(request.getParameter("id"));
+                    locationService.acceptLocationRequest(acceptLocationId, currentUtilisateur); // Passer l'utilisateur connecté
+                    session.setAttribute("message", "Demande de location ID " + acceptLocationId + " acceptée avec succès !");
+                    LOGGER.info("Demande de location ID " + acceptLocationId + " acceptée par " + currentUtilisateur.getUsername());
+                } catch (NumberFormatException e) {
+                    session.setAttribute("error", "ID de demande de location invalide.");
+                    LOGGER.log(Level.WARNING, "ID invalide pour acceptRequest: " + request.getParameter("id"), e);
+                } catch (RuntimeException e) {
+                    session.setAttribute("error", "Erreur lors de l'acceptation de la demande : " + e.getMessage());
+                    LOGGER.log(Level.SEVERE, "Erreur Runtime lors de l'acceptation de la demande ID " + acceptLocationId + ": " + e.getMessage(), e);
+                }
+                response.sendRedirect(request.getContextPath() + "/locations?action=list"); // Toujours rediriger vers la liste
+                break;
+
+            case "declineRequest":
+                Long declineLocationId = null;
+                try {
+                    declineLocationId = Long.parseLong(request.getParameter("id"));
+                    locationService.declineLocationRequest(declineLocationId);
+                    session.setAttribute("message", "Demande de location ID " + declineLocationId + " déclinée avec succès !");
+                    LOGGER.info("Demande de location ID " + declineLocationId + " déclinée par " + currentUtilisateur.getUsername());
+                } catch (NumberFormatException e) {
+                    session.setAttribute("error", "ID de demande de location invalide.");
+                    LOGGER.log(Level.WARNING, "ID invalide pour declineRequest: " + request.getParameter("id"), e);
+                } catch (RuntimeException e) {
+                    session.setAttribute("error", "Erreur lors du refus de la demande : " + e.getMessage());
+                    LOGGER.log(Level.SEVERE, "Erreur Runtime lors du refus de la demande ID " + declineLocationId + ": " + e.getMessage(), e);
+                }
+                response.sendRedirect(request.getContextPath() + "/locations?action=list"); // Toujours rediriger vers la liste
+                break;
 
             case "list":
             default:
@@ -186,8 +225,9 @@ public class LocationServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("utilisateur") == null || !"Gestionnaire".equals(session.getAttribute("role"))) {
-            response.sendRedirect("login.jsp");
+        if (session == null || session.getAttribute("utilisateur") == null || 
+            (!"Gestionnaire".equals(session.getAttribute("role")) && !"ChefAgence".equals(session.getAttribute("role")))) {
+            response.sendRedirect(request.getContextPath() + "/login.jsp");
             return;
         }
 
@@ -213,15 +253,14 @@ public class LocationServlet extends HttpServlet {
                 return;
 
             } catch (NumberFormatException | DateTimeParseException e) {
-                LOGGER.severe("Erreur de format lors de l'ajout de location: " + e.getMessage());
-                request.setAttribute("error", "Format de données invalide pour les jours, la date ou le kilométrage : " + e.getMessage());
+                LOGGER.log(Level.SEVERE, "Erreur de format lors de l'ajout de location: " + e.getMessage(), e);
+                request.setAttribute("error", "Format de données invalide pour les jours ou la date : " + e.getMessage());
                 request.setAttribute("selectedClient", clientService.getClientByCin(clientCin));
                 request.setAttribute("selectedVoiture", voitureService.getVoitureByImmatriculation(voitureImmat));
                 request.getRequestDispatcher("/WEB-INF/views/locationForm.jsp").forward(request, response);
             } catch (RuntimeException e) {
-                LOGGER.severe("Erreur Runtime lors de l'enregistrement de la location: " + e.getMessage());
+                LOGGER.log(Level.SEVERE, "Erreur Runtime lors de l'enregistrement de la location: " + e.getMessage(), e);
                 request.setAttribute("error", "Erreur lors de l'enregistrement de la location : " + e.getMessage());
-                e.printStackTrace();
                 request.setAttribute("selectedClient", clientService.getClientByCin(clientCin));
                 request.setAttribute("selectedVoiture", voitureService.getVoitureByImmatriculation(voitureImmat));
                 request.getRequestDispatcher("/WEB-INF/views/locationForm.jsp").forward(request, response);
@@ -233,7 +272,7 @@ public class LocationServlet extends HttpServlet {
             } catch (NumberFormatException e) {
                 LOGGER.warning("ID de location invalide pour le retour (POST): " + request.getParameter("locationId"));
                 session.setAttribute("error", "ID de location invalide.");
-                response.sendRedirect("locations?action=list");
+                response.sendRedirect(request.getContextPath() + "/locations?action=list");
                 return;
             }
 
@@ -244,11 +283,11 @@ public class LocationServlet extends HttpServlet {
                 locationService.recordCarReturn(locationId, kilometrageRetour);
 
                 session.setAttribute("message", "Retour de voiture enregistré avec succès !");
-                response.sendRedirect("locations?action=list");
+                response.sendRedirect(request.getContextPath() + "/locations?action=list");
                 return;
 
             } catch (NumberFormatException e) {
-                LOGGER.severe("Format de kilométrage invalide lors du retour: " + e.getMessage());
+                LOGGER.log(Level.SEVERE, "Format de kilométrage invalide lors du retour: " + e.getMessage(), e);
                 request.setAttribute("error", "Format de kilométrage invalide.");
                 Location locationToRepopulate = locationService.getLocationByIdWithDetails(locationId);
                 if (locationToRepopulate != null) {
@@ -266,9 +305,8 @@ public class LocationServlet extends HttpServlet {
                 }
                 request.getRequestDispatcher("/WEB-INF/views/returnCarForm.jsp").forward(request, response);
             } catch (RuntimeException e) {
-                LOGGER.severe("Erreur Runtime lors de l'enregistrement du retour: " + e.getMessage());
+                LOGGER.log(Level.SEVERE, "Erreur Runtime lors de l'enregistrement du retour: " + e.getMessage(), e);
                 request.setAttribute("error", "Erreur lors de l'enregistrement du retour : " + e.getMessage());
-                e.printStackTrace();
                 Location locationToRepopulate = locationService.getLocationByIdWithDetails(locationId);
                 if (locationToRepopulate != null) {
                     request.setAttribute("locationToReturn", locationToRepopulate);

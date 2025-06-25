@@ -132,4 +132,12 @@ public class VoitureService {
             }
         }
     }
+    
+    public List<Voiture> getAvailableVoitures() {
+        // Le LOGGER n'était pas importé, je l'ajoute si vous voulez des logs
+        // import java.util.logging.Logger;
+        // private static final Logger LOGGER = Logger.getLogger(VoitureService.class.getName());
+        // LOGGER.info("Récupération des voitures disponibles.");
+        return voitureDAO.getVoituresDisponibles();
+    }
 }

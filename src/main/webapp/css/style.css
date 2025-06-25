@@ -12,219 +12,93 @@ body {
 }
 
 /* Utilitaires pour simuler le comportement de classes comme Tailwind CSS */
-.bg-gray-100 {
-    background-color: #f7fafc; /* Gris très clair */
-}
-
-.flex {
-    display: flex;
-}
-
-.items-center {
-    align-items: center;
-}
-
-.justify-center {
-    justify-content: center;
-}
-
-.justify-between {
-    justify-content: space-between;
-}
-
-.self-end {
-    align-self: flex-end;
-}
-
-.min-h-screen {
-    min-height: 100vh;
-}
+.bg-gray-100 { background-color: #f7fafc; /* Gris très clair */ }
+.flex { display: flex; }
+.items-center { align-items: center; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+.self-end { align-self: flex-end; }
+.min-h-screen { min-height: 100vh; }
 
 /* Typographie */
-.text-2xl {
-    font-size: 1.5rem; /* 24px */
-}
-
-.text-sm {
-    font-size: 0.875rem; /* 14px */
-}
-
-.text-xs {
-    font-size: 0.75rem; /* 12px */
-}
-
-.font-bold {
-    font-weight: 700;
-}
-
-.font-medium {
-    font-weight: 500;
-}
-
-.text-center {
-    text-align: center;
-}
+.text-2xl { font-size: 1.5rem; /* 24px */ }
+.text-sm { font-size: 0.875rem; /* 14px */ }
+.text-xs { font-size: 0.75rem; /* 12px */ }
+.font-bold { font-weight: 700; }
+.font-medium { font-weight: 500; }
+.text-center { text-align: center; }
 
 /* Couleurs de texte */
-.text-gray-700 {
-    color: #4a5568; /* Gris 700 */
-}
+.text-gray-700 { color: #4a5568; /* Gris 700 */ }
+.text-gray-500 { color: #6b7280; /* Gris 500 */ } /* Utilisé pour le N/A */
+.text-gray-600 { color: #4b5563; /* Gris 600 */ }
+.text-white { color: #ffffff; }
 
-.text-gray-500 {
-    color: #6b7280; /* Gris 500 */
-}
+/* Couleurs des boutons principaux */
+.bg-blue-600 { background-color: #2563eb; }
+.hover\:bg-blue-700:hover { background-color: #1d4ed8; }
 
-.text-gray-600 {
-    color: #4b5563; /* Gris 600 */
-}
+.bg-green-600 { background-color: #16a34a; }
+.hover\:bg-green-700:hover { background-color: #15803d; }
 
-.text-white {
-    color: #ffffff;
-}
+.bg-purple-600 { background-color: #9333ea; }
+.hover\:bg-purple-700:hover { background-color: #7e22ce; }
 
-.text-blue-600 {
-    color: #2563eb; /* Bleu 600 */
-}
+/* NOUVELLES CLASSES POUR LES BOUTONS D'ACTION SPÉCIFIQUES (Accepter, Décliner, Retourner) */
+.bg-green-500 { background-color: #22c55e; } /* Vert 500 pour Accepter */
+.hover\:bg-green-600:hover { background-color: #16a34a; } /* Vert 600 pour hover */
 
-.text-red-600 {
-    color: #dc2626; /* Rouge 600 */
-}
+.bg-red-500 { background-color: #ef4444; } /* Rouge 500 pour Décliner */
+.hover\:bg-red-600:hover { background-color: #dc2626; } /* Rouge 600 pour hover */
 
-.text-yellow-600 {
-    color: #d97706; /* Jaune 600 */
-}
+.bg-yellow-500 { background-color: #f59e0b; } /* Jaune 500 pour Retourner */
+.hover\:bg-yellow-600:hover { background-color: #d97706; } /* Jaune 600 pour hover */
 
-.text-purple-600 {
-    color: #9333ea; /* Violet 600 */
-}
+.bg-gray-700 { background-color: #374151; } /* Gris 700 pour Facture PDF */
+.hover\:bg-gray-800:hover { background-color: #1f2937; } /* Gris 800 pour hover */
+
+
+.hover\:underline:hover { text-decoration: underline; }
 
 /* Espacement (Marges et Paddings) */
-.mb-4 {
-    margin-bottom: 1rem; /* 16px */
-}
-
-.mb-6 {
-    margin-bottom: 1.5rem; /* 24px */
-}
-
-.mt-1 {
-    margin-top: 0.25rem; /* 4px */
-}
-
-.mt-2 {
-    margin-top: 0.5rem; /* 8px */
-}
-
-.mt-4 {
-    margin-top: 1rem; /* 16px */
-}
-
-.mr-2 {
-    margin-right: 0.5rem; /* 8px */
-}
-
-.px-3 {
-    padding-left: 0.75rem; /* 12px */
-    padding-right: 0.75rem; /* 12px */
-}
-
-.py-2 {
-    padding-top: 0.5rem; /* 8px */
-    padding-bottom: 0.5rem; /* 8px */
-}
-
-.space-y-4 > *:not([hidden]) ~ *:not([hidden]) {
-    margin-top: 1rem; /* 16px */
-}
-
-.space-y-6 > *:not([hidden]) ~ *:not([hidden]) {
-    margin-top: 1.5rem; /* 24px */
-}
-
-.space-x-2 > *:not([hidden]) ~ *:not([hidden]) {
-    margin-left: 0.5rem; /* 8px */
-}
+.mb-4 { margin-bottom: 1rem; }
+.mb-6 { margin-bottom: 1.5rem; }
+.mt-1 { margin-top: 0.25rem; }
+.mt-2 { margin-top: 0.5rem; }
+.mt-4 { margin-top: 1rem; }
+.mr-2 { margin-right: 0.5rem; }
+.px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
+.py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+.space-y-4 > *:not([hidden]) ~ *:not([hidden]) { margin-top: 1rem; }
+.space-y-6 > *:not([hidden]) ~ *:not([hidden]) { margin-top: 1.5rem; }
+.space-x-2 > *:not([hidden]) ~ *:not([hidden]) { margin-left: 0.5rem; }
 
 /* Largeur et Hauteur */
-.w-full {
-    width: 100%;
-}
-
-.inline-block {
-    display: inline-block;
-}
-
-.block {
-    display: block;
-}
+.w-full { width: 100%; }
+.inline-block { display: inline-block; }
+.block { display: block; }
 
 /* Bordures et Ombres */
-.border {
-    border-width: 1px;
-}
-
-.border-gray-300 {
-    border-color: #e2e8f0; /* Gris 300 */
-}
-
-.rounded-md {
-    border-radius: 0.375rem; /* 6px */
-}
-
-.shadow-sm {
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-}
+.border { border-width: 1px; }
+.border-gray-300 { border-color: #e2e8f0; }
+.rounded-md { border-radius: 0.375rem; }
+.shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
 
 /* États de focus */
-.focus\:outline-none:focus {
-    outline: 0;
-}
-
+.focus\:outline-none:focus { outline: 0; }
 .focus\:ring-blue-500:focus {
-    --tw-ring-color: #3b82f6; /* Bleu 500 */
+    --tw-ring-color: #3b82f6;
     --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
     --tw-ring-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow, 0 0 #0000);
     box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow, 0 0 #0000);
 }
-
-.focus\:border-blue-500:focus {
-    border-color: #3b82f6; /* Bleu 500 */
-}
-
-/* Boutons et Liens */
-.bg-blue-600 {
-    background-color: #2563eb; /* Bleu 600 */
-}
-
-.hover\:bg-blue-700:hover {
-    background-color: #1d4ed8; /* Bleu 700 */
-}
-
-.bg-green-600 {
-    background-color: #16a34a; /* Vert 600 */
-}
-
-.hover\:bg-green-700:hover {
-    background-color: #15803d; /* Vert 700 */
-}
-
-.bg-purple-600 {
-    background-color: #9333ea; /* Violet 600 */
-}
-
-.hover\:bg-purple-700:hover {
-    background-color: #7e22ce; /* Violet 700 */
-}
-
-.hover\:underline:hover {
-    text-decoration: underline;
-}
+.focus\:border-blue-500:focus { border-color: #3b82f6; }
 
 /* Conteneur de connexion (login.jsp) */
 .login-container {
     background-color: #ffffff;
-    padding: 2.5rem; /* 40px */
-    border-radius: 0.75rem; /* 12px */
+    padding: 2.5rem;
+    border-radius: 0.75rem;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     max-width: 400px;
     width: 100%;
@@ -237,7 +111,7 @@ body {
     border: 1px solid #ef4444; /* Rouge 500 */
     padding: 0.75rem;
     margin-bottom: 1rem;
-    border-radius: 0.375rem; /* 6px */
+    border-radius: 0.375rem;
     text-align: center;
 }
 
@@ -247,7 +121,7 @@ body {
     border: 1px solid #22c55e; /* Vert 500 */
     padding: 0.75rem;
     margin-bottom: 1rem;
-    border-radius: 0.375rem; /* 6px */
+    border-radius: 0.375rem;
     text-align: center;
 }
 
@@ -258,25 +132,25 @@ table {
     margin-top: 1rem;
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
     border-radius: 0.375rem;
-    overflow: hidden; /* Important pour les coins arrondis avec un overflow de cellules */
+    overflow: hidden;
 }
 
 th, td {
-    border: 1px solid #e2e8f0; /* Gris 200 */
-    padding: 0.75rem 1rem; /* 12px 16px */
+    border: 1px solid #e2e8f0;
+    padding: 0.75rem 1rem;
     text-align: left;
 }
 
 th {
-    background-color: #edf2f7; /* Gris 100 */
+    background-color: #edf2f7;
     font-weight: 600;
     text-transform: uppercase;
-    font-size: 0.75rem; /* 12px */
-    color: #4a5568; /* Gris 700 */
+    font-size: 0.75rem;
+    color: #4a5568;
 }
 
 tr:nth-child(even) {
-    background-color: #f9fafb; /* Lignes paires légèrement différentes pour la lisibilité */
+    background-color: #f9fafb;
 }
 
 /* Styles pour la barre de navigation (navbar.jsp) */
@@ -368,7 +242,7 @@ tr:nth-child(even) {
     padding: 0.5rem;
     border: 1px solid #ccc;
     border-radius: 4px;
-    box-sizing: border-box; /* Inclut le padding et la bordure dans la largeur totale */
+    box-sizing: border-box;
 }
 
 /* Styles spécifiques pour les résultats de recherche dans les formulaires (ex: locationForm.jsp) */
@@ -400,6 +274,57 @@ tr:nth-child(even) {
 /* Styles spécifiques pour les boutons "Ajouter client" et "Exporter PDF" */
 .client-actions-group {
     display: flex;
-    gap: 0.5rem; /* C'est l'équivalent de Tailwind space-x-2 */
-    /* Vous pouvez ajuster gap si 0.5rem ne donne pas l'espacement voulu */
+    gap: 0.5rem;
 }
+
+/* Styles pour les badges de statut */
+.badge-status {
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px; /* rounded-full */
+    font-size: 0.75rem; /* text-xs */
+    font-weight: 600;
+    line-height: 1.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+/* Couleurs des badges */
+.badge-status.yellow { background-color: #fefcbf; color: #8a6000; } /* Jaune (En attente) */
+.badge-status.blue { background-color: #bfd8ff; color: #0056b3; } /* Bleu (En cours) */
+.badge-status.green-status { background-color: #c6f6d5; color: #276749; } /* Vert (Terminee) */
+.badge-status.red-status { background-color: #fed7d7; color: #9b2c2c; } /* Rouge (Annulee) */
+.badge-status.gray-status { background-color: #edf2f7; color: #4a5568; } /* Gris (Par défaut/Autres) */
+
+/* Groupe de boutons d'action dans le tableau */
+.action-buttons-group {
+    display: flex;
+    gap: 0.5rem; /* Espacement entre les boutons */
+    flex-wrap: wrap; /* Permet aux boutons de passer à la ligne */
+    align-items: center;
+}
+/* Styles génériques pour les liens/boutons d'action */
+.action-buttons-group a,
+.action-buttons-group button {
+    padding: 0.5rem 0.8rem;
+    border-radius: 0.375rem; /* rounded-md */
+    text-decoration: none;
+    font-size: 0.875rem; /* text-sm */
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem; /* espace pour les icônes */
+    transition: background-color 0.15s ease-in-out, transform 0.15s ease-in-out; /* Ajout d'une transition pour le survol */
+    cursor: pointer;
+    border: none;
+    color: white; /* Texte blanc par défaut pour les boutons colorés */
+}
+.action-buttons-group a:hover,
+.action-buttons-group button:hover {
+    transform: translateY(-1px); /* Léger effet de survol */
+}
+
+/* Styles spécifiques pour les hovers des boutons d'action */
+.action-buttons-group .bg-green-500:hover { background-color: #10B981; }
+.action-buttons-group .bg-red-500:hover { background-color: #EF4444; }
+.action-buttons-group .bg-yellow-500:hover { background-color: #FBBF24; }
+.action-buttons-group .bg-gray-700:hover { background-color: #374151; }
