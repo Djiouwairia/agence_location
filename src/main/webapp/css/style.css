@@ -2,178 +2,218 @@
 
 /* Styles généraux pour le corps de la page */
 body {
-    font-family: 'Inter', sans-serif; /* Utilise Inter ou une police sans-serif par défaut */
+    font-family: 'Inter', sans-serif;
     margin: 0;
     padding: 0;
     line-height: 1.6;
     color: #333;
-    -webkit-font-smoothing: antialiased; /* Améliore le rendu des polices sur WebKit */
-    -moz-osx-font-smoothing: grayscale; /* Améliore le rendu des polices sur Firefox */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #f4f7f6; /* Un fond gris très clair et doux pour l'ensemble de l'application */
 }
 
-/* Utilitaires pour simuler le comportement de classes comme Tailwind CSS */
-.bg-gray-100 { background-color: #f7fafc; /* Gris très clair */ }
+/* Utilitaires de layout (simule Tailwind CSS) */
+.container-base { /* Pour les conteneurs généraux de contenu */
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 1rem;
+}
+
+.dashboard-container { /* Spécifique aux tableaux de bord et pages listes pour une largeur ajustée */
+    max-width: 1500px; /* Légèrement plus large pour les tableaux de bord et les listes */
+    margin: 2rem auto;
+    padding: 1.5rem;
+    background-color: #ffffff;
+    border-radius: 12px; /* Coins plus arrondis pour un look moderne */
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08); /* Ombre plus douce et diffuse */
+}
+
+
 .flex { display: flex; }
+.inline-flex { display: inline-flex; }
+.block { display: block; }
+.hidden { display: none; } /* Pour masquer des éléments sur mobile par exemple */
 .items-center { align-items: center; }
 .justify-center { justify-content: center; }
 .justify-between { justify-content: space-between; }
 .self-end { align-self: flex-end; }
 .min-h-screen { min-height: 100vh; }
+.mx-auto { margin-left: auto; margin-right: auto; }
+.max-w-7xl { max-width: 80rem; } /* Pour les conteneurs très larges */
+.w-full { width: 100%; }
+
+/* GRID LAYOUT */
+.grid { display: grid; }
+.grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+.md\:grid-cols-2 {
+    @media (min-width: 768px) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+.lg\:grid-cols-3 {
+    @media (min-width: 1024px) {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+.gap-4 { gap: 1rem; }
+.gap-6 { gap: 1.5rem; }
+.gap-8 { gap: 2rem; }
+
+
+/* Espacement (Marges et Paddings) */
+.p-2 { padding: 0.5rem; }
+.p-3 { padding: 0.75rem; }
+.p-4 { padding: 1rem; }
+.p-6 { padding: 1.5rem; }
+.py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+.px-4 { padding-left: 1rem; padding-right: 1rem; }
+.py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+.px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-3 { margin-bottom: 0.75rem; }
+.mb-4 { margin-bottom: 1rem; }
+.mb-6 { margin-bottom: 1.5rem; }
+.mb-8 { margin-bottom: 2rem; }
+
+.mt-2 { margin-top: 0.5rem; }
+.mt-4 { margin-top: 1rem; }
+.mt-6 { margin-top: 1.5rem; }
+.mt-8 { margin-top: 2rem; }
+
+.mr-2 { margin-right: 0.5rem; }
+.mr-4 { margin-right: 1rem; }
+
+.space-x-2 > *:not([hidden]) ~ *:not([hidden]) { margin-left: 0.5rem; }
+.space-x-4 > *:not([hidden]) ~ *:not([hidden]) { margin-left: 1rem; }
+.space-x-6 > *:not([hidden]) ~ *:not([hidden]) { margin-left: 1.5rem; }
+.space-y-4 > *:not([hidden]) ~ *:not([hidden]) { margin-top: 1rem; }
+.space-y-6 > *:not([hidden]) ~ *:not([hidden]) { margin-top: 1.5rem; }
+
 
 /* Typographie */
-.text-2xl { font-size: 1.5rem; /* 24px */ }
-.text-sm { font-size: 0.875rem; /* 14px */ }
-.text-xs { font-size: 0.75rem; /* 12px */ }
-.font-bold { font-weight: 700; }
+.text-xs { font-size: 0.75rem; }
+.text-sm { font-size: 0.875rem; }
+.text-base { font-size: 1rem; }
+.text-lg { font-size: 1.125rem; }
+.text-xl { font-size: 1.25rem; }
+.text-2xl { font-size: 1.5rem; }
+.text-3xl { font-size: 2rem; }
+.text-4xl { font-size: 2.25rem; }
+.text-5xl { font-size: 3rem; } /* Pour les grands chiffres */
+
+.font-light { font-weight: 300; }
+.font-normal { font-weight: 400; }
 .font-medium { font-weight: 500; }
+.font-semibold { font-weight: 600; }
+.font-bold { font-weight: 700; }
+.font-extrabold { font-weight: 800; }
+.tracking-tight { letter-spacing: -0.025em; }
 .text-center { text-align: center; }
 
 /* Couleurs de texte */
-.text-gray-700 { color: #4a5568; /* Gris 700 */ }
-.text-gray-500 { color: #6b7280; /* Gris 500 */ } /* Utilisé pour le N/A */
-.text-gray-600 { color: #4b5563; /* Gris 600 */ }
 .text-white { color: #ffffff; }
+.text-gray-100 { color: #f7fafc; }
+.text-gray-200 { color: #edf2f7; }
+.text-gray-300 { color: #cbd5e0; }
+.text-gray-400 { color: #a0aec0; }
+.text-gray-500 { color: #718096; } /* Pour N/A et texte par défaut */
+.text-gray-600 { color: #4b5563; }
+.text-gray-700 { color: #4a5568; }
+.text-gray-800 { color: #2d3748; }
+.text-gray-900 { color: #1a202c; } /* Pour les titres les plus sombres */
 
-/* Couleurs des boutons principaux */
-.bg-blue-600 { background-color: #2563eb; }
-.hover\:bg-blue-700:hover { background-color: #1d4ed8; }
-
-.bg-green-600 { background-color: #16a34a; }
-.hover\:bg-green-700:hover { background-color: #15803d; }
-
-.bg-purple-600 { background-color: #9333ea; }
-.hover\:bg-purple-700:hover { background-color: #7e22ce; }
-
-/* NOUVELLES CLASSES POUR LES BOUTONS D'ACTION SPÉCIFIQUES (Accepter, Décliner, Retourner) */
-.bg-green-500 { background-color: #22c55e; } /* Vert 500 pour Accepter */
-.hover\:bg-green-600:hover { background-color: #16a34a; } /* Vert 600 pour hover */
-
-.bg-red-500 { background-color: #ef4444; } /* Rouge 500 pour Décliner */
-.hover\:bg-red-600:hover { background-color: #dc2626; } /* Rouge 600 pour hover */
-
-.bg-yellow-500 { background-color: #f59e0b; } /* Jaune 500 pour Retourner */
-.hover\:bg-yellow-600:hover { background-color: #d97706; } /* Jaune 600 pour hover */
-
-.bg-gray-700 { background-color: #374151; } /* Gris 700 pour Facture PDF */
-.hover\:bg-gray-800:hover { background-color: #1f2937; } /* Gris 800 pour hover */
+/* Couleurs de fond */
+.bg-white { background-color: #ffffff; }
+.bg-gray-50 { background-color: #f9fafb; }
+.bg-gray-100 { background-color: #f7fafc; }
+.bg-gray-800 { background-color: #2d3748; } /* Fond de la navbar et potentiel sidebar */
+.bg-indigo-600 { background-color: #4f46e5; } /* Couleur principale pour les accents */
 
 
-.hover\:underline:hover { text-decoration: underline; }
+/* Couleurs pour les statuts et boutons d'action */
+/* Base couleurs */
+.text-blue-400 { color: #60a5fa; }
+.text-red-500 { color: #ef4444; }
+.text-yellow-600 { color: #d97706; }
+.text-green-600 { color: #16a34a; }
+.text-purple-600 { color: #9333ea; }
 
-/* Espacement (Marges et Paddings) */
-.mb-4 { margin-bottom: 1rem; }
-.mb-6 { margin-bottom: 1.5rem; }
-.mt-1 { margin-top: 0.25rem; }
-.mt-2 { margin-top: 0.5rem; }
-.mt-4 { margin-top: 1rem; }
-.mr-2 { margin-right: 0.5rem; }
-.px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
-.py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
-.space-y-4 > *:not([hidden]) ~ *:not([hidden]) { margin-top: 1rem; }
-.space-y-6 > *:not([hidden]) ~ *:not([hidden]) { margin-top: 1.5rem; }
-.space-x-2 > *:not([hidden]) ~ *:not([hidden]) { margin-left: 0.5rem; }
+/* Boutons / Cartes */
+.bg-blue-500 { background-color: #3b82f6; }
+.hover\:bg-blue-600:hover { background-color: #2563eb; }
 
-/* Largeur et Hauteur */
-.w-full { width: 100%; }
-.inline-block { display: inline-block; }
-.block { display: block; }
+.bg-green-500 { background-color: #22c55e; }
+.hover\:bg-green-600:hover { background-color: #16a34a; }
+
+.bg-red-500 { background-color: #ef4444; }
+.hover\:bg-red-600:hover { background-color: #dc2626; }
+
+.bg-yellow-500 { background-color: #f59e0b; }
+.hover\:bg-yellow-600:hover { background-color: #d97706; }
+
+.bg-purple-500 { background-color: #a855f7; }
+.hover\:bg-purple-600:hover { background-color: #9333ea; }
+
+.bg-gray-700 { background-color: #374151; }
+.hover\:bg-gray-800:hover { background-color: #1f2937; }
+
 
 /* Bordures et Ombres */
 .border { border-width: 1px; }
-.border-gray-300 { border-color: #e2e8f0; }
+.border-gray-200 { border-color: #e5e7eb; }
+.border-gray-300 { border-color: #d1d5db; }
 .rounded-md { border-radius: 0.375rem; }
+.rounded-lg { border-radius: 0.5rem; }
+.rounded-xl { border-radius: 0.75rem; }
+.rounded-2xl { border-radius: 1rem; } /* Nouveau, plus rond */
+.rounded-full { border-radius: 9999px; }
+
 .shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
+.shadow-md { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
+.shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+.shadow-xl { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
+.shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); } /* Nouveau, ombre plus forte */
 
-/* États de focus */
-.focus\:outline-none:focus { outline: 0; }
-.focus\:ring-blue-500:focus {
-    --tw-ring-color: #3b82f6;
-    --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
-    --tw-ring-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow, 0 0 #0000);
-    box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow, 0 0 #0000);
-}
-.focus\:border-blue-500:focus { border-color: #3b82f6; }
 
-/* Conteneur de connexion (login.jsp) */
-.login-container {
-    background-color: #ffffff;
-    padding: 2.5rem;
-    border-radius: 0.75rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    max-width: 400px;
-    width: 100%;
-}
+/* Transitions et Transformations */
+.transition-colors { transition-property: color, background-color, border-color, text-decoration-color, fill, stroke; transition-duration: 200ms; }
+.transition-transform { transition-property: transform; transition-duration: 150ms; }
+.transform { transform: var(--tw-transform); }
+.hover\:scale-105:hover { transform: scale(1.05); }
 
-/* Messages (erreur et succès) */
-.error-message {
-    color: #dc2626; /* Rouge 600 */
-    background-color: #fee2e2; /* Rouge 100 */
-    border: 1px solid #ef4444; /* Rouge 500 */
-    padding: 0.75rem;
-    margin-bottom: 1rem;
-    border-radius: 0.375rem;
-    text-align: center;
-}
-
-.success-message {
-    color: #16a34a; /* Vert 600 */
-    background-color: #dcfce7; /* Vert 100 */
-    border: 1px solid #22c55e; /* Vert 500 */
-    padding: 0.75rem;
-    margin-bottom: 1rem;
-    border-radius: 0.375rem;
-    text-align: center;
-}
-
-/* Styles pour les tableaux */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 1rem;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-    border-radius: 0.375rem;
-    overflow: hidden;
-}
-
-th, td {
-    border: 1px solid #e2e8f0;
-    padding: 0.75rem 1rem;
-    text-align: left;
-}
-
-th {
-    background-color: #edf2f7;
-    font-weight: 600;
-    text-transform: uppercase;
-    font-size: 0.75rem;
-    color: #4a5568;
-}
-
-tr:nth-child(even) {
-    background-color: #f9fafb;
-}
 
 /* Styles pour la barre de navigation (navbar.jsp) */
 .navbar {
-    background-color: #333;
-    padding: 1rem 0;
+    background-color: #2d3748; /* Gris foncé pour la navbar */
+    padding: 1rem 0; /* padding vertical, largeur gérée par container */
     color: white;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); /* Ombre plus visible */
+    border-bottom: 4px solid #4f46e5; /* Petite barre indigo en bas */
 }
 
 .navbar-container {
-    max-width: 1200px;
+    max-width: 1280px; /* Equivalent max-w-7xl */
     margin: 0 auto;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 1rem;
+    padding: 0 1.5rem; /* px-6 */
 }
 
 .navbar-brand {
-    font-size: 1.5rem;
-    font-weight: bold;
+    font-size: 2rem; /* text-3xl */
+    font-weight: 800; /* font-extrabold */
     color: white;
     text-decoration: none;
+    display: flex; /* Pour aligner l'icône et le texte */
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0; /* Léger padding pour la zone de clic */
+}
+.navbar-brand i {
+    color: #60a5fa; /* icône bleue */
+    font-size: 1.8rem;
 }
 
 .navbar-links ul {
@@ -184,52 +224,124 @@ tr:nth-child(even) {
 }
 
 .navbar-links li {
-    margin-left: 1.5rem;
+    /* Espace géré par space-x-6 sur l'UL */
 }
 
 .navbar-links a {
-    color: white;
+    color: #cbd5e0; /* text-gray-300 pour les liens par défaut */
     text-decoration: none;
-    padding: 0.5rem 1rem;
-    border-radius: 0.375rem;
-    transition: background-color 0.3s ease;
+    padding: 0.6rem 1rem; /* Plus de padding pour une meilleure zone de clic */
+    border-radius: 8px; /* rounded-lg */
+    transition: all 0.2s ease-in-out; /* Transition plus globale */
+    font-weight: 500; /* font-medium */
 }
 
 .navbar-links a:hover {
-    background-color: #555;
+    color: #ffffff; /* Texte blanc au survol */
+    background-color: rgba(96, 165, 250, 0.15); /* Fond bleu transparent */
+    transform: translateY(-1px); /* Léger effet 3D */
 }
 
-/* Styles pour les tableaux de bord et formulaires */
-.dashboard-container {
-    max-width: 1200px;
-    margin: 2rem auto;
-    padding: 1rem;
+/* Gestion du menu mobile (masqué par défaut, affiché sur md) */
+.navbar-links.hidden.md\:flex {
+    display: none;
+}
+@media (min-width: 768px) {
+    .navbar-links.hidden.md\:flex {
+        display: flex;
+    }
 }
 
-.dashboard-section {
+
+/* Styles pour les titres et sections de tableau de bord */
+.dashboard-heading {
+    font-size: 2.5rem; /* text-4xl */
+    font-weight: 800; /* font-extrabold */
+    color: #1a202c; /* text-gray-900 */
+    margin-bottom: 2.5rem; /* mb-10 */
+    text-align: center;
+    line-height: 1.2;
+}
+
+.dashboard-subheading {
+    font-size: 2rem; /* text-3xl */
+    font-weight: 700; /* font-bold */
+    color: #2d3748; /* text-gray-800 */
+    margin-top: 2rem; /* mt-8 */
+    margin-bottom: 1.5rem; /* mb-6 */
+    text-align: center;
+}
+
+
+/* Cartes de Dashboard (pour personnel et client) */
+.dashboard-card {
     background-color: #ffffff;
-    padding: 2rem;
-    border-radius: 0.75rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    margin-bottom: 2rem;
+    padding: 1.5rem; /* p-6 */
+    border-radius: 12px; /* rounded-xl ou plus pour un look doux */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* shadow-lg */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    cursor: default;
+    border: 1px solid #e2e8f0; /* Petite bordure pour la définition */
+}
+.dashboard-card:hover {
+    transform: translateY(-5px); /* Effet 3D plus prononcé au survol */
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15); /* Ombre plus intense au survol */
 }
 
-.dashboard-section h3 {
-    font-size: 1.25rem;
-    font-weight: bold;
-    margin-bottom: 1rem;
-    color: #333;
+.dashboard-card-title {
+    font-size: 1.25rem; /* text-xl */
+    font-weight: 600; /* font-semibold */
+    color: #4a5568; /* text-gray-700 */
+    margin-bottom: 0.75rem; /* mb-3 */
 }
+
+.dashboard-card-value {
+    font-size: 3rem; /* text-5xl pour les grands chiffres */
+    font-weight: 700; /* font-bold */
+    line-height: 1; /* Pour éviter l'espacement excessif */
+}
+
+.dashboard-card-icon {
+    font-size: 3rem; /* text-5xl pour les grandes icônes */
+    opacity: 0.6; /* Légère transparence pour un effet de superposition */
+}
+
+
+/* Liens rapides du Dashboard */
+.quick-link {
+    padding: 1.25rem; /* p-5 */
+    border-radius: 12px; /* rounded-xl */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08); /* shadow-md */
+    font-size: 1.125rem; /* text-lg */
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    transition: transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out, background-color 0.15s ease-in-out;
+    text-decoration: none;
+    color: white; /* Texte blanc par défaut */
+}
+.quick-link:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.12);
+}
+
 
 /* Styles des éléments de formulaire */
 .form-group {
-    margin-bottom: 1rem;
+    margin-bottom: 1.25rem; /* Plus d'espace */
 }
 
 .form-group label {
     display: block;
-    margin-bottom: 0.5rem;
-    font-weight: bold;
+    margin-bottom: 0.6rem; /* Plus d'espace */
+    font-weight: 600;
+    color: #2d3748; /* text-gray-800 */
+    font-size: 0.95rem; /* Légèrement plus grand */
 }
 
 .form-group input[type="text"],
@@ -237,26 +349,40 @@ tr:nth-child(even) {
 .form-group input[type="email"],
 .form-group input[type="date"],
 .form-group input[type="password"],
-.form-group select {
+.form-group select,
+.form-group textarea { /* Ajout de textarea */
     width: 100%;
-    padding: 0.5rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    padding: 0.75rem 1rem; /* Plus de padding */
+    border: 1px solid #cbd5e0; /* border-gray-300 */
+    border-radius: 8px; /* rounded-lg */
     box-sizing: border-box;
+    font-size: 1rem;
+    color: #2d3748;
+    background-color: #ffffff;
+    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #4f46e5; /* indigo-600 */
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.25); /* ring-indigo-500 avec opacité */
+}
+
 
 /* Styles spécifiques pour les résultats de recherche dans les formulaires (ex: locationForm.jsp) */
 .search-results {
-    max-height: 200px;
+    max-height: 250px; /* Plus grand */
     overflow-y: auto;
     border: 1px solid #e2e8f0;
-    border-radius: 0.375rem;
-    margin-top: 0.5rem;
+    border-radius: 8px; /* rounded-lg */
+    margin-top: 0.75rem;
     background-color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .search-results div {
-    padding: 0.75rem 1rem;
+    padding: 0.8rem 1.2rem; /* Plus de padding */
     cursor: pointer;
     border-bottom: 1px solid #edf2f7;
     transition: background-color 0.2s ease;
@@ -267,64 +393,161 @@ tr:nth-child(even) {
 }
 
 .search-results div:hover {
-    background-color: #f7fafc;
+    background-color: #e6f0ff; /* Un bleu très clair au survol */
 }
 
 
-/* Styles spécifiques pour les boutons "Ajouter client" et "Exporter PDF" */
-.client-actions-group {
-    display: flex;
-    gap: 0.5rem;
+/* Boutons principaux (formulaires, actions générales) */
+.btn-primary {
+    background-color: #4f46e5; /* indigo-600 */
+    color: white;
+    padding: 0.8rem 1.8rem; /* py-3 px-7 ou ajusté */
+    border: none;
+    border-radius: 8px; /* rounded-lg */
+    font-size: 1.05rem; /* Légèrement plus grand */
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, transform 0.15s ease-in-out, box-shadow 0.2s ease-in-out;
+    display: inline-flex; /* Pour centrer le contenu si texte + icône */
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem; /* Espace pour les icônes */
 }
+.btn-primary:hover {
+    background-color: #4338ca; /* indigo-700 */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+.btn-primary:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+
+/* Messages (erreur et succès) */
+.error-message {
+    color: #dc2626; /* Rouge 600 */
+    background-color: #fee2e2; /* Rouge 100 */
+    border: 1px solid #ef4444; /* Rouge 500 */
+    padding: 1rem;
+    margin-bottom: 1.5rem; /* Plus d'espace */
+    border-radius: 8px; /* rounded-lg */
+    text-align: center;
+    font-weight: 500;
+}
+
+.success-message {
+    color: #16a34a; /* Vert 600 */
+    background-color: #dcfce7; /* Vert 100 */
+    border: 1px solid #22c55e; /* Vert 500 */
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 500;
+}
+
+/* Styles pour les tableaux */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1.5rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08); /* Plus belle ombre */
+    border-radius: 10px; /* Plus arrondi */
+    overflow: hidden; /* Important pour les coins arrondis */
+}
+
+th, td {
+    border: 1px solid #e2e8f0; /* border-gray-200 */
+    padding: 0.9rem 1.2rem; /* Plus de padding */
+    text-align: left;
+    vertical-align: middle;
+    font-size: 0.95rem; /* Légèrement plus grand */
+    color: #333; /* Texte plus foncé */
+}
+
+th {
+    background-color: #e9f0f3; /* Un gris-bleu très clair */
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem; /* text-xs */
+    color: #4a5568; /* text-gray-700 */
+    white-space: nowrap;
+}
+
+tr:nth-child(even) {
+    background-color: #fcfdfe; /* Quasi blanc pour les lignes paires */
+}
+tr:hover {
+    background-color: #e6f0ff; /* Bleu très clair au survol des lignes */
+    transition: background-color 0.2s ease;
+}
+
 
 /* Styles pour les badges de statut */
 .badge-status {
-    padding: 0.25rem 0.5rem;
+    padding: 0.3rem 0.8rem; /* Plus de padding */
     border-radius: 9999px; /* rounded-full */
     font-size: 0.75rem; /* text-xs */
     font-weight: 600;
-    line-height: 1.25rem;
+    line-height: 1.2;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    white-space: nowrap;
+    text-transform: capitalize;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); /* Ombre subtile */
 }
 /* Couleurs des badges */
-.badge-status.yellow { background-color: #fefcbf; color: #8a6000; } /* Jaune (En attente) */
-.badge-status.blue { background-color: #bfd8ff; color: #0056b3; } /* Bleu (En cours) */
-.badge-status.green-status { background-color: #c6f6d5; color: #276749; } /* Vert (Terminee) */
-.badge-status.red-status { background-color: #fed7d7; color: #9b2c2c; } /* Rouge (Annulee) */
-.badge-status.gray-status { background-color: #edf2f7; color: #4a5568; } /* Gris (Par défaut/Autres) */
+.badge-status.yellow { background-color: #fffac8; color: #8a6000; } /* Jaune (En attente) */
+.badge-status.blue { background-color: #d1e9ff; color: #0056b3; } /* Bleu (En cours) */
+.badge-status.green-status { background-color: #d9f7be; color: #276749; } /* Vert (Terminee) */
+.badge-status.red-status { background-color: #ffdada; color: #9b2c2c; } /* Rouge (Annulee) */
+.badge-status.gray-status { background-color: #e9ecef; color: #4a5568; } /* Gris (Par défaut/Autres) */
 
 /* Groupe de boutons d'action dans le tableau */
 .action-buttons-group {
     display: flex;
-    gap: 0.5rem; /* Espacement entre les boutons */
-    flex-wrap: wrap; /* Permet aux boutons de passer à la ligne */
+    gap: 0.6rem; /* Espacement plus grand */
+    flex-wrap: wrap;
     align-items: center;
+    justify-content: flex-start;
 }
 /* Styles génériques pour les liens/boutons d'action */
 .action-buttons-group a,
 .action-buttons-group button {
-    padding: 0.5rem 0.8rem;
-    border-radius: 0.375rem; /* rounded-md */
+    padding: 0.6rem 0.9rem; /* Plus de padding */
+    border-radius: 8px; /* rounded-lg */
     text-decoration: none;
-    font-size: 0.875rem; /* text-sm */
+    font-size: 0.88rem; /* Légèrement plus grand */
     font-weight: 500;
     display: inline-flex;
     align-items: center;
-    gap: 0.25rem; /* espace pour les icônes */
-    transition: background-color 0.15s ease-in-out, transform 0.15s ease-in-out; /* Ajout d'une transition pour le survol */
+    gap: 0.3rem; /* Espace pour les icônes */
+    transition: all 0.2s ease-in-out;
     cursor: pointer;
     border: none;
-    color: white; /* Texte blanc par défaut pour les boutons colorés */
+    color: white;
+    white-space: nowrap;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); /* Ombre subtile */
 }
 .action-buttons-group a:hover,
 .action-buttons-group button:hover {
-    transform: translateY(-1px); /* Léger effet de survol */
+    transform: translateY(-2px); /* Effet 3D plus prononcé */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Styles spécifiques pour les hovers des boutons d'action */
-.action-buttons-group .bg-green-500:hover { background-color: #10B981; }
-.action-buttons-group .bg-red-500:hover { background-color: #EF4444; }
-.action-buttons-group .bg-yellow-500:hover { background-color: #FBBF24; }
-.action-buttons-group .bg-gray-700:hover { background-color: #374151; }
+
+
+
+
+
+
+
+
+
+
+
+
+
+

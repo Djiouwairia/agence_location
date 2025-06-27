@@ -6,80 +6,141 @@ import com.agence.location.model.Voiture;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
+import javax.persistence.NoResultException; // Ajouté pour gérer les cas de non-résultat
+import java.util.ArrayList; // Ajouté pour initialiser les listes vides
 import java.util.List;
+import java.util.logging.Level; // Ajouté pour les niveaux de log
+import java.util.logging.Logger; // Ajouté pour le logging
 
 /**
  * Service pour la gestion des voitures.
- * Gère les transactions pour les opérations de modification.
+ * Cette classe encapsule la logique métier liée aux opérations CRUD (Création, Lecture, Mise à jour, Suppression)
+ * des véhicules de l'agence. Elle gère les transactions de persistance et interagit avec le {@link VoitureDAO}.
  */
 public class VoitureService {
 
+    private static final Logger LOGGER = Logger.getLogger(VoitureService.class.getName());
+
     private VoitureDAO voitureDAO;
 
+    /**
+     * Constructeur par défaut.
+     * Initialise le Data Access Object (DAO) pour les opérations sur les voitures.
+     */
     public VoitureService() {
         this.voitureDAO = new VoitureDAO();
-    }
-
-    public List<Voiture> getAllVoitures() {
-        return voitureDAO.findAll();
-    }
-
-    public Voiture getVoitureByImmatriculation(String immatriculation) {
-        return voitureDAO.findById(immatriculation);
-    }
-
-    public List<Voiture> searchVoitures(String marque, Double kilometrageMax, Integer anneeMiseCirculationMin,
-                                        String typeCarburant, String categorie, String statut) {
-        return voitureDAO.searchVoitures(marque, kilometrageMax, anneeMiseCirculationMin, typeCarburant, categorie, statut);
+        LOGGER.info("VoitureService initialisé.");
     }
 
     /**
-     * Ajoute une nouvelle voiture.
-     * @param voiture La voiture à ajouter.
-     * @return La voiture ajoutée.
-     * @throws RuntimeException Si la voiture existe déjà ou si une erreur de persistance survient.
+     * Récupère toutes les voitures enregistrées dans le système.
+     * @return Une liste de toutes les voitures, ou une liste vide si aucune voiture n'est trouvée ou en cas d'erreur.
+     */
+    public List<Voiture> getAllVoitures() {
+        LOGGER.info("Tentative de récupération de toutes les voitures.");
+        try {
+            List<Voiture> voitures = voitureDAO.findAll();
+            LOGGER.info("Nombre de voitures récupérées: " + (voitures != null ? voitures.size() : 0));
+            return voitures;
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Erreur lors de la récupération de toutes les voitures: " + e.getMessage(), e);
+            return new ArrayList<>(); // Retourne une liste vide en cas d'erreur
+        }
+    }
+
+    /**
+     * Récupère une voiture par son numéro d'immatriculation.
+     * @param immatriculation Le numéro d'immatriculation de la voiture à rechercher.
+     * @return L'objet Voiture correspondant, ou null si non trouvé ou en cas d'erreur.
+     */
+    public Voiture getVoitureByImmatriculation(String immatriculation) {
+        LOGGER.info("Recherche de la voiture par immatriculation: " + immatriculation);
+        try {
+            return voitureDAO.findById(immatriculation);
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Erreur lors de la récupération de la voiture par immatriculation " + immatriculation + ": " + e.getMessage(), e);
+            return null;
+        }
+    }
+
+    /**
+     * Recherche des voitures selon plusieurs critères (marque, kilométrage max, année min, type de carburant, catégorie, statut).
+     * Tous les paramètres sont optionnels. Si un paramètre est null ou vide, il n'est pas inclus dans la recherche.
+     * @param marque La marque de la voiture.
+     * @param kilometrageMax Le kilométrage maximum.
+     * @param anneeMiseCirculationMin L'année de mise en circulation minimale.
+     * @param typeCarburant Le type de carburant.
+     * @param categorie La catégorie de la voiture.
+     * @param statut Le statut de la voiture ('Disponible', 'Louee', etc.).
+     * @return Une liste de voitures correspondant aux critères, vide si aucune ou en cas d'erreur.
+     */
+    public List<Voiture> searchVoitures(String marque, Double kilometrageMax, Integer anneeMiseCirculationMin,
+                                        String typeCarburant, String categorie, String statut) {
+        LOGGER.info("Recherche de voitures avec les critères: Marque=" + marque + ", KilométrageMax=" + kilometrageMax + ", AnnéeMin=" + anneeMiseCirculationMin + ", Carburant=" + typeCarburant + ", Catégorie=" + categorie + ", Statut=" + statut);
+        try {
+            return voitureDAO.searchVoitures(marque, kilometrageMax, anneeMiseCirculationMin, typeCarburant, categorie, statut);
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Erreur lors de la recherche de voitures: " + e.getMessage(), e);
+            return new ArrayList<>(); // Retourne une liste vide en cas d'erreur
+        }
+    }
+
+    /**
+     * Ajoute une nouvelle voiture dans le système.
+     * @param voiture L'objet Voiture à ajouter. L'immatriculation doit être unique.
+     * @return La voiture ajoutée si l'opération est réussie.
+     * @throws RuntimeException Si une voiture avec cette immatriculation existe déjà,
+     * ou si une erreur de persistance survient.
      */
     public Voiture addVoiture(Voiture voiture) {
         EntityManager em = JPAUtil.getEntityManager();
         EntityTransaction transaction = em.getTransaction();
         try {
+            LOGGER.info("Début de la transaction pour l'ajout de la voiture: " + voiture.getImmatriculation());
             transaction.begin();
-            // Vérifier si la voiture existe déjà
+            // Vérifier si la voiture existe déjà pour éviter les doublons
             if (voitureDAO.findById(voiture.getImmatriculation()) != null) {
-                throw new RuntimeException("Une voiture avec cette immatriculation existe déjà.");
+                throw new RuntimeException("Une voiture avec cette immatriculation existe déjà: " + voiture.getImmatriculation());
             }
             voitureDAO.persist(em, voiture);
             transaction.commit();
+            LOGGER.info("Voiture " + voiture.getImmatriculation() + " ajoutée avec succès.");
             return voiture;
         } catch (RuntimeException e) {
-            if (transaction.isActive()) {
+            if (transaction != null && transaction.isActive()) {
                 transaction.rollback();
+                LOGGER.warning("Transaction d'ajout de voiture annulée: " + e.getMessage());
             }
-            throw e;
+            LOGGER.log(Level.SEVERE, "Erreur lors de l'ajout de la voiture " + voiture.getImmatriculation() + ": " + e.getMessage(), e);
+            throw e; // Propage l'exception pour que la servlet puisse la gérer
         } finally {
-            if (em.isOpen()) {
+            if (em != null && em.isOpen()) {
                 em.close();
+                LOGGER.info("EntityManager fermé après addVoiture.");
             }
         }
     }
 
     /**
      * Met à jour les informations d'une voiture existante.
-     * @param voiture La voiture avec les informations mises à jour.
-     * @return La voiture mise à jour.
-     * @throws RuntimeException Si la voiture n'est pas trouvée ou si une erreur de persistance survient.
+     * @param voiture L'objet Voiture contenant les informations mises à jour.
+     * L'immatriculation est utilisée pour identifier la voiture à mettre à jour.
+     * @return La voiture mise à jour si l'opération est réussie.
+     * @throws RuntimeException Si la voiture n'est pas trouvée pour la mise à jour,
+     * ou si une erreur de persistance survient.
      */
     public Voiture updateVoiture(Voiture voiture) {
         EntityManager em = JPAUtil.getEntityManager();
         EntityTransaction transaction = em.getTransaction();
         try {
+            LOGGER.info("Début de la transaction pour la mise à jour de la voiture: " + voiture.getImmatriculation());
             transaction.begin();
             // Récupérer l'entité managée pour la mise à jour
             Voiture existingVoiture = em.find(Voiture.class, voiture.getImmatriculation());
             if (existingVoiture == null) {
-                throw new RuntimeException("Voiture non trouvée pour la mise à jour.");
+                throw new RuntimeException("Voiture non trouvée pour la mise à jour: " + voiture.getImmatriculation());
             }
-            // Copier les propriétés de l'objet détaché vers l'objet managé
+            // Copier les propriétés de l'objet détaché (passé en paramètre) vers l'objet managé
             existingVoiture.setNbPlaces(voiture.getNbPlaces());
             existingVoiture.setMarque(voiture.getMarque());
             existingVoiture.setModele(voiture.getModele());
@@ -90,60 +151,73 @@ public class VoitureService {
             existingVoiture.setPrixLocationJ(voiture.getPrixLocationJ());
             existingVoiture.setStatut(voiture.getStatut());
 
-            voitureDAO.merge(em, existingVoiture); // Fusionne l'entité
+            voitureDAO.merge(em, existingVoiture); // Fusionne l'entité managée pour persister les changements
             transaction.commit();
+            LOGGER.info("Voiture " + voiture.getImmatriculation() + " mise à jour avec succès.");
             return existingVoiture; // Retourne l'entité managée et mise à jour
         } catch (RuntimeException e) {
-            if (transaction.isActive()) {
+            if (transaction != null && transaction.isActive()) {
                 transaction.rollback();
+                LOGGER.warning("Transaction de mise à jour de voiture annulée: " + e.getMessage());
             }
+            LOGGER.log(Level.SEVERE, "Erreur lors de la mise à jour de la voiture " + voiture.getImmatriculation() + ": " + e.getMessage(), e);
             throw e;
         } finally {
-            if (em.isOpen()) {
+            if (em != null && em.isOpen()) {
                 em.close();
+                LOGGER.info("EntityManager fermé après updateVoiture.");
             }
         }
     }
 
     /**
-     * Supprime une voiture.
+     * Supprime une voiture du système par son numéro d'immatriculation.
      * @param immatriculation L'immatriculation de la voiture à supprimer.
-     * @throws RuntimeException Si la voiture n'est pas trouvée ou si une erreur de persistance survient.
+     * @throws RuntimeException Si la voiture n'est pas trouvée pour la suppression,
+     * ou si une erreur de persistance survient.
      */
     public void deleteVoiture(String immatriculation) {
         EntityManager em = JPAUtil.getEntityManager();
         EntityTransaction transaction = em.getTransaction();
         try {
+            LOGGER.info("Début de la transaction pour la suppression de la voiture: " + immatriculation);
             transaction.begin();
             Voiture voitureToDelete = em.find(Voiture.class, immatriculation);
             if (voitureToDelete == null) {
-                throw new RuntimeException("Voiture non trouvée pour suppression.");
+                throw new RuntimeException("Voiture non trouvée pour suppression: " + immatriculation);
             }
-            voitureDAO.remove(em, voitureToDelete);
+            voitureDAO.remove(em, voitureToDelete); // Supprime l'entité managée
             transaction.commit();
+            LOGGER.info("Voiture " + immatriculation + " supprimée avec succès.");
         } catch (RuntimeException e) {
-            if (transaction.isActive()) {
+            if (transaction != null && transaction.isActive()) {
                 transaction.rollback();
+                LOGGER.warning("Transaction de suppression de voiture annulée: " + e.getMessage());
             }
+            LOGGER.log(Level.SEVERE, "Erreur lors de la suppression de la voiture " + immatriculation + ": " + e.getMessage(), e);
             throw e;
         } finally {
-            if (em.isOpen()) {
+            if (em != null && em.isOpen()) {
                 em.close();
+                LOGGER.info("EntityManager fermé après deleteVoiture.");
             }
         }
     }
     
+    /**
+     * Récupère la liste de toutes les voitures dont le statut est 'Disponible'.
+     * @return Une liste de voitures disponibles, ou une liste vide si aucune voiture n'est disponible ou en cas d'erreur.
+     */
     public List<Voiture> getAvailableVoitures() {
-        // Le LOGGER n'était pas importé, je l'ajoute si vous voulez des logs
-        // import java.util.logging.Logger;
-        // private static final Logger LOGGER = Logger.getLogger(VoitureService.class.getName());
-        // LOGGER.info("Récupération des voitures disponibles.");
-        return voitureDAO.getVoituresDisponibles();
+        LOGGER.info("Tentative de récupération des voitures disponibles.");
+        try {
+            // Délègue la récupération des voitures disponibles au DAO
+            List<Voiture> availableVoitures = voitureDAO.getVoituresDisponibles();
+            LOGGER.info("Nombre de voitures disponibles récupérées: " + (availableVoitures != null ? availableVoitures.size() : 0));
+            return availableVoitures;
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Erreur lors de la récupération des voitures disponibles: " + e.getMessage(), e);
+            return new ArrayList<>(); // Retourne une liste vide en cas d'erreur
+        }
     }
-    
-    
-    
-    
-    
-    
 }

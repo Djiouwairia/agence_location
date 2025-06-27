@@ -1,15 +1,14 @@
 package com.agence.location.servlet;
 
 import com.agence.location.service.ReportService;
-import com.agence.location.service.LocationService; // Ajouté si vous voulez passer des stats spécifiques à LocationService au lieu de ReportService
-import com.agence.location.service.VoitureService; // Ajouté si vous voulez passer des stats spécifiques à VoitureService
-import com.agence.location.service.ClientService; // Ajouté si vous voulez passer des stats spécifiques à ClientService
+import com.agence.location.service.LocationService; // Reste importé pour la cohérence
+import com.agence.location.service.VoitureService; // MAINTENANT UTILISÉ POUR LE GESTIONNAIRE
+import com.agence.location.service.ClientService; // Reste importé pour la cohérence
 
 import com.agence.location.model.Utilisateur;
-import com.agence.location.model.Location; // Pour obtenir les informations sur les locataires (via ReportService)
-import com.agence.location.model.Voiture; // Pour les voitures les plus recherchées (via ReportService)
-import com.agence.location.dto.MonthlyReportDTO; // Import du DTO pour le bilan mensuel
-// import com.agence.location.dto.ClientStatsDTO; // N'est pas directement utilisé ici si ReportService gère tout
+import com.agence.location.model.Location;
+import com.agence.location.model.Voiture;
+import com.agence.location.dto.MonthlyReportDTO;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -25,7 +24,7 @@ import java.util.logging.Logger;
 
 /**
  * Servlet pour afficher les tableaux de bord du chef d'agence et des gestionnaires.
- * Délègue l'obtention des données de rapport à ReportService.
+ * Délègue l'obtention des données de rapport à ReportService et VoitureService (pour le gestionnaire).
  */
 @WebServlet("/dashboard")
 public class DashboardServlet extends HttpServlet {
@@ -33,19 +32,17 @@ public class DashboardServlet extends HttpServlet {
     private static final Logger LOGGER = Logger.getLogger(DashboardServlet.class.getName());
 
     private ReportService reportService;
-    // Si vous aviez des services spécifiques en plus de ReportService, vous pouvez les garder ici:
-    // private LocationService locationService;
-    // private VoitureService voitureService;
-    // private ClientService clientService;
-
+    private LocationService locationService; // Maintenu pour la cohérence, si d'autres parties l'utilisent
+    private VoitureService voitureService; // Initialisé et utilisé pour les voitures disponibles
+    private ClientService clientService; // Maintenu pour la cohérence
 
     @Override
     public void init() throws ServletException {
         super.init();
         reportService = new ReportService();
-        // locationService = new LocationService(); // Décommenter si vous les utilisez
-        // voitureService = new VoitureService();
-        // clientService = new ClientService();
+        locationService = new LocationService(); // Si LocationService a des méthodes utiles pour le gestionnaire
+        voitureService = new VoitureService();   // Initialisation de VoitureService
+        clientService = new ClientService();     // Si ClientService a des méthodes utiles pour le gestionnaire
         LOGGER.info("DashboardServlet initialisée.");
     }
 
@@ -55,7 +52,7 @@ public class DashboardServlet extends HttpServlet {
 
         if (session == null || session.getAttribute("utilisateur") == null) {
             LOGGER.warning("Accès non authentifié au DashboardServlet. Redirection vers login.jsp");
-            response.sendRedirect(request.getContextPath() + "/login.jsp"); // Utilise getContextPath()
+            response.sendRedirect(request.getContextPath() + "/login.jsp");
             return;
         }
 
@@ -68,7 +65,10 @@ public class DashboardServlet extends HttpServlet {
         LOGGER.info("DashboardServlet - doGet for user role: " + role);
 
         try {
-            // Récupération des données du parking via ReportService pour les deux rôles (Gestionnaire et ChefAgence)
+            // =========================================================
+            // Données COMMUNE à TOUS les tableaux de bord (Chef d'Agence et Gestionnaire)
+            // Ces données sont récupérées via ReportService
+            // =========================================================
             long nombreTotalVoitures = reportService.getTotalNumberOfCars();
             long nombreVoituresDisponibles = reportService.getNumberOfAvailableCars();
             long nombreVoituresLouees = reportService.getNumberOfRentedCars();
@@ -77,13 +77,17 @@ public class DashboardServlet extends HttpServlet {
             request.setAttribute("nombreTotalVoitures", nombreTotalVoitures);
             request.setAttribute("nombreVoituresDisponibles", nombreVoituresDisponibles);
             request.setAttribute("nombreVoituresLouees", nombreVoituresLouees);
-            request.setAttribute("pendingRequestsCount", pendingRequestsCount); // Passer cette valeur à la JSP
+            request.setAttribute("pendingRequestsCount", pendingRequestsCount);
 
-            // Données pour les tableaux supplémentaires : Voitures actuellement louées avec infos locataires
+            // Cette liste est déjà présente dans votre code et sera utilisée par chefDashboard.jsp.
+            // Elle est pertinente pour les gestionnaires aussi.
             List<Location> voituresLoueesAvecInfosLocataires = reportService.getRentedCarsWithTenantInfo();
             request.setAttribute("voituresLoueesAvecInfosLocataires", voituresLoueesAvecInfosLocataires);
 
+
             if ("ChefAgence".equals(role)) {
+                LOGGER.info("Chargement du tableau de bord du Chef d'Agence pour " + utilisateur.getUsername());
+
                 // Fonctionnalités spécifiques au chef d'agence via ReportService
                 List<Voiture> voituresPlusRecherches = reportService.getMostSearchedCars(5); // Top 5
                 request.setAttribute("voituresPlusRecherches", voituresPlusRecherches);
@@ -91,31 +95,40 @@ public class DashboardServlet extends HttpServlet {
                 LocalDate now = LocalDate.now();
                 MonthlyReportDTO bilanMensuel = reportService.getMonthlyFinancialReport(now.getYear(), now.getMonthValue());
                 request.setAttribute("bilanMensuel", bilanMensuel);
-                request.setAttribute("moisBilan", now.getMonth().name()); // Conserve .name() pour la simplicité
+                request.setAttribute("moisBilan", now.getMonth().name());
                 request.setAttribute("anneeBilan", now.getYear());
-
-                // Si vous aviez ClientStatsDTO et une méthode pour les meilleurs clients dans ReportService, utilisez-la ici:
-                // List<ClientStatsDTO> topClients = reportService.getTopClientsByCompletedRentals();
-                // request.setAttribute("topClients", topClients);
-
 
                 LOGGER.info("ChefAgence Dashboard data loaded.");
                 request.getRequestDispatcher("/WEB-INF/views/chefDashboard.jsp").forward(request, response);
 
             } else if ("Gestionnaire".equals(role)) {
-                // Le gestionnaire utilise les données de parking, les demandes en attente et les locations en cours.
-                LOGGER.info("Gestionnaire Dashboard data loaded.");
+                LOGGER.info("Chargement du tableau de bord du Gestionnaire pour " + utilisateur.getUsername());
+
+                // Données SPÉCIFIQUES au Gestionnaire:
+
+                // 1. Récupération des voitures disponibles pour le tableau "Voitures Disponibles"
+                List<Voiture> availableCars = voitureService.getAvailableVoitures();
+                request.setAttribute("availableCars", availableCars); // C'est cet attribut qui est utilisé dans la JSP
+
+                // 2. Si vous avez des méthodes existantes pour ces listes (et seulement si elles existent !) :
+                // List<Location> pendingRequestsList = locationService.getPendingRentalRequests(); // Si cette méthode existe
+                // request.setAttribute("pendingRequests", pendingRequestsList);
+                
+                // List<Location> currentRentalsList = locationService.getCurrentRentals(); // Si cette méthode existe
+                // request.setAttribute("currentRentals", currentRentalsList);
+
+                LOGGER.info("Gestionnaire Dashboard data loaded. Redirection vers gestionnaireDashboard.jsp.");
                 request.getRequestDispatcher("/WEB-INF/views/gestionnaireDashboard.jsp").forward(request, response);
             } else {
                 session.invalidate();
                 request.setAttribute("error", "Accès non autorisé ou rôle inconnu.");
                 LOGGER.warning("Rôle inconnu pour l'utilisateur: " + utilisateur.getUsername() + ", rôle: " + role);
-                response.sendRedirect(request.getContextPath() + "/login.jsp"); // Utilise getContextPath()
+                response.sendRedirect(request.getContextPath() + "/login.jsp");
             }
         } catch (RuntimeException e) {
             LOGGER.log(Level.SEVERE, "Erreur grave lors du chargement du tableau de bord: " + e.getMessage(), e);
             request.setAttribute("error", "Une erreur est survenue lors du chargement du tableau de bord. Veuillez contacter l'administrateur.");
-            request.getRequestDispatcher("/WEB-INF/views/login.jsp").forward(request, response); // Redirige vers la page de login par défaut
+            request.getRequestDispatcher("/WEB-INF/views/login.jsp").forward(request, response);
         }
     }
 }

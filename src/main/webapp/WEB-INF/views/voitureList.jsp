@@ -26,7 +26,7 @@
 
         <div class="flex justify-between items-center mb-4">
             <%-- DÉBUT DE LA MODIFICATION ICI --%>
-            <a href="voitures?action=new" class="inline-block bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700">
+            <a href="voitures?action=new" class="btn-primary inline-block bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700">
                 <i class="fas fa-plus-circle mr-2"></i>Ajouter une voiture
             </a>
             <%-- FIN DE LA MODIFICATION --%>
