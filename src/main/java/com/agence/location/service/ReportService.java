@@ -1,53 +1,45 @@
 package com.agence.location.service;
 
-import com.agence.location.dao.ClientDAO;
-import com.agence.location.dao.LocationDAO;
-import com.agence.location.dao.VoitureDAO;
-import com.agence.location.dao.JPAUtil; // Import pour EntityManager
-import com.agence.location.model.Client;
+import com.agence.location.dao.JPAUtil;
 import com.agence.location.model.Location;
 import com.agence.location.model.Voiture;
-import com.agence.location.model.Utilisateur; // Import nécessaire si Utilisateur est fetché
+import com.agence.location.model.Client; // Ajouté pour getAllClientsForExport
+import com.agence.location.dto.ClientStatsDTO; // Assurez-vous que ce DTO est bien créé
+import com.agence.location.dto.MonthlyReportDTO; // Assurez-vous que ce DTO est bien créé
 
-import javax.persistence.EntityManager; // Import pour EntityManager
-import javax.persistence.TypedQuery; // Import pour TypedQuery
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger; // Import pour Logger
-import java.util.stream.Collectors;
+import java.util.logging.Logger;
 
 /**
- * Service pour la génération de rapports et l'obtention des statistiques du tableau de bord.
+ * Service pour générer divers rapports et statistiques pour le tableau de bord.
+ * Centralise les méthodes de récupération de données pour les vues du tableau de bord et les exports.
  */
 public class ReportService {
 
-    private static final Logger LOGGER = Logger.getLogger(ReportService.class.getName()); // Initialisation du logger
-
-    private ClientDAO clientDAO;
-    private VoitureDAO voitureDAO;
-    private LocationDAO locationDAO;
+    private static final Logger LOGGER = Logger.getLogger(ReportService.class.getName());
 
     public ReportService() {
-        this.clientDAO = new ClientDAO();
-        this.voitureDAO = new VoitureDAO();
-        this.locationDAO = new LocationDAO();
-        LOGGER.info("ReportService initialized.");
+        LOGGER.info("ReportService initialisé.");
     }
 
     /**
-     * Retourne le nombre total de voitures dans l'agence.
+     * Compte le nombre total de voitures dans la base de données.
      * @return Le nombre total de voitures.
      */
-    public long getTotalNumberOfCars() { // Changé en long pour correspondre au COUNT(*) en JPQL
+    public long getTotalNumberOfCars() {
         EntityManager em = JPAUtil.getEntityManager();
         try {
-            long count = em.createQuery("SELECT COUNT(v) FROM Voiture v", Long.class).getSingleResult();
-            LOGGER.info("Total number of cars: " + count);
+            Long count = em.createQuery("SELECT COUNT(v) FROM Voiture v", Long.class)
+                           .getSingleResult();
+            LOGGER.info("Nombre total de voitures: " + count);
             return count;
         } catch (Exception e) {
-            LOGGER.severe("Error getting total number of cars: " + e.getMessage());
-            e.printStackTrace();
-            return 0;
+            LOGGER.severe("Erreur lors du comptage total des voitures: " + e.getMessage());
+            throw new RuntimeException("Erreur lors du comptage total des voitures.", e);
         } finally {
             if (em != null && em.isOpen()) {
                 em.close();
@@ -56,19 +48,19 @@ public class ReportService {
     }
 
     /**
-     * Retourne le nombre de voitures disponibles.
-     * @return Le nombre de voitures disponibles.
+     * Compte le nombre de voitures actuellement disponibles (statut 'Disponible').
+     * @return Le nombre de voitures avec le statut 'Disponible'.
      */
-    public long getNumberOfAvailableCars() { // Changé en long
+    public long getNumberOfAvailableCars() {
         EntityManager em = JPAUtil.getEntityManager();
         try {
-            long count = em.createQuery("SELECT COUNT(v) FROM Voiture v WHERE v.statut = 'Disponible'", Long.class).getSingleResult();
-            LOGGER.info("Number of available cars: " + count);
+            Long count = em.createQuery("SELECT COUNT(v) FROM Voiture v WHERE v.statut = 'Disponible'", Long.class)
+                           .getSingleResult();
+            LOGGER.info("Nombre de voitures disponibles: " + count);
             return count;
         } catch (Exception e) {
-            LOGGER.severe("Error getting number of available cars: " + e.getMessage());
-            e.printStackTrace();
-            return 0;
+            LOGGER.severe("Erreur lors du comptage des voitures disponibles: " + e.getMessage());
+            throw new RuntimeException("Erreur lors du comptage des voitures disponibles.", e);
         } finally {
             if (em != null && em.isOpen()) {
                 em.close();
@@ -77,19 +69,20 @@ public class ReportService {
     }
 
     /**
-     * Retourne le nombre de voitures actuellement louées (basé sur le statut des locations).
+     * Compte le nombre de voitures actuellement louées (statut 'Louee' ou 'En cours').
      * @return Le nombre de voitures louées.
      */
-    public long getNumberOfRentedCars() { // Changé en long
+    public long getNumberOfRentedCars() {
         EntityManager em = JPAUtil.getEntityManager();
         try {
-            long count = em.createQuery("SELECT COUNT(l) FROM Location l WHERE l.statut = 'En cours'", Long.class).getSingleResult();
-            LOGGER.info("Number of rented cars (active locations): " + count);
+            // Considérer 'En cours' comme louée
+            Long count = em.createQuery("SELECT COUNT(v) FROM Voiture v WHERE v.statut IN ('Louee', 'En cours')", Long.class)
+                           .getSingleResult();
+            LOGGER.info("Nombre de voitures louées: " + count);
             return count;
         } catch (Exception e) {
-            LOGGER.severe("Error getting number of rented cars: " + e.getMessage());
-            e.printStackTrace();
-            return 0;
+            LOGGER.severe("Erreur lors du comptage des voitures louées: " + e.getMessage());
+            throw new RuntimeException("Erreur lors du comptage des voitures louées.", e);
         } finally {
             if (em != null && em.isOpen()) {
                 em.close();
@@ -98,64 +91,150 @@ public class ReportService {
     }
 
     /**
-     * Retourne la liste des locations en cours avec les informations sur les locataires (client, voiture, gestionnaire).
-     * Utilise JOIN FETCH pour éviter les LazyInitializationException.
-     * @return Une liste d'objets Location dont le statut est 'En cours', avec les relations chargées.
+     * Récupère une liste de locations actuellement 'En cours' avec les informations du locataire.
+     * Ces locations représentent les voitures actuellement louées.
+     * @return Une liste de Location (avec client et voiture fetchés).
      */
     public List<Location> getRentedCarsWithTenantInfo() {
         EntityManager em = JPAUtil.getEntityManager();
-        List<Location> rentedLocations = null;
+        List<Location> rentedCars = null;
         try {
-            // CORRECTION CRUCIALE : Utilisation de JOIN FETCH pour charger les relations EAGERLY
+            // Utilise JOIN FETCH pour charger le client et la voiture en même temps
             TypedQuery<Location> query = em.createQuery(
-                "SELECT l FROM Location l JOIN FETCH l.client JOIN FETCH l.voiture JOIN FETCH l.utilisateur WHERE l.statut = 'En cours'",
-                Location.class
-            );
-            rentedLocations = query.getResultList();
-            LOGGER.info("Fetched " + (rentedLocations != null ? rentedLocations.size() : 0) + " rented cars with tenant info (EAGER).");
+                "SELECT l FROM Location l JOIN FETCH l.client JOIN FETCH l.voiture WHERE l.statut = 'En cours' ORDER BY l.dateDebut DESC", Location.class);
+            rentedCars = query.getResultList();
+            LOGGER.info("Nombre de locations en cours récupérées: " + (rentedCars != null ? rentedCars.size() : "0"));
         } catch (Exception e) {
-            LOGGER.severe("Error getting rented cars with tenant info: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.severe("Erreur lors de la récupération des voitures louées avec infos locataires: " + e.getMessage());
+            return new ArrayList<>(); // Retourne une liste vide en cas d'erreur
         } finally {
             if (em != null && em.isOpen()) {
                 em.close();
             }
         }
-        return rentedLocations;
+        return rentedCars;
     }
 
     /**
-     * Retourne les N voitures les plus louées (recherchées).
-     * @param limit Le nombre de voitures à retourner.
-     * @return Une liste de paires (Voiture, Nombre de locations).
+     * Compte le nombre de demandes de location avec le statut 'En attente'.
+     * @return Le nombre de demandes en attente.
      */
-    public List<Object[]> getMostSearchedCars(int limit) {
-        // Cette méthode doit être implémentée dans LocationDAO (ou VoitureDAO)
-        // et doit utiliser JOIN FETCH si elle retourne des entités complexes.
-        // Pour l'instant, je m'assure juste que l'appel est là.
-        // Assurez-vous que locationDAO.getVoituresLesPlusRecherches(limit) renvoie des Object[]
-        LOGGER.info("Getting " + limit + " most searched cars (requires DAO implementation).");
-        return locationDAO.getVoituresLesPlusRecherches(limit);
+    public int getPendingRequestsCount() {
+        EntityManager em = JPAUtil.getEntityManager();
+        int count = 0;
+        try {
+            Long result = em.createQuery("SELECT COUNT(l) FROM Location l WHERE l.statut = 'En attente'", Long.class)
+                            .getSingleResult();
+            count = result.intValue();
+            LOGGER.info("Nombre de demandes en attente: " + count);
+        } catch (Exception e) {
+            LOGGER.severe("Erreur lors du comptage des demandes en attente: " + e.getMessage());
+            throw new RuntimeException("Erreur lors du comptage des demandes en attente.", e);
+        } finally {
+            if (em != null && em.isOpen()) {
+                em.close();
+            }
+        }
+        return count;
+    }
+    
+    /**
+     * Récupère les X voitures les plus louées (utilisé comme "plus recherchées" pour l'exemple).
+     * @param limit Le nombre de voitures à retourner.
+     * @return Une liste de voitures.
+     */
+    public List<Voiture> getMostSearchedCars(int limit) {
+        EntityManager em = JPAUtil.getEntityManager();
+        List<Voiture> mostSearched = new ArrayList<>();
+        try {
+            // JPQL pour obtenir les voitures les plus louées (un proxy pour "plus recherchées")
+            TypedQuery<Object[]> query = em.createQuery(
+                "SELECT l.voiture, COUNT(l.id) FROM Location l GROUP BY l.voiture ORDER BY COUNT(l.id) DESC", Object[].class);
+            query.setMaxResults(limit);
+            List<Object[]> results = query.getResultList();
+
+            for (Object[] result : results) {
+                if (result[0] instanceof Voiture) { // S'assurer que le type est correct
+                    mostSearched.add((Voiture) result[0]);
+                }
+            }
+            LOGGER.info("Nombre de voitures les plus recherchées/louées récupérées: " + mostSearched.size());
+
+        } catch (Exception e) {
+            LOGGER.severe("Erreur lors de la récupération des voitures les plus recherchées/louées: " + e.getMessage());
+            return new ArrayList<>(); // Retourne une liste vide en cas d'erreur
+        } finally {
+            if (em != null && em.isOpen()) {
+                em.close();
+            }
+        }
+        return mostSearched;
     }
 
     /**
-     * Calcule le bilan financier pour un mois et une année donnés.
+     * Récupère le bilan financier mensuel.
      * @param year L'année.
      * @param month Le mois (1-12).
-     * @return Le montant total des locations terminées pour le mois.
+     * @return Un DTO contenant le total des revenus et des locations.
      */
-    public double getMonthlyFinancialReport(int year, int month) {
-        // Cette méthode doit être implémentée dans LocationDAO
-        LOGGER.info("Getting monthly financial report for " + month + "/" + year + " (requires DAO implementation).");
-        return locationDAO.getBilanFinancierMensuel(year, month);
+    public MonthlyReportDTO getMonthlyFinancialReport(int year, int month) {
+        EntityManager em = JPAUtil.getEntityManager();
+        double totalRevenue = 0.0;
+        long totalRentals = 0;
+        try {
+            // Calcul du revenu total pour le mois (locations terminées)
+            TypedQuery<Double> revenueQuery = em.createQuery(
+                "SELECT SUM(l.montantTotal) FROM Location l WHERE FUNCTION('YEAR', l.dateDebut) = :year AND FUNCTION('MONTH', l.dateDebut) = :month AND l.statut = 'Terminee'", Double.class);
+            revenueQuery.setParameter("year", year);
+            revenueQuery.setParameter("month", month);
+            Double resultRevenue = revenueQuery.getSingleResult();
+            if (resultRevenue != null) {
+                totalRevenue = resultRevenue;
+            }
+
+            // Calcul du nombre total de locations pour le mois (tous statuts)
+            TypedQuery<Long> rentalsQuery = em.createQuery(
+                "SELECT COUNT(l) FROM Location l WHERE FUNCTION('YEAR', l.dateDebut) = :year AND FUNCTION('MONTH', l.dateDebut) = :month", Long.class);
+            rentalsQuery.setParameter("year", year);
+            rentalsQuery.setParameter("month", month);
+            Long resultRentals = rentalsQuery.getSingleResult();
+            if (resultRentals != null) {
+                totalRentals = resultRentals;
+            }
+
+            LOGGER.info("Bilan financier mensuel pour " + month + "/" + year + " : Revenu=" + totalRevenue + ", Locations=" + totalRentals);
+            return new MonthlyReportDTO(totalRevenue, totalRentals);
+
+        } catch (Exception e) {
+            LOGGER.severe("Erreur lors de la récupération du bilan financier mensuel: " + e.getMessage());
+            return new MonthlyReportDTO(0.0, 0); // Retourne un rapport vide en cas d'erreur
+        } finally {
+            if (em != null && em.isOpen()) {
+                em.close();
+            }
+        }
     }
 
     /**
-     * Récupère tous les clients pour l'export.
-     * @return La liste de tous les clients.
+     * Récupère tous les clients enregistrés.
+     * Utilisé pour l'exportation de la liste des clients en PDF.
+     * @return Une liste de tous les objets Client.
      */
     public List<Client> getAllClientsForExport() {
-        LOGGER.info("Fetching all clients for export.");
-        return clientDAO.findAll();
+        EntityManager em = JPAUtil.getEntityManager();
+        List<Client> clients = null;
+        try {
+            TypedQuery<Client> query = em.createQuery("SELECT c FROM Client c ORDER BY c.nom, c.prenom", Client.class);
+            clients = query.getResultList();
+            LOGGER.info("Nombre total de clients récupérés pour export: " + (clients != null ? clients.size() : "0"));
+        } catch (Exception e) {
+            LOGGER.severe("Erreur lors de la récupération de tous les clients pour export: " + e.getMessage());
+            return new ArrayList<>(); // Retourne une liste vide en cas d'erreur
+        } finally {
+            if (em != null && em.isOpen()) {
+                em.close();
+            }
+        }
+        return clients;
     }
 }

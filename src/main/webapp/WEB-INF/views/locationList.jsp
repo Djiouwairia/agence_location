@@ -2,7 +2,6 @@
     pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
-<%-- Aucune importation Java explicite n'est nécessaire ici pour les modèles si JSTL est bien configuré --%>
 
 <!DOCTYPE html>
 <html lang="fr">
@@ -10,33 +9,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Liste des Locations</title>
-    <link rel="stylesheet" href="css/style.css"> <%-- Votre fichier CSS externe --%>
+    <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
     <jsp:include page="navbar.jsp"/>
 
-    <div class="dashboard-container">
-        <h2 class="text-2xl font-bold mb-6 text-center">Gestion des Locations</h2>
+    <div class="dashboard-container"> <%-- Utilise le conteneur stylisé --%>
+        <h2 class="dashboard-heading">Gestion des Locations</h2>
 
         <%-- Message de succès depuis la session --%>
         <c:if test="${not empty sessionScope.message}">
             <p class="success-message">${sessionScope.message}</p>
-            <c:remove var="message" scope="session"/> <%-- Supprime le message après affichage --%>
+            <c:remove var="message" scope="session"/>
         </c:if>
         <%-- Message d'erreur depuis la session --%>
         <c:if test="${not empty sessionScope.error}">
             <p class="error-message">${sessionScope.error}</p>
-            <c:remove var="error" scope="session"/> <%-- Supprime l'erreur après affichage --%>
+            <c:remove var="error" scope="session"/>
         </c:if>
 
-        <div class="mb-4 flex space-x-2 justify-between items-center"> <%-- Ajout de justify-between et items-center pour espacer les boutons --%>
-            <a href="locations?action=new" class="inline-block bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700">
+        <div class="mb-6 flex space-x-4 justify-between items-center">
+            <a href="locations?action=new" class="btn-primary">
                 <i class="fas fa-plus-circle mr-2"></i> Enregistrer une nouvelle location
             </a>
             
-            <%-- BOUTON POUR TÉLÉCHARGER LA LISTE DES LOCATIONS --%>
-            <a href="locations?action=exportList" class="inline-block bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">
+            <a href="locations?action=exportList" class="btn-primary bg-blue-600 hover:bg-blue-700">
                 <i class="fas fa-file-pdf mr-2"></i> Télécharger la liste PDF
             </a>
         </div>
@@ -101,23 +99,23 @@
                                 <td class="action-buttons-group">
                                     <c:choose>
                                         <c:when test="${location.statut eq 'En attente'}">
-                                            <a href="locations?action=acceptRequest&id=${location.id}" class="bg-green-500 text-white hover:bg-green-600">
+                                            <a href="locations?action=acceptRequest&id=${location.id}" class="bg-green-500 hover:bg-green-600">
                                                 <i class="fas fa-check"></i> Accepter
                                             </a>
-                                            <a href="locations?action=declineRequest&id=${location.id}" class="bg-red-500 text-white hover:bg-red-600">
+                                            <a href="locations?action=declineRequest&id=${location.id}" class="bg-red-500 hover:bg-red-600">
                                                 <i class="fas fa-times"></i> Décliner
                                             </a>
                                         </c:when>
                                         <c:when test="${location.statut eq 'En cours'}">
-                                            <a href="locations?action=return&id=${location.id}" class="bg-yellow-500 text-white hover:bg-yellow-600">
+                                            <a href="locations?action=return&id=${location.id}" class="bg-yellow-500 hover:bg-yellow-600 text-gray-800">
                                                 <i class="fas fa-undo"></i> Retourner
                                             </a>
-                                            <a href="locations?action=generateInvoice&locationId=${location.id}" class="bg-gray-700 text-white hover:bg-gray-800">
+                                            <a href="locations?action=generateInvoice&locationId=${location.id}" class="bg-gray-700 hover:bg-gray-800">
                                                 <i class="fas fa-file-pdf"></i> Facture PDF
                                             </a>
                                         </c:when>
                                         <c:when test="${location.statut eq 'Terminee'}">
-                                            <a href="locations?action=generateInvoice&locationId=${location.id}" class="bg-gray-700 text-white hover:bg-gray-800">
+                                            <a href="locations?action=generateInvoice&locationId=${location.id}" class="bg-gray-700 hover:bg-gray-800">
                                                 <i class="fas fa-file-pdf"></i> Facture PDF
                                             </a>
                                         </c:when>
@@ -138,4 +136,3 @@
     </div>
 </body>
 </html>
- 	

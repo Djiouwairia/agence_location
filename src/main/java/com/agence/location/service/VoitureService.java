@@ -140,4 +140,10 @@ public class VoitureService {
         // LOGGER.info("Récupération des voitures disponibles.");
         return voitureDAO.getVoituresDisponibles();
     }
+    
+    
+    
+    
+    
+    
 }

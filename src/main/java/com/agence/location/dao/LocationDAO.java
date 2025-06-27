@@ -1,128 +1,79 @@
 package com.agence.location.dao;
 
-import com.agence.location.model.Client;
 import com.agence.location.model.Location;
-import com.agence.location.model.Voiture;
-import javax.persistence.EntityManager; // Importez EntityManager
+import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
- * DAO spécifique pour l'entité Location.
+ * DAO (Data Access Object) spécifique pour l'entité Location.
  * Étend GenericDAO pour hériter des opérations CRUD de base.
- * Les opérations de modification sont gérées par la couche Service via les méthodes de GenericDAO.
+ * Contient des méthodes spécifiques pour les requêtes sur les locations.
  */
 public class LocationDAO extends GenericDAO<Location, Long> {
 
-    /**
-     * Constructeur par défaut.
-     */
+    private static final Logger LOGGER = Logger.getLogger(LocationDAO.class.getName());
+
     public LocationDAO() {
         super(Location.class); // Indique à GenericDAO que ce DAO gère l'entité Location
     }
 
     /**
-     * Récupère les informations sur le client ayant loué une voiture donnée.
-     * Cette méthode de lecture obtient et ferme son propre EntityManager.
-     * @param immatriculationVoiture Le numéro d'immatriculation de la voiture.
-     * @return Le client ayant loué la voiture, ou null si la voiture n'est pas louée ou non trouvée.
+     * Récupère toutes les locations en incluant les détails du client, de la voiture et de l'utilisateur (gestionnaire)
+     * via FETCH JOIN pour éviter les problèmes de LazyInitializationException.
+     * @return Une liste de toutes les locations avec leurs entités associées.
      */
-    public Client getClientByVoitureLouee(String immatriculationVoiture) {
+    public List<Location> findAllWithDetails() {
         EntityManager em = JPAUtil.getEntityManager();
-        Client client = null;
+        List<Location> locations = null;
         try {
-            // Recherche la location en cours pour la voiture donnée
+            // Utilise LEFT JOIN FETCH pour l'utilisateur car il peut être null (pour les demandes client initiales)
             TypedQuery<Location> query = em.createQuery(
-                "SELECT l FROM Location l WHERE l.voiture.immatriculation = :immat AND l.statut = 'En cours'",
-                Location.class
-            );
-            query.setParameter("immat", immatriculationVoiture);
-            Location location = query.getSingleResult();
-            if (location != null) {
-                // S'assure que le client est initialisé si FetchType.LAZY est utilisé
-                // Si le client n'est pas déjà initialisé, un appel à getClient() pourrait entraîner une LazyInitializationException
-                // si l'EntityManager est fermé. Pour les rapports, on pourrait faire un FETCH JOIN.
-                // Pour l'instant, on suppose que l'accès à client.nom/prenom dans la JSP va déclencher l'initialisation.
-                client = location.getClient();
-            }
-        } catch (NoResultException e) {
-            System.out.println("Aucune location en cours trouvée pour la voiture : " + immatriculationVoiture);
+                "SELECT l FROM Location l LEFT JOIN FETCH l.client LEFT JOIN FETCH l.voiture LEFT JOIN FETCH l.utilisateur ORDER BY l.id DESC", Location.class);
+            locations = query.getResultList();
+            LOGGER.info("findAllWithDetails: " + (locations != null ? locations.size() : "0") + " locations récupérées avec détails.");
         } catch (Exception e) {
-            System.err.println("Erreur lors de la récupération du client par voiture louée : " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.severe("Erreur lors de la récupération de toutes les locations avec détails: " + e.getMessage());
+            throw new RuntimeException("Erreur DAO lors de la récupération des locations.", e);
         } finally {
             if (em != null && em.isOpen()) {
                 em.close();
             }
         }
-        return client;
+        return locations;
     }
 
     /**
-     * Établit le bilan financier mensuel.
-     * Calcule le montant total des locations terminées pour un mois et une année donnés.
-     * Cette méthode de lecture obtient et ferme son propre EntityManager.
-     * @param year L'année du bilan.
-     * @param month Le mois du bilan (1 pour Janvier, 12 pour Décembre).
-     * @return Le montant total des locations pour le mois spécifié.
+     * Récupère une location par son ID en incluant les détails du client, de la voiture et de l'utilisateur (gestionnaire)
+     * via FETCH JOIN pour éviter les problèmes de LazyInitializationException.
+     * @param id L'ID de la location à rechercher.
+     * @return La location trouvée, ou null si aucune location avec cet ID n'est trouvée.
      */
-    public double getBilanFinancierMensuel(int year, int month) {
+    public Location findByIdWithDetails(Long id) {
         EntityManager em = JPAUtil.getEntityManager();
-        double montantTotal = 0.0;
+        Location location = null;
         try {
-            TypedQuery<Double> query = em.createQuery(
-                "SELECT SUM(l.montantTotal) FROM Location l WHERE l.statut = 'Terminee' " +
-                "AND YEAR(l.dateRetourReelle) = :year AND MONTH(l.dateRetourReelle) = :month",
-                Double.class
-            );
-            query.setParameter("year", year);
-            query.setParameter("month", month);
-
-            Double result = query.getSingleResult();
-            if (result != null) {
-                montantTotal = result;
-            }
+            // Utilise LEFT JOIN FETCH pour l'utilisateur car il peut être null
+            TypedQuery<Location> query = em.createQuery(
+                "SELECT l FROM Location l LEFT JOIN FETCH l.client LEFT JOIN FETCH l.voiture LEFT JOIN FETCH l.utilisateur WHERE l.id = :id", Location.class);
+            query.setParameter("id", id);
+            location = query.getSingleResult();
+            LOGGER.info("findByIdWithDetails ID " + id + ": " + (location != null ? "Trouvé" : "Non trouvé"));
         } catch (NoResultException e) {
-            System.out.println("Aucun bilan financier pour le mois " + month + " de l'année " + year);
+            LOGGER.warning("Aucune location trouvée avec l'ID: " + id);
+            return null;
         } catch (Exception e) {
-            System.err.println("Erreur lors du calcul du bilan financier mensuel : " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.severe("Erreur lors de la recherche de la location par ID avec détails: " + id + " - " + e.getMessage());
+            throw new RuntimeException("Erreur DAO lors de la recherche de la location.", e);
         } finally {
             if (em != null && em.isOpen()) {
                 em.close();
             }
         }
-        return montantTotal;
+        return location;
     }
 
-    /**
-     * Visualise les voitures les plus recherchées (ici, les plus louées).
-     * Retourne une liste de voitures avec le nombre de fois qu'elles ont été louées, triées par fréquence.
-     * Cette méthode de lecture obtient et ferme son propre EntityManager.
-     * @param limit Le nombre maximum de voitures à retourner.
-     * @return Une liste d'objets (Voiture, Long) représentant la voiture et le nombre de locations.
-     */
-    public List<Object[]> getVoituresLesPlusRecherches(int limit) {
-        EntityManager em = JPAUtil.getEntityManager();
-        List<Object[]> result = null;
-        try {
-            // JPQL pour regrouper par voiture et compter le nombre de locations
-            TypedQuery<Object[]> query = em.createQuery(
-                "SELECT l.voiture, COUNT(l.voiture) FROM Location l GROUP BY l.voiture ORDER BY COUNT(l.voiture) DESC",
-                Object[].class
-            );
-            query.setMaxResults(limit); // Limite le nombre de résultats
-
-            result = query.getResultList();
-        } catch (Exception e) {
-            System.err.println("Erreur lors de la récupération des voitures les plus recherchées : " + e.getMessage());
-            e.printStackTrace();
-        } finally {
-            if (em != null && em.isOpen()) {
-                em.close();
-            }
-        }
-        return result;
-    }
+    // Les méthodes génériques (persist, merge, remove) sont héritées de GenericDAO.
 }

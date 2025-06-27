@@ -1,8 +1,15 @@
 package com.agence.location.servlet;
 
 import com.agence.location.service.ReportService;
+import com.agence.location.service.LocationService; // Ajouté si vous voulez passer des stats spécifiques à LocationService au lieu de ReportService
+import com.agence.location.service.VoitureService; // Ajouté si vous voulez passer des stats spécifiques à VoitureService
+import com.agence.location.service.ClientService; // Ajouté si vous voulez passer des stats spécifiques à ClientService
+
 import com.agence.location.model.Utilisateur;
-import com.agence.location.model.Location; // Pour obtenir les informations sur les locataires
+import com.agence.location.model.Location; // Pour obtenir les informations sur les locataires (via ReportService)
+import com.agence.location.model.Voiture; // Pour les voitures les plus recherchées (via ReportService)
+import com.agence.location.dto.MonthlyReportDTO; // Import du DTO pour le bilan mensuel
+// import com.agence.location.dto.ClientStatsDTO; // N'est pas directement utilisé ici si ReportService gère tout
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -13,7 +20,8 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.logging.Logger; // Import pour Logger
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Servlet pour afficher les tableaux de bord du chef d'agence et des gestionnaires.
@@ -22,15 +30,23 @@ import java.util.logging.Logger; // Import pour Logger
 @WebServlet("/dashboard")
 public class DashboardServlet extends HttpServlet {
 
-    private static final Logger LOGGER = Logger.getLogger(DashboardServlet.class.getName()); // Initialisation du logger
+    private static final Logger LOGGER = Logger.getLogger(DashboardServlet.class.getName());
 
     private ReportService reportService;
+    // Si vous aviez des services spécifiques en plus de ReportService, vous pouvez les garder ici:
+    // private LocationService locationService;
+    // private VoitureService voitureService;
+    // private ClientService clientService;
+
 
     @Override
     public void init() throws ServletException {
         super.init();
         reportService = new ReportService();
-        LOGGER.info("DashboardServlet initialized.");
+        // locationService = new LocationService(); // Décommenter si vous les utilisez
+        // voitureService = new VoitureService();
+        // clientService = new ClientService();
+        LOGGER.info("DashboardServlet initialisée.");
     }
 
     @Override
@@ -38,7 +54,8 @@ public class DashboardServlet extends HttpServlet {
         HttpSession session = request.getSession(false);
 
         if (session == null || session.getAttribute("utilisateur") == null) {
-            response.sendRedirect("login.jsp");
+            LOGGER.warning("Accès non authentifié au DashboardServlet. Redirection vers login.jsp");
+            response.sendRedirect(request.getContextPath() + "/login.jsp"); // Utilise getContextPath()
             return;
         }
 
@@ -50,31 +67,55 @@ public class DashboardServlet extends HttpServlet {
 
         LOGGER.info("DashboardServlet - doGet for user role: " + role);
 
-        // Récupération des données du parking via ReportService pour les deux rôles
-        request.setAttribute("nombreTotalVoitures", reportService.getTotalNumberOfCars());
-        request.setAttribute("nombreVoituresDisponibles", reportService.getNumberOfAvailableCars());
-        request.setAttribute("nombreVoituresLouees", reportService.getNumberOfRentedCars());
-        
-        // C'est ici que la méthode corrigée sera appelée
-        request.setAttribute("voituresLoueesAvecInfosLocataires", reportService.getRentedCarsWithTenantInfo());
+        try {
+            // Récupération des données du parking via ReportService pour les deux rôles (Gestionnaire et ChefAgence)
+            long nombreTotalVoitures = reportService.getTotalNumberOfCars();
+            long nombreVoituresDisponibles = reportService.getNumberOfAvailableCars();
+            long nombreVoituresLouees = reportService.getNumberOfRentedCars();
+            int pendingRequestsCount = reportService.getPendingRequestsCount(); // Demandes en attente
 
-        if ("ChefAgence".equals(role)) {
-            // Fonctionnalités spécifiques au chef d'agence via ReportService
-            request.setAttribute("voituresPlusRecherches", reportService.getMostSearchedCars(5)); // Top 5
+            request.setAttribute("nombreTotalVoitures", nombreTotalVoitures);
+            request.setAttribute("nombreVoituresDisponibles", nombreVoituresDisponibles);
+            request.setAttribute("nombreVoituresLouees", nombreVoituresLouees);
+            request.setAttribute("pendingRequestsCount", pendingRequestsCount); // Passer cette valeur à la JSP
 
-            LocalDate now = LocalDate.now();
-            request.setAttribute("bilanMensuel", reportService.getMonthlyFinancialReport(now.getYear(), now.getMonthValue()));
-            request.setAttribute("moisBilan", now.getMonth().name());
-            request.setAttribute("anneeBilan", now.getYear());
+            // Données pour les tableaux supplémentaires : Voitures actuellement louées avec infos locataires
+            List<Location> voituresLoueesAvecInfosLocataires = reportService.getRentedCarsWithTenantInfo();
+            request.setAttribute("voituresLoueesAvecInfosLocataires", voituresLoueesAvecInfosLocataires);
 
-            request.getRequestDispatcher("/WEB-INF/views/chefDashboard.jsp").forward(request, response);
-        } else if ("Gestionnaire".equals(role)) {
-            // Le gestionnaire utilise les mêmes données de parking.
-            request.getRequestDispatcher("/WEB-INF/views/gestionnaireDashboard.jsp").forward(request, response);
-        } else {
-            session.invalidate();
-            request.setAttribute("error", "Accès non autorisé ou rôle inconnu.");
-            request.getRequestDispatcher("login.jsp").forward(request, response);
+            if ("ChefAgence".equals(role)) {
+                // Fonctionnalités spécifiques au chef d'agence via ReportService
+                List<Voiture> voituresPlusRecherches = reportService.getMostSearchedCars(5); // Top 5
+                request.setAttribute("voituresPlusRecherches", voituresPlusRecherches);
+
+                LocalDate now = LocalDate.now();
+                MonthlyReportDTO bilanMensuel = reportService.getMonthlyFinancialReport(now.getYear(), now.getMonthValue());
+                request.setAttribute("bilanMensuel", bilanMensuel);
+                request.setAttribute("moisBilan", now.getMonth().name()); // Conserve .name() pour la simplicité
+                request.setAttribute("anneeBilan", now.getYear());
+
+                // Si vous aviez ClientStatsDTO et une méthode pour les meilleurs clients dans ReportService, utilisez-la ici:
+                // List<ClientStatsDTO> topClients = reportService.getTopClientsByCompletedRentals();
+                // request.setAttribute("topClients", topClients);
+
+
+                LOGGER.info("ChefAgence Dashboard data loaded.");
+                request.getRequestDispatcher("/WEB-INF/views/chefDashboard.jsp").forward(request, response);
+
+            } else if ("Gestionnaire".equals(role)) {
+                // Le gestionnaire utilise les données de parking, les demandes en attente et les locations en cours.
+                LOGGER.info("Gestionnaire Dashboard data loaded.");
+                request.getRequestDispatcher("/WEB-INF/views/gestionnaireDashboard.jsp").forward(request, response);
+            } else {
+                session.invalidate();
+                request.setAttribute("error", "Accès non autorisé ou rôle inconnu.");
+                LOGGER.warning("Rôle inconnu pour l'utilisateur: " + utilisateur.getUsername() + ", rôle: " + role);
+                response.sendRedirect(request.getContextPath() + "/login.jsp"); // Utilise getContextPath()
+            }
+        } catch (RuntimeException e) {
+            LOGGER.log(Level.SEVERE, "Erreur grave lors du chargement du tableau de bord: " + e.getMessage(), e);
+            request.setAttribute("error", "Une erreur est survenue lors du chargement du tableau de bord. Veuillez contacter l'administrateur.");
+            request.getRequestDispatcher("/WEB-INF/views/login.jsp").forward(request, response); // Redirige vers la page de login par défaut
         }
     }
 }

@@ -2,8 +2,7 @@ package com.agence.location.util;
 
 import com.agence.location.model.Client;
 import com.agence.location.model.Location;
-import com.agence.location.model.Voiture;
-import com.agence.location.model.Utilisateur; // Importez Utilisateur si vous l'utilisez dans votre modèle Location
+import com.agence.location.model.Utilisateur; // Utilisé si 'utilisateur' est dans le modèle Location pour generateInvoice/generateLocationsListPdf
 
 // IMPORTS ITEXT 8.x
 import com.itextpdf.kernel.pdf.PdfDocument;
@@ -21,16 +20,24 @@ import com.itextpdf.kernel.colors.DeviceRgb;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.time.LocalDate;
+import java.time.LocalDate; // Import manquant pour LocalDate
+import java.time.ZoneId; // Import manquant pour ZoneId
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.logging.Logger;
 
+/**
+ * Classe utilitaire pour générer des documents PDF.
+ * Utilise la bibliothèque iText (version 8.x).
+ */
 public class PdfGenerator {
 
-    private static float CAT_FONT_SIZE = 18f;
-    private static float SUB_FONT_SIZE = 16f;
-    private static float SMALL_BOLD_FONT_SIZE = 12f;
-    private static float NORMAL_FONT_SIZE = 12f;
+    private static final Logger LOGGER = Logger.getLogger(PdfGenerator.class.getName());
+
+    private static final float CAT_FONT_SIZE = 18f;
+    private static final float SUB_FONT_SIZE = 16f;
+    private static final float SMALL_BOLD_FONT_SIZE = 12f;
+    private static final float NORMAL_FONT_SIZE = 12f;
 
     /**
      * Génère une facture PDF pour une location donnée.
@@ -44,8 +51,17 @@ public class PdfGenerator {
         PdfDocument pdf = new PdfDocument(writer);
         Document document = new Document(pdf);
 
-        PdfFont timesRomanNormal = PdfFontFactory.createFont(StandardFonts.TIMES_ROMAN);
-        PdfFont timesRomanBold = PdfFontFactory.createFont(StandardFonts.TIMES_BOLD);
+        // Initialisation des polices à l'intérieur de la méthode pour iText 8.x
+        PdfFont timesRomanNormal = null;
+        PdfFont timesRomanBold = null;
+        try {
+            timesRomanNormal = PdfFontFactory.createFont(StandardFonts.TIMES_ROMAN);
+            timesRomanBold = PdfFontFactory.createFont(StandardFonts.TIMES_BOLD);
+        } catch (IOException e) {
+            LOGGER.severe("Erreur lors du chargement des polices iText: " + e.getMessage());
+            // Utiliser une police par défaut ou gérer l'erreur de manière appropriée
+        }
+
 
         Paragraph title = new Paragraph("FACTURE DE LOCATION DE VOITURE")
                                  .setFont(timesRomanBold)
@@ -112,8 +128,19 @@ public class PdfGenerator {
         addCell(table, "Prix Unitaire", timesRomanBold, SMALL_BOLD_FONT_SIZE, TextAlignment.CENTER, true, null);
         addCell(table, "Montant", timesRomanBold, SMALL_BOLD_FONT_SIZE, TextAlignment.CENTER, true, null);
 
-        addCell(table, "Location de voiture du " + location.getDateDebut().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) +
-                                 " au " + location.getDateRetourPrevue().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), timesRomanNormal, NORMAL_FONT_SIZE, TextAlignment.LEFT, false, null);
+        // Assurez-vous que legacyDateDebut est un java.util.Date et le convertir en LocalDate
+        String dateDebutFormatted = "N/A";
+        String dateRetourPrevueFormatted = "N/A";
+        if (location.getLegacyDateDebut() != null) {
+            dateDebutFormatted = location.getLegacyDateDebut().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        }
+        if (location.getDateRetourPrevue() != null) { // dateRetourPrevue est déjà LocalDate, pas besoin de conversion
+            dateRetourPrevueFormatted = location.getDateRetourPrevue().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        }
+
+
+        addCell(table, "Location de voiture du " + dateDebutFormatted +
+                                 " au " + dateRetourPrevueFormatted, timesRomanNormal, NORMAL_FONT_SIZE, TextAlignment.LEFT, false, null);
         addCell(table, String.valueOf(location.getNombreJours()) + " jours", timesRomanNormal, NORMAL_FONT_SIZE, TextAlignment.CENTER, false, null);
         addCell(table, String.format("%.2f", (double) location.getVoiture().getPrixLocationJ()) + " €", timesRomanNormal, NORMAL_FONT_SIZE, TextAlignment.RIGHT, false, null);
         addCell(table, String.format("%.2f", location.getMontantTotal()) + " €", timesRomanNormal, NORMAL_FONT_SIZE, TextAlignment.RIGHT, false, null);
@@ -154,8 +181,14 @@ public class PdfGenerator {
         Document document = new Document(pdf);
 
         // INITIALISATION DES POLICES À L'INTÉRIEUR DE LA MÉTHODE
-        PdfFont timesRomanNormal = PdfFontFactory.createFont(StandardFonts.TIMES_ROMAN);
-        PdfFont timesRomanBold = PdfFontFactory.createFont(StandardFonts.TIMES_BOLD);
+        PdfFont timesRomanNormal = null;
+        PdfFont timesRomanBold = null;
+        try {
+            timesRomanNormal = PdfFontFactory.createFont(StandardFonts.TIMES_ROMAN);
+            timesRomanBold = PdfFontFactory.createFont(StandardFonts.TIMES_BOLD);
+        } catch (IOException e) {
+            LOGGER.severe("Erreur lors du chargement des polices iText: " + e.getMessage());
+        }
 
         document.add(new Paragraph("LISTE DES CLIENTS DE L'AGENCE")
                                  .setFont(timesRomanBold)
@@ -202,12 +235,15 @@ public class PdfGenerator {
         PdfDocument pdf = new PdfDocument(writer);
         Document document = new Document(pdf); // Par défaut A4 portrait
 
-        // Pour une table avec beaucoup de colonnes, passer en paysage est une bonne idée
-        // document = new Document(pdf, PageSize.A4.rotate()); // Optionnel, si la table est trop large
-
         // INITIALISATION DES POLICES À L'INTÉRIEUR DE LA MÉTHODE
-        PdfFont timesRomanNormal = PdfFontFactory.createFont(StandardFonts.TIMES_ROMAN);
-        PdfFont timesRomanBold = PdfFontFactory.createFont(StandardFonts.TIMES_BOLD);
+        PdfFont timesRomanNormal = null;
+        PdfFont timesRomanBold = null;
+        try {
+            timesRomanNormal = PdfFontFactory.createFont(StandardFonts.TIMES_ROMAN);
+            timesRomanBold = PdfFontFactory.createFont(StandardFonts.TIMES_BOLD);
+        } catch (IOException e) {
+            LOGGER.severe("Erreur lors du chargement des polices iText: " + e.getMessage());
+        }
 
         document.add(new Paragraph("LISTE DES LOCATIONS DE VOITURE")
                                  .setFont(timesRomanBold)
@@ -265,10 +301,24 @@ public class PdfGenerator {
                 addCell(table, clientInfo, timesRomanNormal, NORMAL_FONT_SIZE, TextAlignment.LEFT, false, null);
                 addCell(table, voitureInfo, timesRomanNormal, NORMAL_FONT_SIZE, TextAlignment.LEFT, false, null);
                 addCell(table, gestionnaireInfo, timesRomanNormal, NORMAL_FONT_SIZE, TextAlignment.LEFT, false, null);
-                addCell(table, loc.getDateDebut() != null ? loc.getDateDebut().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "N/A", timesRomanNormal, NORMAL_FONT_SIZE, TextAlignment.CENTER, false, null);
+                
+                // Conversion de java.util.Date en LocalDate pour le formatage pour legacyDateDebut
+                String dateDebutFormatted = "N/A";
+                if (loc.getLegacyDateDebut() != null) {
+                    dateDebutFormatted = loc.getLegacyDateDebut().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+                }
+                addCell(table, dateDebutFormatted, timesRomanNormal, NORMAL_FONT_SIZE, TextAlignment.CENTER, false, null);
+                
                 addCell(table, String.valueOf(loc.getNombreJours()), timesRomanNormal, NORMAL_FONT_SIZE, TextAlignment.CENTER, false, null);
                 addCell(table, loc.getDateRetourPrevue() != null ? loc.getDateRetourPrevue().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "N/A", timesRomanNormal, NORMAL_FONT_SIZE, TextAlignment.CENTER, false, null);
-                addCell(table, loc.getDateRetourReelle() != null ? loc.getDateRetourReelle().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "N/A", timesRomanNormal, NORMAL_FONT_SIZE, TextAlignment.CENTER, false, null);
+                
+                // Conversion de java.util.Date en LocalDate pour le formatage pour legacyDateRetourReelle
+                String dateRetourReelleFormatted = "N/A";
+                if (loc.getLegacyDateRetourReelle() != null) {
+                    dateRetourReelleFormatted = loc.getLegacyDateRetourReelle().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+                }
+                addCell(table, dateRetourReelleFormatted, timesRomanNormal, NORMAL_FONT_SIZE, TextAlignment.CENTER, false, null);
+                
                 addCell(table, String.format("%.2f", loc.getMontantTotal()) + " €", timesRomanNormal, NORMAL_FONT_SIZE, TextAlignment.RIGHT, false, null);
                 addCell(table, loc.getStatut(), timesRomanNormal, NORMAL_FONT_SIZE, TextAlignment.CENTER, false, null);
             }
@@ -280,7 +330,7 @@ public class PdfGenerator {
     }
 
     /**
-     * Méthode utilitaire pour ajouter une cellule à un tableau PDF (adaptée pour iText 8)
+     * Méthode utilitaire pour ajouter une cellule à un tableau PDF (adaptée pour iText 8).
      * @param table Le tableau auquel ajouter la cellule.
      * @param text Le texte de la cellule.
      * @param font La police du texte.
@@ -295,7 +345,7 @@ public class PdfGenerator {
         if (bgColor != null) {
             cell.setBackgroundColor(bgColor);
             if (isHeader) {
-                cell.setFontColor(new DeviceRgb(255, 255, 255));
+                cell.setFontColor(new DeviceRgb(255, 255, 255)); // Texte blanc pour les en-têtes
             }
         }
         table.addCell(cell);

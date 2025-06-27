@@ -2,7 +2,10 @@ package com.agence.location.servlet;
 
 import com.agence.location.model.Voiture;
 import com.agence.location.service.VoitureService; // Pour récupérer les voitures
+import com.agence.location.service.ReportService; // Ajouté pour getNumberOfAvailableCars dans ClientDashboard
+import com.agence.location.service.LocationService; // Ajouté pour getClientRentalsCount et getRecentLocationsByClient
 import com.agence.location.model.Client; // Pour vérifier l'authentification client
+import com.agence.location.model.Location; // Pour List<Location>
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -13,22 +16,27 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.logging.Level;
 
 /**
  * Servlet pour gérer les opérations liées aux voitures pour l'interface client.
  * Affiche la liste des voitures disponibles et les détails d'une voiture spécifique.
  */
-@WebServlet("/clientVoitures") // Nouveau mapping pour les requêtes client liées aux voitures
+@WebServlet("/clientVoitures")
 public class ClientVoitureServlet extends HttpServlet {
 
     private static final Logger LOGGER = Logger.getLogger(ClientVoitureServlet.class.getName());
 
     private VoitureService voitureService;
+    private ReportService reportService; // Initialisation du ReportService
+    private LocationService locationService; // Initialisation du LocationService
 
     @Override
     public void init() throws ServletException {
         super.init();
         voitureService = new VoitureService();
+        reportService = new ReportService();
+        locationService = new LocationService();
         LOGGER.info("ClientVoitureServlet initialisée.");
     }
 
@@ -37,60 +45,106 @@ public class ClientVoitureServlet extends HttpServlet {
         HttpSession session = request.getSession(false);
 
         // Vérification de l'authentification du client
-        // Uniquement les clients connectés doivent accéder à ces pages.
         if (session == null || session.getAttribute("client") == null || !"Client".equals(session.getAttribute("role"))) {
             LOGGER.warning("Accès non autorisé à ClientVoitureServlet. Redirection vers la page de connexion client.");
-            // Correction: Utiliser getContextPath() pour une redirection robuste
             response.sendRedirect(request.getContextPath() + "/login.jsp?client=true");
             return;
         }
 
         String action = request.getParameter("action");
-        Client client = (Client) session.getAttribute("client"); // Récupère l'objet client de la session
+        Client client = (Client) session.getAttribute("client");
 
-        if (action == null || "listAvailable".equals(action)) {
-            // Afficher la liste des voitures disponibles
-            LOGGER.info("Action: listAvailable - Récupération des voitures disponibles pour le client: " + client.getCin());
-            List<Voiture> voituresDisponibles = voitureService.getAvailableVoitures();
-            request.setAttribute("voituresDisponibles", voituresDisponibles);
-            // Correction: Utiliser forward pour accéder à une JSP sous WEB-INF
-            request.getRequestDispatcher("/WEB-INF/views/clientDashboard.jsp").forward(request, response);
-        } else if ("viewDetails".equals(action)) {
-            // Afficher les détails d'une voiture spécifique
-            String immatriculation = request.getParameter("immatriculation");
-            if (immatriculation != null && !immatriculation.isEmpty()) {
-                LOGGER.info("Action: viewDetails - Récupération des détails de la voiture: " + immatriculation + " pour le client: " + client.getCin());
-                Voiture voiture = voitureService.getVoitureByImmatriculation(immatriculation);
-                if (voiture != null && "Disponible".equals(voiture.getStatut())) { // S'assurer que la voiture est disponible
-                    request.setAttribute("voiture", voiture);
-                    // Correction: Utiliser forward pour accéder à une JSP sous WEB-INF
-                    request.getRequestDispatcher("/WEB-INF/views/clientCard.jsp").forward(request, response);
+        try {
+            if (action == null || "listAvailable".equals(action)) {
+                LOGGER.info("Action: listAvailable - Préparation des données pour le clientDashboard.jsp");
+                
+                // Récupération des voitures disponibles pour affichage dans clientDashboard ou une page dédiée
+                List<Voiture> voituresDisponibles = voitureService.getAvailableVoitures();
+                request.setAttribute("voituresDisponibles", voituresDisponibles); // Utile si clientDashboard affiche la liste
+
+                // Statistiques pour les cartes du clientDashboard
+                long availableCarsClientCount = reportService.getNumberOfAvailableCars(); // Récupère le nombre de voitures disponibles
+                request.setAttribute("availableCarsClientCount", availableCarsClientCount);
+
+                int clientRentalsCount = locationService.getClientRentalsCount(client.getCin()); // Méthode du LocationService
+                request.setAttribute("clientRentalsCount", clientRentalsCount);
+
+                List<Location> recentClientRentals = locationService.getRecentLocationsByClient(client.getCin(), 5); // 5 dernières locations
+                request.setAttribute("recentClientRentals", recentClientRentals);
+
+                request.getRequestDispatcher("/WEB-INF/views/clientDashboard.jsp").forward(request, response);
+
+            } else if ("viewDetails".equals(action)) {
+                String immatriculation = request.getParameter("immatriculation");
+                if (immatriculation != null && !immatriculation.isEmpty()) {
+                    LOGGER.info("Action: viewDetails - Récupération des détails de la voiture: " + immatriculation + " pour le client: " + client.getCin());
+                    Voiture voiture = voitureService.getVoitureByImmatriculation(immatriculation);
+                    if (voiture != null && "Disponible".equals(voiture.getStatut())) {
+                        request.setAttribute("voiture", voiture);
+                        request.getRequestDispatcher("/WEB-INF/views/clientCard.jsp").forward(request, response);
+                    } else {
+                        LOGGER.warning("Voiture non trouvée ou non disponible pour l'immatriculation: " + immatriculation);
+                        request.setAttribute("error", "Voiture non trouvée ou non disponible.");
+                        // Re-passer les données au dashboard pour l'affichage de l'erreur
+                        List<Voiture> voituresDisponibles = voitureService.getAvailableVoitures();
+                        request.setAttribute("voituresDisponibles", voituresDisponibles);
+                        long availableCarsClientCount = reportService.getNumberOfAvailableCars();
+                        request.setAttribute("availableCarsClientCount", availableCarsClientCount);
+                        int clientRentalsCount = locationService.getClientRentalsCount(client.getCin());
+                        request.setAttribute("clientRentalsCount", clientRentalsCount);
+                        List<Location> recentClientRentals = locationService.getRecentLocationsByClient(client.getCin(), 5);
+                        request.setAttribute("recentClientRentals", recentClientRentals);
+                        request.getRequestDispatcher("/WEB-INF/views/clientDashboard.jsp").forward(request, response);
+                    }
                 } else {
-                    LOGGER.warning("Voiture non trouvée ou non disponible pour l'immatriculation: " + immatriculation);
-                    request.setAttribute("error", "Voiture non trouvée ou non disponible.");
-                    // Correction: Utiliser forward vers le dashboard avec l'erreur
+                    LOGGER.warning("Paramètre 'immatriculation' manquant pour l'action viewDetails.");
+                    request.setAttribute("error", "Immatriculation de la voiture manquante.");
+                    // Re-passer les données au dashboard pour l'affichage de l'erreur
+                    List<Voiture> voituresDisponibles = voitureService.getAvailableVoitures();
+                    request.setAttribute("voituresDisponibles", voituresDisponibles);
+                    long availableCarsClientCount = reportService.getNumberOfAvailableCars();
+                    request.setAttribute("availableCarsClientCount", availableCarsClientCount);
+                    int clientRentalsCount = locationService.getClientRentalsCount(client.getCin());
+                    request.setAttribute("clientRentalsCount", clientRentalsCount);
+                    List<Location> recentClientRentals = locationService.getRecentLocationsByClient(client.getCin(), 5);
+                    request.setAttribute("recentClientRentals", recentClientRentals);
                     request.getRequestDispatcher("/WEB-INF/views/clientDashboard.jsp").forward(request, response);
                 }
             } else {
-                LOGGER.warning("Paramètre 'immatriculation' manquant pour l'action viewDetails.");
-                request.setAttribute("error", "Immatriculation de la voiture manquante.");
-                // Correction: Utiliser forward vers le dashboard avec l'erreur
+                LOGGER.warning("Action non reconnue pour ClientVoitureServlet: " + action);
+                // Re-passer les données au dashboard pour l'affichage initial
+                List<Voiture> voituresDisponibles = voitureService.getAvailableVoitures();
+                request.setAttribute("voituresDisponibles", voituresDisponibles);
+                long availableCarsClientCount = reportService.getNumberOfAvailableCars();
+                request.setAttribute("availableCarsClientCount", availableCarsClientCount);
+                int clientRentalsCount = locationService.getClientRentalsCount(client.getCin());
+                request.setAttribute("clientRentalsCount", clientRentalsCount);
+                List<Location> recentClientRentals = locationService.getRecentLocationsByClient(client.getCin(), 5);
+                request.setAttribute("recentClientRentals", recentClientRentals);
                 request.getRequestDispatcher("/WEB-INF/views/clientDashboard.jsp").forward(request, response);
             }
-        } else {
-            LOGGER.warning("Action non reconnue pour ClientVoitureServlet: " + action);
-            // Correction: Utiliser forward vers le dashboard par défaut
+        } catch (RuntimeException e) {
+            LOGGER.log(Level.SEVERE, "Erreur lors de l'exécution de ClientVoitureServlet pour action " + action + ": " + e.getMessage(), e);
+            request.setAttribute("error", "Une erreur est survenue lors du traitement de votre demande.");
+            // Assurez-vous de passer les données minimales si redirection vers dashboard
+            List<Voiture> voituresDisponibles = voitureService.getAvailableVoitures();
+            request.setAttribute("voituresDisponibles", voituresDisponibles);
+            long availableCarsClientCount = reportService.getNumberOfAvailableCars();
+            request.setAttribute("availableCarsClientCount", availableCarsClientCount);
+            // Vérifier si client est non null avant d'appeler getClientRentalsCount
+            if (client != null) {
+                request.setAttribute("clientRentalsCount", locationService.getClientRentalsCount(client.getCin()));
+                request.setAttribute("recentClientRentals", locationService.getRecentLocationsByClient(client.getCin(), 5));
+            } else {
+                request.setAttribute("clientRentalsCount", 0);
+                request.setAttribute("recentClientRentals", java.util.Collections.emptyList());
+            }
             request.getRequestDispatcher("/WEB-INF/views/clientDashboard.jsp").forward(request, response);
         }
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        // Pour l'instant, les opérations POST (soumission de formulaire de demande)
-        // sont gérées par ClientRentalServlet. Cette servlet ne devrait pas recevoir de POST pour ces actions.
-        // Redirection vers la liste des voitures disponibles si un POST inattendu arrive ici.
-        LOGGER.warning("POST inattendu reçu dans ClientVoitureServlet. Redirection vers la liste des voitures disponibles.");
-        // Correction: Utiliser getContextPath() pour une redirection robuste
-        response.sendRedirect(request.getContextPath() + "/clientVoitures?action=listAvailable");
+        doGet(request, response); // Pour l'instant, toutes les requêtes POST renvoient au GET
     }
 }
