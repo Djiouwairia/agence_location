@@ -38,12 +38,10 @@
                             <li><a href="<c:url value="/dashboard"/>">Tableau de bord</a></li>
                             <c:if test="${sessionScope.role eq 'ChefAgence'}">
                                 <%-- Suppression de la classe nav-link --%>
-                                <li><a href="<c:url value="/reports"/>">Rapports</a></li>
                             </c:if>
                         </c:when>
                     </c:choose>
                 </c:if>
-
                 <!-- Liens pour le CLIENT -->
                 <c:if test="${not empty sessionScope.client}">
                     <c:choose>
