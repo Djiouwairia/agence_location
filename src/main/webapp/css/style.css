@@ -10,6 +10,10 @@ body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     background-color: #f4f7f6; /* Un fond gris très clair et doux pour l'ensemble de l'application */
+    display: flex; /* Active Flexbox pour le layout global (navbar + contenu) */
+    min-height: 100vh; /* S'assure que le corps prend au moins toute la hauteur de la fenêtre */
+    padding-top: 3.75rem; /* Ajusté pour remonter le contenu sous la navbar fixe */
+    flex-direction: column; /* Assure que le footer reste en bas */
 }
 
 /* Utilitaires de layout (simule Tailwind CSS) */
@@ -19,13 +23,34 @@ body {
     padding: 1rem;
 }
 
-.dashboard-container { /* Spécifique aux tableaux de bord et pages listes pour une largeur ajustée */
-    max-width: 1500px; /* Légèrement plus large pour les tableaux de bord et les listes */
+/* Ce dashboard-container est l'ancien conteneur de niveau supérieur, maintenu pour compatibilité */
+.dashboard-container {
+    max-width: 1500px; /* Largeur d'origine que vous avez fournie */
     margin: 2rem auto;
     padding: 1.5rem;
     background-color: #ffffff;
-    border-radius: 12px; /* Coins plus arrondis pour un look moderne */
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08); /* Ombre plus douce et diffuse */
+    border-radius: 12px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+}
+/* Nouveau conteneur principal pour le contenu de l'application */
+.content-area {
+    margin-left: auto; /* Centre le contenu si pas de sidebar fixe */
+    margin-right: auto;
+    flex-grow: 1; /* Permet au contenu de prendre l'espace disponible */
+    padding: 2rem 1.5rem; /* Padding pour aligner avec la navbar */
+    max-width: 1280px; /* Max-width pour aligner avec la navbar, légèrement plus petit que l'ancien pour une meilleure lisibilité */
+    background-color: #f4f7f6; /* Même couleur de fond que le body */
+    transition: margin-left 0.3s ease-in-out;
+    margin-top: 0; /* Assure qu'il n'y a pas de marge supérieure par défaut */
+}
+/* Carte englobant le contenu principal (ex: dashboard, formulaires) */
+.main-content-card {
+    background-color: #ffffff;
+    border-radius: 0.75rem; /* rounded-xl */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08); /* shadow-lg */
+    padding: 2rem;
+    min-height: calc(100vh - 4rem - 4rem); /* Hauteur minimale pour que le footer ne chevauche pas */
+    margin-top: 0; /* Assure qu'il n'y a pas de marge supérieure par défaut */
 }
 
 
@@ -41,23 +66,29 @@ body {
 .mx-auto { margin-left: auto; margin-right: auto; }
 .max-w-7xl { max-width: 80rem; } /* Pour les conteneurs très larges */
 .w-full { width: 100%; }
+.h-full { height: 100%; } /* Nouveau */
+.flex-grow { flex-grow: 1; } /* Nouveau */
+.flex-col { flex-direction: column; } /* Nouveau */
 
-/* GRID LAYOUT */
+
+/* GRID LAYOUT (Correction de l'imbrication des @media) */
 .grid { display: grid; }
 .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
-.md\:grid-cols-2 {
-    @media (min-width: 768px) {
+/* Corrected @media nesting */
+@media (min-width: 768px) {
+    .md\:grid-cols-2 {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
-.lg\:grid-cols-3 {
-    @media (min-width: 1024px) {
+@media (min-width: 1024px) {
+    .lg\:grid-cols-3 {
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 }
 .gap-4 { gap: 1rem; }
 .gap-6 { gap: 1.5rem; }
 .gap-8 { gap: 2rem; }
+.col-span-2 { grid-column: span 2 / span 2; } /* Nouveau */
 
 
 /* Espacement (Marges et Paddings) */
@@ -69,17 +100,24 @@ body {
 .px-4 { padding-left: 1rem; padding-right: 1rem; }
 .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
 .px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+.py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; } /* Nouveau */
+.px-3 { padding-left: 0.75rem; padding-right: 0.75rem; } /* Nouveau */
+.py-4 { padding-top: 1rem; padding-bottom: 1rem; } /* Nouveau */
+
 
 .mb-2 { margin-bottom: 0.5rem; }
 .mb-3 { margin-bottom: 0.75rem; }
 .mb-4 { margin-bottom: 1rem; }
 .mb-6 { margin-bottom: 1.5rem; }
 .mb-8 { margin-bottom: 2rem; }
+.mb-10 { margin-bottom: 2.5rem; } /* Nouveau */
 
 .mt-2 { margin-top: 0.5rem; }
 .mt-4 { margin-top: 1rem; }
 .mt-6 { margin-top: 1.5rem; }
 .mt-8 { margin-top: 2rem; }
+.mt-auto { margin-top: auto; } /* Nouveau */
+
 
 .mr-2 { margin-right: 0.5rem; }
 .mr-4 { margin-right: 1rem; }
@@ -98,7 +136,7 @@ body {
 .text-lg { font-size: 1.125rem; }
 .text-xl { font-size: 1.25rem; }
 .text-2xl { font-size: 1.5rem; }
-.text-3xl { font-size: 2rem; }
+.text-3xl { font-size: 1.875rem; } /* Ajusté pour la cohérence */
 .text-4xl { font-size: 2.25rem; }
 .text-5xl { font-size: 3rem; } /* Pour les grands chiffres */
 
@@ -129,6 +167,7 @@ body {
 .bg-gray-100 { background-color: #f7fafc; }
 .bg-gray-800 { background-color: #2d3748; } /* Fond de la navbar et potentiel sidebar */
 .bg-indigo-600 { background-color: #4f46e5; } /* Couleur principale pour les accents */
+.bg-indigo-100 { background-color: #e0e7ff; } /* Nouveau */
 
 
 /* Couleurs pour les statuts et boutons d'action */
@@ -138,13 +177,18 @@ body {
 .text-yellow-600 { color: #d97706; }
 .text-green-600 { color: #16a34a; }
 .text-purple-600 { color: #9333ea; }
+.text-indigo-600 { color: #4f46e5; } /* Nouveau */
 
 /* Boutons / Cartes */
 .bg-blue-500 { background-color: #3b82f6; }
 .hover\:bg-blue-600:hover { background-color: #2563eb; }
+.hover\:bg-blue-700:hover { background-color: #1d4ed8; } /* Nouveau */
+
 
 .bg-green-500 { background-color: #22c55e; }
 .hover\:bg-green-600:hover { background-color: #16a34a; }
+.bg-green-100 { background-color: #dcfce7; } /* Nouveau */
+.text-green-800 { color: #166534; } /* Nouveau */
 
 .bg-red-500 { background-color: #ef4444; }
 .hover\:bg-red-600:hover { background-color: #dc2626; }
@@ -157,6 +201,11 @@ body {
 
 .bg-gray-700 { background-color: #374151; }
 .hover\:bg-gray-800:hover { background-color: #1f2937; }
+
+.hover\:bg-indigo-200:hover { background-color: #c7d2fe; } /* Nouveau */
+.hover\:text-blue-600:hover { color: #2563eb; } /* Nouveau */
+.hover\:text-indigo-900:hover { color: #3730a3; } /* Nouveau */
+.hover\:bg-red-500:hover { background-color: #ef4444; } /* Nouveau */
 
 
 /* Bordures et Ombres */
@@ -177,10 +226,14 @@ body {
 
 
 /* Transitions et Transformations */
+.transition { transition-property: all; transition-duration: 150ms; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); } /* Général */
+.duration-150 { transition-duration: 150ms; }
+.ease-in-out { transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); }
 .transition-colors { transition-property: color, background-color, border-color, text-decoration-color, fill, stroke; transition-duration: 200ms; }
 .transition-transform { transition-property: transform; transition-duration: 150ms; }
 .transform { transform: var(--tw-transform); }
 .hover\:scale-105:hover { transform: scale(1.05); }
+.hover\:translate-y-\[-2px\]:hover { transform: translateY(-2px); }
 
 
 /* Styles pour la barre de navigation (navbar.jsp) */
@@ -190,6 +243,11 @@ body {
     color: white;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); /* Ombre plus visible */
     border-bottom: 4px solid #4f46e5; /* Petite barre indigo en bas */
+    position: fixed; /* Nouveau: La navbar est fixe en haut */
+    width: 100%; /* Prend toute la largeur */
+    top: 0; /* Positionne en haut */
+    left: 0; /* Positionne à gauche */
+    z-index: 50; /* S'assure qu'elle reste au-dessus des autres éléments */
 }
 
 .navbar-container {
@@ -221,6 +279,7 @@ body {
     margin: 0;
     padding: 0;
     display: flex;
+    flex-direction: row; /* Force l'alignement horizontal sur desktop */
 }
 
 .navbar-links li {
@@ -234,6 +293,7 @@ body {
     border-radius: 8px; /* rounded-lg */
     transition: all 0.2s ease-in-out; /* Transition plus globale */
     font-weight: 500; /* font-medium */
+    white-space: nowrap; /* Empêche le retour à la ligne des liens */
 }
 
 .navbar-links a:hover {
@@ -273,61 +333,61 @@ body {
 }
 
 
-/* Cartes de Dashboard (pour personnel et client) */
-.dashboard-card {
+/* Cartes de Dashboard (pour personnel et client) - Nouveaux styles génériques pour les cartes */
+.card {
     background-color: #ffffff;
     padding: 1.5rem; /* p-6 */
     border-radius: 12px; /* rounded-xl ou plus pour un look doux */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* shadow-lg */
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column; /* Nouveau: pour empiler titre et valeur */
+    align-items: center; /* Nouveau: pour centrer le contenu */
+    justify-content: center; /* Nouveau: pour centrer le contenu */
     transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
     cursor: default;
     border: 1px solid #e2e8f0; /* Petite bordure pour la définition */
 }
-.dashboard-card:hover {
+.card:hover {
     transform: translateY(-5px); /* Effet 3D plus prononcé au survol */
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15); /* Ombre plus intense au survol */
 }
 
-.dashboard-card-title {
-    font-size: 1.25rem; /* text-xl */
+.card-title {
+    font-size: 1.125rem; /* text-lg */
     font-weight: 600; /* font-semibold */
     color: #4a5568; /* text-gray-700 */
     margin-bottom: 0.75rem; /* mb-3 */
+    text-align: center; /* Pour centrer le titre dans la carte */
 }
 
-.dashboard-card-value {
+.card-value {
     font-size: 3rem; /* text-5xl pour les grands chiffres */
     font-weight: 700; /* font-bold */
     line-height: 1; /* Pour éviter l'espacement excessif */
+    color: #4c51bf; /* Couleur principale pour les valeurs des cartes (indigo-700) */
 }
+.card-value.blue { color: #3b82f6; } /* Exemple de couleurs pour les valeurs */
+.card-value.green { color: #16a34a; }
+.card-value.yellow { color: #d97706; }
+.card-value.red { color: #dc2626; }
 
-.dashboard-card-icon {
-    font-size: 3rem; /* text-5xl pour les grandes icônes */
-    opacity: 0.6; /* Légère transparence pour un effet de superposition */
-}
 
-
-/* Liens rapides du Dashboard */
-.quick-link {
-    padding: 1.25rem; /* p-5 */
-    border-radius: 12px; /* rounded-xl */
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08); /* shadow-md */
-    font-size: 1.125rem; /* text-lg */
-    font-weight: 600;
+/* Styles pour le conteneur du graphique */
+.chart-container {
+    position: relative;
+    height: 350px; /* Hauteur fixe pour le graphique */
+    background-color: #ffffff;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     display: flex;
-    align-items: center;
+    flex-direction: column;
     justify-content: center;
-    gap: 0.75rem;
-    transition: transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out, background-color 0.15s ease-in-out;
-    text-decoration: none;
-    color: white; /* Texte blanc par défaut */
+    align-items: center;
 }
-.quick-link:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.12);
+.chart-container canvas {
+     max-height: 100%;
+     max-width: 100%;
 }
 
 
@@ -435,11 +495,18 @@ body {
     text-align: center;
     font-weight: 500;
 }
+.js-error-message { /* Nouveau style pour les messages d'erreur JavaScript */
+    color: #dc2626;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    text-align: center;
+    display: block;
+}
 
 .success-message {
-    color: #16a34a; /* Vert 600 */
-    background-color: #dcfce7; /* Vert 100 */
-    border: 1px solid #22c55e; /* Vert 500 */
+    color: #16a34a;
+    background-color: #dcfce7;
+    border: 1px solid #22c55e;
     padding: 1rem;
     margin-bottom: 1.5rem;
     border-radius: 8px;
@@ -450,11 +517,12 @@ body {
 /* Styles pour les tableaux */
 table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate; /* Important pour border-radius sur les coins */
+    border-spacing: 0; /* Élimine l'espace entre les cellules */
     margin-top: 1.5rem;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08); /* Plus belle ombre */
     border-radius: 10px; /* Plus arrondi */
-    overflow: hidden; /* Important pour les coins arrondis */
+    overflow: hidden; /* Important pour que les coins arrondis s'appliquent correctement */
 }
 
 th, td {
@@ -465,13 +533,20 @@ th, td {
     font-size: 0.95rem; /* Légèrement plus grand */
     color: #333; /* Texte plus foncé */
 }
+/* Supprime les bordures superflues pour un look plus moderne */
+th:last-child, td:last-child {
+    border-right: none;
+}
+tr:last-child td {
+    border-bottom: none;
+}
 
 th {
     background-color: #e9f0f3; /* Un gris-bleu très clair */
     font-weight: 600;
     text-transform: uppercase;
-    font-size: 0.8rem; /* text-xs */
-    color: #4a5568; /* text-gray-700 */
+    font-size: 0.8rem;
+    color: #4a5568;
     white-space: nowrap;
 }
 
@@ -486,9 +561,9 @@ tr:hover {
 
 /* Styles pour les badges de statut */
 .badge-status {
-    padding: 0.3rem 0.8rem; /* Plus de padding */
-    border-radius: 9999px; /* rounded-full */
-    font-size: 0.75rem; /* text-xs */
+    padding: 0.3rem 0.8rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
     font-weight: 600;
     line-height: 1.2;
     display: inline-flex;
@@ -496,7 +571,7 @@ tr:hover {
     justify-content: center;
     white-space: nowrap;
     text-transform: capitalize;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); /* Ombre subtile */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 /* Couleurs des badges */
 .badge-status.yellow { background-color: #fffac8; color: #8a6000; } /* Jaune (En attente) */
@@ -508,7 +583,7 @@ tr:hover {
 /* Groupe de boutons d'action dans le tableau */
 .action-buttons-group {
     display: flex;
-    gap: 0.6rem; /* Espacement plus grand */
+    gap: 0.6rem;
     flex-wrap: wrap;
     align-items: center;
     justify-content: flex-start;
@@ -516,38 +591,238 @@ tr:hover {
 /* Styles génériques pour les liens/boutons d'action */
 .action-buttons-group a,
 .action-buttons-group button {
-    padding: 0.6rem 0.9rem; /* Plus de padding */
-    border-radius: 8px; /* rounded-lg */
+    padding: 0.6rem 0.9rem;
+    border-radius: 8px;
     text-decoration: none;
-    font-size: 0.88rem; /* Légèrement plus grand */
+    font-size: 0.88rem;
     font-weight: 500;
     display: inline-flex;
     align-items: center;
-    gap: 0.3rem; /* Espace pour les icônes */
+    gap: 0.3rem;
     transition: all 0.2s ease-in-out;
     cursor: pointer;
     border: none;
     color: white;
     white-space: nowrap;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); /* Ombre subtile */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 .action-buttons-group a:hover,
 .action-buttons-group button:hover {
-    transform: translateY(-2px); /* Effet 3D plus prononcé */
+    transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 
+/* Styles pour les icônes de téléchargement */
+.download-icon-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 0.375rem;
+    transition: all 0.2s ease-in-out;
+    color: #718096;
+    margin-left: 0.5rem;
+}
+.download-icon-button:hover {
+    color: #4f46e5;
+    background-color: rgba(79, 70, 229, 0.1);
+    transform: translateY(-1px);
+}
+
+/* Styles pour les formulaires de filtre */
+.filter-form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1.5rem;
+    background-color: #f0f4f8;
+    border-radius: 0.75rem;
+    align-items: flex-end;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+}
+.filter-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #2d3748;
+}
+.filter-group select, .filter-group input[type="number"] {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #cbd5e0;
+    border-radius: 0.375rem;
+    background-color: #ffffff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.filter-group select:focus, .filter-group input[type="number"]:focus {
+    outline: none;
+    border-color: #4c51bf;
+    box-shadow: 0 0 0 3px rgba(76, 81, 191, 0.2);
+}
+.filter-button {
+    background-color: #4c51bf;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    transition: background-color 0.2s;
+    cursor: pointer;
+    align-self: flex-end;
+}
+.filter-button:hover {
+    background-color: #3b3f9b;
+}
+
+/* Styles pour le contenu dynamique des onglets (Chef d'Agence) */
+.dynamic-content {
+    display: none;
+    animation: fadeIn 0.5s ease-in-out;
+}
+.dynamic-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Styles pour la navigation horizontale (Chef d'Agence) */
+.horizontal-nav {
+    display: flex;
+    justify-content: center;
+    background-color: #ffffff;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 0.5rem; /* Déplacé ici depuis le JSP */
+}
+.horizontal-nav a { /* Cible les liens directs dans la nav horizontale */
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.375rem;
+    color: #4a5568; /* text-gray-700 */
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color 0.2s, color 0.2s, transform 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.horizontal-nav a:hover {
+    background-color: #edf2f7; /* bg-gray-200 */
+    transform: translateY(-2px);
+}
+.horizontal-nav a.active {
+    background-color: #4c51bf; /* bg-indigo-600 */
+    color: #ffffff;
+    box-shadow: 0 2px 4px rgba(76, 81, 191, 0.3);
+}
+.horizontal-nav a i {
+    font-size: 1.1rem;
+}
 
 
+/* Media Queries pour la réactivité */
+@media (max-width: 1024px) { /* Pour les tablettes et petits desktops */
+    .content-area {
+        padding: 1.5rem;
+    }
+    .main-content-card {
+        padding: 1.5rem;
+    }
+}
+
+@media (max-width: 768px) { /* Pour les mobiles */
+    body {
+        padding-top: 3.5rem; /* Ajuster pour la navbar mobile */
+    }
+    .navbar {
+        position: static; /* Retire la position fixe pour le mobile */
+        box-shadow: none; /* Enlève l'ombre si non fixe */
+    }
+    .navbar-container {
+        flex-direction: column; /* Empile les éléments verticalement */
+        align-items: flex-start;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+    }
+    .navbar-links ul {
+        flex-direction: column !important; /* Stack links vertically on mobile */
+        width: 100%;
+        margin-top: 0.5rem;
+        gap: 0.25rem;
+    }
+    .navbar-links li {
+        margin-left: 0;
+        width: 100%;
+    }
+    .navbar-links a {
+        display: block;
+        width: 100%;
+        text-align: center;
+        padding: 0.4rem 0.8rem;
+    }
+    .navbar-links.hidden.md\:flex { /* Afficher les liens même sur mobile */
+        display: flex;
+    }
+    .navbar-links ul {
+        flex-wrap: wrap; /* Permet aux liens de passer à la ligne sur mobile */
+        justify-content: center; /* Centrer les liens si ils sont wrapés */
+    }
 
 
+    .content-area {
+        margin-left: 0;
+        margin-right: 0;
+        padding: 1rem;
+        max-width: 100%;
+    }
+    .main-content-card {
+        margin: 0;
+        padding: 1rem;
+    }
+    .card-value {
+        font-size: 2.25rem;
+    }
+    .chart-container {
+        height: 250px;
+        padding: 0.75rem;
+    }
+    .filter-form-grid {
+        grid-template-columns: 1fr;
+    }
 
+    /* Ajustement pour les titres de section avec icônes de téléchargement sur mobile */
+    .flex.items-center.justify-between.mt-8.mb-4 {
+        flex-direction: column;
+        align-items: flex-start;
+        margin-bottom: 0.5rem;
+    }
+    .flex.items-center.justify-between.mt-8.mb-4 h2 {
+        margin-bottom: 0.5rem;
+    }
+    .flex.items-center.justify-between.mt-8.mb-4 button {
+        width: 100%;
+        text-align: left;
+        justify-content: flex-start;
+        padding: 0.5rem 0.75rem;
+        margin-left: 0;
+    }
 
-
-
-
-
-
-
-
+    /* Navigation horizontale (Chef d'Agence sur mobile) */
+    .horizontal-nav {
+        flex-direction: column; /* Empile les liens horizontalement */
+        align-items: stretch; /* Étend les liens sur toute la largeur */
+        padding: 0.75rem;
+        gap: 0.5rem;
+    }
+    .horizontal-nav a {
+        text-align: center;
+        margin-bottom: 0; /* Pas de marge bottom si déjà un gap */
+    }
+}
