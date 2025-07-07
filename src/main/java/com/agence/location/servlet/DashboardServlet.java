@@ -87,7 +87,8 @@ public class DashboardServlet extends HttpServlet {
 
             if ("ChefAgence".equals(role)) {
                 LOGGER.info("Chargement du tableau de bord du Chef d'Agence pour " + utilisateur.getUsername());
-
+                List<Voiture> voituresDisponiblesDansParking = voitureService.getAvailableVoitures();
+                request.setAttribute("voituresDisponiblesDansParking", voituresDisponiblesDansParking);
                 // Fonctionnalités spécifiques au chef d'agence via ReportService
                 List<Voiture> voituresPlusRecherches = reportService.getMostSearchedCars(5); // Top 5
                 request.setAttribute("voituresPlusRecherches", voituresPlusRecherches);

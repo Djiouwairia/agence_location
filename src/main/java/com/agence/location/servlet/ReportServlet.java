@@ -25,7 +25,7 @@ public class ReportServlet extends HttpServlet {
 
     private ReportService reportService;
     // Ajouté pour pouvoir appeler getLocationByIdWithDetails sans créer une nouvelle instance à chaque fois
-    private LocationService locationService; 
+    private LocationService locationService;    
 
     @Override
     public void init() throws ServletException {
@@ -72,7 +72,7 @@ public class ReportServlet extends HttpServlet {
                     if (locationIdStr != null && !locationIdStr.isEmpty()) {
                         Long locationId = Long.parseLong(locationIdStr);
                         // Utilisation de l'instance de locationService déjà initialisée dans init()
-                        Location location = locationService.getLocationByIdWithDetails(locationId); 
+                        Location location = locationService.getLocationByIdWithDetails(locationId);    
                         if (location != null) {
                             response.setContentType("application/pdf");
                             response.setHeader("Content-Disposition", "attachment; filename=facture_location_" + location.getId() + ".pdf");

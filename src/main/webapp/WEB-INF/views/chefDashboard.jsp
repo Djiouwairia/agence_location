@@ -10,15 +10,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tableau de Bord Chef d'Agence</title>
-    <!-- Chargement de Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome pour les icônes -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Police Inter depuis Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Chart.js pour les graphiques -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Votre fichier CSS personnalisé -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
 </head>
 <body>
@@ -52,8 +47,8 @@
                 <div id="overviewDetails" class="dynamic-content">
                     <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Vue d'ensemble de l'Agence</h1>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                        <div class="md:col-span-1 lg:col-span-1 flex flex-col gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:col-span-2 gap-6 mb-8">
+                        <div class="md:col-span-1 flex flex-col gap-6">
                             <%-- Carte: Nombre total de voitures --%>
                             <div class="card">
                                 <h3 class="card-title">Nombre total de voitures</h3>
@@ -64,27 +59,27 @@
                             <%-- Carte: Voitures Disponibles --%>
                             <div class="card">
                                 <h3 class="card-title">Voitures Disponibles</h3>
-                                <p class="card-value text-green-600" id="availableCarsValue"> <%-- AJOUT ID --%>
+                                <p class="card-value text-green-600" id="availableCarsValue">
                                     <c:out value="${requestScope.nombreVoituresDisponibles != null ? requestScope.nombreVoituresDisponibles : 'N/A'}"/>
                                 </p>
                             </div>
                             <%-- Carte: Voitures Louées --%>
                             <div class="card">
                                 <h3 class="card-title">Voitures Louées</h3>
-                                <p class="card-value text-yellow-600" id="rentedCarsValue"> <%-- AJOUT ID --%>
+                                <p class="card-value text-yellow-600" id="rentedCarsValue">
                                     <c:out value="${requestScope.nombreVoituresLouees != null ? requestScope.nombreVoituresLouees : 'N/A'}"/>
                                 </p>
                             </div>
                             <%-- Carte: Demandes en Attente --%>
                             <div class="card">
                                 <h3 class="card-title">Demandes en Attente</h3>
-                                <p class="card-value text-red-600" id="pendingRequestsValue"> <%-- AJOUT ID --%>
+                                <p class="card-value text-red-600" id="pendingRequestsValue">
                                     <c:out value="${requestScope.pendingRequestsCount != null ? requestScope.pendingRequestsCount : 'N/A'}"/>
                                 </p>
                             </div>
                         </div>
 
-                        <div class="card md:col-span-1 lg:col-span-2 chart-container">
+                        <div class="card md:col-span-1 chart-container">
                              <canvas id="carStatusPieChart"></canvas>
                              <p class="js-error-message hidden" id="pieChartError"></p>
                         </div>
@@ -98,7 +93,7 @@
                             <i class="fas fa-download fa-lg"></i>
                         </button>
                     </div>
-                    <div class="overflow-x-auto rounded-lg shadow mb-8"> <%-- Ajout de mb-8 pour espacement --%>
+                    <div class="overflow-x-auto rounded-lg shadow mb-8">
                         <table>
                             <thead>
                                 <tr>
@@ -192,7 +187,6 @@
                             <tbody class="text-gray-700 text-sm">
                                 <c:choose>
                                     <c:when test="${not empty requestScope.voituresPlusRecherches}">
-                                        <%-- CORRECTION ICI : entry est directement une Voiture --%>
                                         <c:forEach var="voiture" items="${requestScope.voituresPlusRecherches}">
                                             <tr>
                                                 <td class="whitespace-nowrap">${voiture.immatriculation}</td>
@@ -344,7 +338,7 @@
                                 <option value="8" <c:if test="${param.month == '8' || (empty param.month && now.monthValue == 8)}">selected</c:if>>Août</option>
                                 <option value="9" <c:if test="${param.month == '9' || (empty param.month && now.monthValue == 9)}">selected</c:if>>Septembre</option>
                                 <option value="10" <c:if test="${param.month == '10' || (empty param.month && now.monthValue == 10)}">selected</c:if>>Octobre</option>
-                                <option value="11" <c:if test="${param.month == '11' || (empty param.month && now.monthValue == 11)}">selected</c:if>>Novembre</option> <%-- CORRECTION ICI --%>
+                                <option value="11" <c:if test="${param.month == '11' || (empty param.month && now.monthValue == 11)}">selected</c:if>>Novembre</option>
                                 <option value="12" <c:if test="${param.month == '12' || (empty param.month && now.monthValue == 12)}">selected</c:if>>Décembre</option>
                             </select>
                         </div>
@@ -366,179 +360,25 @@
     </div>
 
     <script>
+        // Déclarations globales pour les instances de graphique
+        let carStatusPieChartInstance = null;
+        let financialChartInstance = null;
+
         document.addEventListener('DOMContentLoaded', function() {
-            let carStatusPieChartInstance = null;
-            let financialChartInstance = null;
+            // Initialisation des sélecteurs mois/année au mois et année actuels (si non déjà définis par JSTL)
+            const monthSelector = document.getElementById('monthSelector');
+            const yearSelector = document.getElementById('yearSelector');
+            const currentMonth = new Date().getMonth() + 1; // getMonth() est basé sur 0
+            const currentYear = new Date().getFullYear();
 
-            // Fonction de simulation de fetch pour les données (À REMPLACER PAR VOS APPELS AJAX RÉELS VERS VOS SERVLETS/API)
-            async function simulatedFetch(url) {
-                return new Promise(resolve => {
-                    setTimeout(() => {
-                        // Valeurs initiales JSP pour les statistiques de voitures
-                        // Assurez-vous que ces variables JSP sont correctement passées du backend à cette page
-                        // Convertissez les valeurs à null ou 0 si elles sont "N/A" pour éviter NaN
-                        const totalVoitures = parseInt('${requestScope.nombreTotalVoitures}') || 0;
-                        const nombreVoituresDisponibles = parseInt('${requestScope.nombreVoituresDisponibles}') || 0;
-                        const nombreVoituresLouees = parseInt('${requestScope.nombreVoituresLouees}') || 0;
-                        const pendingRequestsCount = parseInt('${requestScope.pendingRequestsCount}') || 0;
-
-                        const mockCarStats = { total: totalVoitures, available: nombreVoituresDisponibles, rented: nombreVoituresLouees, pending: pendingRequestsCount };
-
-                        const mockMostRentedCars = {
-                            "all": [
-                                { immatriculation: "AB-123-CD", marque: "Renault", modele: "Clio", rentalCount: 25 },
-                                { immatriculation: "EF-456-GH", marque: "Peugeot", modele: "308", rentalCount: 20 },
-                                { immatriculation: "IJ-789-KL", marque: "BMW", modele: "X5", rentalCount: 15 },
-                                { immatriculation: "MN-012-OP", marque: "Mercedes", modele: "Classe C", rentalCount: 12 },
-                                { immatriculation: "QR-345-ST", marque: "Ford", modele: "Focus", rentalCount: 10 }
-                            ],
-                            "3months": [
-                                { immatriculation: "AB-123-CD", marque: "Renault", modele: "Clio", rentalCount: 10 },
-                                { immatriculation: "EF-456-GH", marque: "Peugeot", modele: "308", rentalCount: 8 },
-                                { immatriculation: "IJ-789-KL", marque: "BMW", modele: "X5", rentalCount: 5 }
-                            ],
-                            "6months": [
-                                { immatriculation: "AB-123-CD", marque: "Renault", modele: "Clio", rentalCount: 18 },
-                                { immatriculation: "EF-456-GH", marque: "Peugeot", modele: "308", rentalCount: 15 },
-                                { immatriculation: "IJ-789-KL", marque: "BMW", modele: "X5", rentalCount: 10 }
-                            ],
-                            "currentYear": [
-                                { immatriculation: "AB-123-CD", marque: "Renault", modele: "Clio", rentalCount: 20 },
-                                { immatriculation: "EF-456-GH", marque: "Peugeot", modele: "308", rentalCount: 17 },
-                                { immatriculation: "IJ-789-KL", marque: "BMW", modele: "X5", rentalCount: 12 }
-                            ]
-                        };
-
-                        // Récupérer l'année courante depuis la JSP pour les mocks de dates
-                        const currentYear = parseInt('${now.year}');
-                        // const currentMonthValue = parseInt('${now.monthValue}'); // Non utilisé ici, mais peut être utile
-
-                        const mockFinancialOverPeriod = {
-                            "3months": [
-                                { label: `Avr ${currentYear}`, totalRevenue: 12000.50 },
-                                { label: `Mai ${currentYear}`, totalRevenue: 15500.75 },
-                                { label: `Juin ${currentYear}`, totalRevenue: 18000.00 }
-                            ],
-                            "6months": [
-                                { label: `Jan ${currentYear}`, totalRevenue: 8000.00 },
-                                { label: `Fév ${currentYear}`, totalRevenue: 10500.00 },
-                                { label: `Mar ${currentYear}`, totalRevenue: 13000.00 },
-                                { label: `Avr ${currentYear}`, totalRevenue: 12000.50 },
-                                { label: `Mai ${currentYear}`, totalRevenue: 15500.75 },
-                                { label: `Juin ${currentYear}`, totalRevenue: 18000.00 }
-                            ],
-                            "currentYear": [
-                                { label: `Jan ${currentYear}`, totalRevenue: 8000.00 },
-                                { label: `Fév ${currentYear}`, totalRevenue: 10500.00 },
-                                { label: `Mar ${currentYear}`, totalRevenue: 13000.00 },
-                                { label: `Avr ${currentYear}`, totalRevenue: 12000.50 },
-                                { label: `Mai ${currentYear}`, totalRevenue: 15500.75 },
-                                { label: `Juin ${currentYear}`, totalRevenue: 18000.00 }
-                            ],
-                            "all": [
-                                { label: "Nov 2024", totalRevenue: 9500.00 },
-                                { label: "Déc 2024", totalRevenue: 11000.00 },
-                                { label: "Jan 2025", totalRevenue: 8000.00 },
-                                { label: "Fév 2025", totalRevenue: 10500.00 },
-                                { label: "Mar 2025", totalRevenue: 13000.00 },
-                                { label: "Avr 2025", totalRevenue: 12000.50 },
-                                { label: "Mai 2025", totalRevenue: 15500.75 },
-                                { label: "Juin 2025", totalRevenue: 18000.00 }
-                            ]
-                        };
-
-                        const mockMonthlyFinancialSummary = (year, month) => {
-                            const revenues = {
-                                2025: {
-                                    1: { totalRevenue: 8000.00, totalRentals: 15 },
-                                    2: { totalRevenue: 10500.00, totalRentals: 20 },
-                                    3: { totalRevenue: 13000.00, totalRentals: 25 },
-                                    4: { totalRevenue: 12000.50, totalRentals: 22 },
-                                    5: { totalRevenue: 15500.75, totalRentals: 28 },
-                                    6: { totalRevenue: 18000.00, totalRentals: 35 },
-                                    // AJOUT DE DONNÉES POUR JUILLET 2025 POUR LA SIMULATION
-                                    7: { totalRevenue: 19500.00, totalRentals: 40 },
-                                },
-                                2024: {
-                                    11: { totalRevenue: 9500.00, totalRentals: 18 },
-                                    12: { totalRevenue: 11000.00, totalRentals: 21 },
-                                }
-                            };
-                            return revenues[year] && revenues[year][month] ? revenues[year][month] : { totalRevenue: 0.00, totalRentals: 0 };
-                        };
-
-                        if (url.includes('api/reports/car-stats')) {
-                            resolve({ ok: true, json: async () => mockCarStats });
-                        } else if (url.includes('api/reports/most-rented-cars')) {
-                            const params = new URLSearchParams(url.split('?')[1]);
-                            const period = params.get('period') || 'all';
-                            const limit = parseInt(params.get('limit')) || 5;
-                            const data = mockMostRentedCars[period] || [];
-                            resolve({ ok: true, json: async () => data.slice(0, limit) });
-                        } else if (url.includes('api/reports/financial-over-period')) {
-                            const params = new URLSearchParams(url.split('?')[1]);
-                            const period = params.get('period') || '3months';
-                            const data = mockFinancialOverPeriod[period] || [];
-                            resolve({ ok: true, json: async () => data });
-                        } else if (url.includes('api/locations/stats/monthly')) {
-                            const params = new URLSearchParams(url.split('?')[1]);
-                            const year = parseInt(params.get('year'));
-                            const month = parseInt(params.get('month'));
-                            resolve({ ok: true, json: async () => mockMonthlyFinancialSummary(year, month) });
-                        } else {
-                            resolve({ ok: false, status: 404, statusText: 'Not Found' });
-                        }
-                    }, 500); // Simulate network delay
-                });
+            // Assurez-vous que les sélecteurs ont une valeur initiale correcte
+            if (monthSelector && monthSelector.value === "") { // Si JSTL n'a pas mis de valeur
+                monthSelector.value = currentMonth;
+            }
+            if (yearSelector && yearSelector.value === "") { // Si JSTL n'a pas mis de valeur
+                 yearSelector.value = currentYear;
             }
 
-            // Remplace la fonction fetch globale pour cette démo (RETIRER EN PRODUCTION)
-            window.fetch = simulatedFetch;
-
-
-            // Fonction pour afficher une section de contenu dynamique
-            function showDynamicContent(contentId) {
-                // Masquer toutes les sections de contenu dynamique
-                document.querySelectorAll('.dynamic-content').forEach(content => {
-                    content.classList.remove('active');
-                    content.style.display = 'none'; // S'assurer qu'elles sont masquées
-                });
-
-                // Afficher la section de contenu dynamique demandée
-                const activeContent = document.getElementById(contentId);
-                if (activeContent) {
-                    activeContent.classList.add('active');
-                    activeContent.style.display = 'block'; // S'assurer qu'elle est visible
-                }
-
-                // Mettre à jour la classe active pour les liens de navigation horizontale
-                document.querySelectorAll('.horizontal-nav a').forEach(link => {
-                    if (link.getAttribute('data-content-id') === contentId) {
-                        link.classList.add('active');
-                    } else {
-                        link.classList.remove('active');
-                    }
-                });
-
-                // Gérer les chargements spécifiques de données pour chaque section
-                if (contentId === 'overviewDetails') {
-                    fetchCarStatsAndRenderChart();
-                } else if (contentId === 'carsDetails') {
-                    // S'assurer que les valeurs par défaut sont définies avant l'appel
-                    document.getElementById('topNCarsFilter').value = '5';
-                    document.getElementById('periodCarsFilter').value = 'all';
-                    fetchAndRenderMostRentedCars();
-                } else if (contentId === 'financialDetails') {
-                    // S'assurer que les valeurs par défaut sont définies avant l'appel
-                    document.getElementById('periodFinancialChart').value = '3months';
-                    const currentMonth = new Date().getMonth() + 1;
-                    const currentYear = new Date().getFullYear();
-                    document.getElementById('monthSelector').value = currentMonth;
-                    document.getElementById('yearSelector').value = currentYear;
-                    fetchAndRenderFinancialChart();
-                    fetchAndDisplayMonthlyReport(); // Appel renommé pour la clarté
-                }
-            }
 
             // --- Fonctions de chargement et rendu pour la section Vue d'ensemble ---
             async function fetchCarStatsAndRenderChart() {
@@ -546,26 +386,30 @@
                 try {
                     const response = await fetch('api/reports/car-stats');
                     if (!response.ok) {
-                        throw new Error(`Échec de la récupération des statistiques des voitures: ${response.statusText}`);
+                        const errorData = await response.json().catch(() => ({ message: response.statusText }));
+                        throw new Error(`Échec de la récupération des statistiques des voitures: ${errorData.message || response.statusText}`);
                     }
                     const stats = await response.json();
 
-                    // Mise à jour des valeurs dans les cartes
-                    document.getElementById('totalCarsValue').textContent = stats.total;
-                    document.getElementById('availableCarsValue').textContent = stats.available;
-                    document.getElementById('rentedCarsValue').textContent = stats.rented;
-                    document.getElementById('pendingRequestsValue').textContent = stats.pending;
+                    document.getElementById('totalCarsValue').textContent = stats.totalCars || 0;
+                    document.getElementById('availableCarsValue').textContent = stats.availableCars || 0;
+                    document.getElementById('rentedCarsValue').textContent = stats.rentedCars || 0;
+                    document.getElementById('pendingRequestsValue').textContent = stats.pendingRequests || 0;
 
-                    // Passer les valeurs numériques au graphique
-                    renderCarStatusPieChart(stats.available, stats.rented, stats.pending);
-                    pieChartError.classList.add('hidden'); // Masquer l'erreur si tout va bien
+                    renderCarStatusPieChart(stats.availableCars || 0, stats.rentedCars || 0, stats.pendingRequests || 0);
+                    pieChartError.classList.add('hidden');
                 } catch (error) {
                     console.error('Erreur lors de la récupération des statistiques des voitures:', error);
                     if (pieChartError) {
-                        pieChartError.textContent = 'Erreur lors du chargement des statistiques des voitures.';
+                        pieChartError.textContent = `Erreur lors du chargement des statistiques des voitures: ${error.message}`;
                         pieChartError.classList.remove('hidden');
                     }
-                    // Détruire le graphique existant pour éviter les erreurs si les données sont invalides
+                    // Mettre les valeurs à "Erreur" ou 0 si l'API échoue
+                    document.getElementById('totalCarsValue').textContent = 'Erreur';
+                    document.getElementById('availableCarsValue').textContent = 'Erreur';
+                    document.getElementById('rentedCarsValue').textContent = 'Erreur';
+                    document.getElementById('pendingRequestsValue').textContent = 'Erreur';
+
                     if (carStatusPieChartInstance) {
                         carStatusPieChartInstance.destroy();
                         carStatusPieChartInstance = null;
@@ -573,7 +417,6 @@
                 }
             }
 
-            // Mise à jour de la fonction pour inclure les demandes en attente et les nouvelles couleurs
             function renderCarStatusPieChart(available, rented, pending) {
                 const ctx = document.getElementById('carStatusPieChart');
                 if (!ctx) {
@@ -586,6 +429,13 @@
                 }
 
                 const totalForChart = available + rented + pending;
+                // Si toutes les données sont zéro, Chart.js peut ne pas rendre correctement.
+                // Fournir une donnée minimale ou éviter de rendre le graphique.
+                if (totalForChart === 0) {
+                     // Effacer le canvas si toutes les valeurs sont zéro
+                    ctx.getContext('2d').clearRect(0, 0, ctx.width, ctx.height);
+                    return;
+                }
 
                 carStatusPieChartInstance = new Chart(ctx.getContext('2d'), {
                     type: 'pie',
@@ -594,9 +444,9 @@
                         datasets: [{
                             data: [available, rented, pending],
                             backgroundColor: [
-                                'rgba(34, 197, 94, 0.8)',  // Vert pour disponibles (green-500)
-                                'rgba(234, 179, 8, 1)', // Jaune pour louées (yellow-400)
-                                'rgba(239, 68, 68, 0.8)'   // Rouge pour en attente (red-500)
+                                'rgba(34, 197, 94, 0.8)',
+                                'rgba(234, 179, 8, 1)',
+                                'rgba(239, 68, 68, 0.8)'
                             ],
                             borderColor: [
                                 'rgba(34, 197, 94, 1)',
@@ -649,7 +499,8 @@
                 try {
                     const response = await fetch(`api/reports/most-rented-cars?limit=${topN}&period=${period}`);
                     if (!response.ok) {
-                        throw new Error(`Échec de la récupération des voitures les plus louées: ${response.statusText}`);
+                        const errorData = await response.json().catch(() => ({ message: response.statusText }));
+                        throw new Error(`Échec de la récupération des voitures les plus louées: ${errorData.message || response.statusText}`);
                     }
                     const cars = await response.json();
 
@@ -672,7 +523,7 @@
                 } catch (error) {
                     console.error('Erreur lors de la récupération des voitures les plus louées:', error);
                     if (carsFilterError) {
-                        carsFilterError.textContent = 'Erreur lors du chargement des voitures les plus louées.';
+                        carsFilterError.textContent = `Erreur lors du chargement des voitures les plus louées: ${error.message}`;
                         carsFilterError.classList.remove('hidden');
                     }
                     tableBody.innerHTML = '<tr><td colspan="4" class="text-center text-gray-500 py-4">Échec du chargement des données.</td></tr>';
@@ -680,9 +531,9 @@
             }
 
             // Écouteur d'événement pour les filtres des voitures
-            const applyCarsFilterButton = document.getElementById('applyCarsFilter');
-            if (applyCarsFilterButton) {
-                applyCarsFilterButton.addEventListener('click', fetchAndRenderMostRentedCars);
+            const applyCarsFilterBtn = document.getElementById('applyCarsFilter');
+            if (applyCarsFilterBtn) {
+                applyCarsFilterBtn.addEventListener('click', fetchAndRenderMostRentedCars);
             }
             document.getElementById('topNCarsFilter')?.addEventListener('change', fetchAndRenderMostRentedCars);
             document.getElementById('periodCarsFilter')?.addEventListener('change', fetchAndRenderMostRentedCars);
@@ -705,7 +556,8 @@
                 try {
                     const response = await fetch(`api/reports/financial-over-period?period=${period}`);
                     if (!response.ok) {
-                        throw new Error(`Échec de la récupération des données du graphique financier: ${response.statusText}`);
+                        const errorData = await response.json().catch(() => ({ message: response.statusText }));
+                        throw new Error(`Échec de la récupération des données du graphique financier: ${errorData.message || response.statusText}`);
                     }
                     const data = await response.json();
 
@@ -713,21 +565,20 @@
                     const revenues = data.map(item => item.totalRevenue);
 
                     const ctx = financialChartCanvas.getContext('2d');
-                    // Utilisation d'un Polar Area Chart pour un rendu "extraordinaire et jolie"
                     financialChartInstance = new Chart(ctx, {
-                        type: 'polarArea', // Changé en polarArea comme demandé
+                        type: 'polarArea', // Tel que défini dans votre code
                         data: {
                             labels: labels,
                             datasets: [{
                                 label: 'Revenu Total (€)',
                                 data: revenues,
                                 backgroundColor: [
-                                    'rgba(255, 99, 132, 0.7)', // Rouge
-                                    'rgba(54, 162, 235, 0.7)', // Bleu
-                                    'rgba(255, 206, 86, 0.7)', // Jaune
-                                    'rgba(75, 192, 192, 0.7)', // Vert
-                                    'rgba(153, 102, 255, 0.7)',// Violet
-                                    'rgba(255, 159, 64, 0.7)'  // Orange
+                                    'rgba(255, 99, 132, 0.7)',
+                                    'rgba(54, 162, 235, 0.7)',
+                                    'rgba(255, 206, 86, 0.7)',
+                                    'rgba(75, 192, 192, 0.7)',
+                                    'rgba(153, 102, 255, 0.7)',
+                                    'rgba(255, 159, 64, 0.7)'
                                 ],
                                 borderColor: [
                                     'rgba(255, 99, 132, 1)',
@@ -754,8 +605,9 @@
                                         label: function(context) {
                                             let label = context.label || '';
                                             if (label) { label += ': '; }
-                                            if (context.parsed.r !== null) { // 'r' est le rayon dans polarArea
-                                                label += context.parsed.r.toFixed(2) + ' €';
+                                            // Utilisation de parsed.r pour polarArea, et formatage monétaire
+                                            if (context.parsed.r !== null) {
+                                                label += new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(context.parsed.r);
                                             }
                                             return label;
                                         }
@@ -763,7 +615,7 @@
                                 }
                             },
                             scales: {
-                                r: { // Configuration de l'échelle radiale
+                                r: {
                                     pointLabels: {
                                         display: true,
                                         centerPointLabels: true,
@@ -778,7 +630,7 @@
                             }
                         }
                     });
-                    financialChartError.classList.add('hidden'); // Masquer l'erreur si tout va bien
+                    financialChartError.classList.add('hidden');
 
                 } catch (error) {
                     console.error('Erreur lors de la récupération des données du graphique financier:', error);
@@ -786,10 +638,9 @@
                         financialChartCanvas.getContext('2d').clearRect(0, 0, financialChartCanvas.width, financialChartCanvas.height);
                     }
                     if (financialChartError) {
-                        financialChartError.textContent = 'Erreur lors du chargement du graphique financier.';
+                        financialChartError.textContent = `Erreur lors du chargement du graphique financier: ${error.message}`;
                         financialChartError.classList.remove('hidden');
                     }
-                    // Détruire le graphique existant pour éviter les erreurs si les données sont invalides
                     if (financialChartInstance) {
                         financialChartInstance.destroy();
                         financialChartInstance = null;
@@ -797,10 +648,11 @@
                 }
             }
 
-            async function fetchAndDisplayMonthlyReport() { // Renommé pour la clarté
+            async function fetchAndDisplayMonthlyReport() {
                 const monthSelect = document.getElementById('monthSelector');
                 const yearSelect = document.getElementById('yearSelector');
 
+                // Récupération des valeurs, avec des valeurs par défaut si les éléments ne sont pas trouvés
                 const month = monthSelect ? parseInt(monthSelect.value) : (new Date().getMonth() + 1);
                 const year = yearSelect ? parseInt(yearSelect.value) : new Date().getFullYear();
 
@@ -809,26 +661,27 @@
                 const monthlyReportYearDisplay = document.getElementById('monthlyReportYearDisplay');
                 const monthlyReportError = document.getElementById('monthlyReportError');
 
+                // Vérification rapide que les éléments nécessaires existent
                 if (!monthlyRevenueDisplay || !monthlyReportMonthDisplay || !monthlyReportYearDisplay || !monthlyReportError) return;
 
                 monthlyRevenueDisplay.textContent = 'Chargement...';
-                monthlyReportMonthDisplay.textContent = '';
-                monthlyReportYearDisplay.textContent = '';
+                monthlyReportMonthDisplay.textContent = '...'; // Indiquer chargement
+                monthlyReportYearDisplay.textContent = '...'; // Indiquer chargement
                 monthlyReportError.classList.add('hidden');
 
                 const monthNames = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
 
                 try {
-                    const response = await fetch(`api/locations/stats/monthly?year=${year}&month=${month}`);
+                    const response = await fetch(`api/reports/monthly-financial-stats?year=${year}&month=${month}`);
                     if (!response.ok) {
-                        throw new Error(`Échec de la récupération du bilan mensuel: ${response.statusText}`);
+                        const errorData = await response.json().catch(() => ({ message: response.statusText }));
+                        throw new Error(`Échec de la récupération du bilan mensuel: ${errorData.message || response.statusText}`);
                     }
                     const data = await response.json();
 
-                    // S'assurer que les données ne sont pas nulles avant d'appeler toFixed
                     monthlyRevenueDisplay.textContent = (data.totalRevenue !== undefined && data.totalRevenue !== null)
                         ? new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(data.totalRevenue)
-                        : 'N/A';
+                        : '0,00 €'; // Afficher 0.00€ si null/undefined
                     monthlyReportMonthDisplay.textContent = monthNames[month - 1];
                     monthlyReportYearDisplay.textContent = year;
 
@@ -838,7 +691,7 @@
                     monthlyReportMonthDisplay.textContent = monthNames[month - 1];
                     monthlyReportYearDisplay.textContent = year;
                     if (monthlyReportError) {
-                        monthlyReportError.textContent = 'Erreur lors du chargement du bilan mensuel.';
+                        monthlyReportError.textContent = `Erreur lors du chargement du bilan mensuel: ${error.message}`;
                         monthlyReportError.classList.remove('hidden');
                     }
                 }
@@ -849,20 +702,21 @@
             const applyMonthlyReportFilterButton = document.getElementById('applyMonthlyReportFilter');
             if (applyMonthlyReportFilterButton) {
                 applyMonthlyReportFilterButton.addEventListener('click', function(e) {
-                    e.preventDefault();
+                    e.preventDefault(); // Empêcher le rechargement de la page si le bouton est dans un formulaire
                     fetchAndDisplayMonthlyReport();
                 });
             }
+
+            // CORRECTION: Ajouter des écouteurs d'événements sur 'change' pour les sélecteurs de mois et d'année
+            // Cela garantira que le bilan mensuel est mis à jour dès que l'utilisateur sélectionne un nouveau mois ou une nouvelle année.
             document.getElementById('monthSelector')?.addEventListener('change', fetchAndDisplayMonthlyReport);
             document.getElementById('yearSelector')?.addEventListener('change', fetchAndDisplayMonthlyReport);
 
 
             // --- Gestion de l'affichage initial des sections ---
-            // Lit le paramètre 'content' de l'URL pour déterminer quelle section afficher
             const urlParams = new URLSearchParams(window.location.search);
-            const initialContentTab = urlParams.get('content') || 'overviewDetails'; // 'overviewDetails' par défaut
+            const initialContentTab = urlParams.get('content') || 'overviewDetails';
 
-            // Attacher les écouteurs d'événements aux liens de la barre de navigation horizontale
             document.querySelectorAll('.horizontal-nav a').forEach(link => {
                 link.addEventListener('click', function(e) {
                     e.preventDefault();
@@ -871,19 +725,75 @@
                 });
             });
 
-            // Appelle la fonction pour afficher la section et charger ses données
+            // Fonction pour afficher une section de contenu dynamique
+            function showDynamicContent(contentId) {
+                document.querySelectorAll('.dynamic-content').forEach(content => {
+                    content.classList.remove('active');
+                    content.style.display = 'none';
+                });
+
+                const activeContent = document.getElementById(contentId);
+                if (activeContent) {
+                    activeContent.classList.add('active');
+                    activeContent.style.display = 'block';
+                }
+
+                document.querySelectorAll('.horizontal-nav a').forEach(link => {
+                    if (link.getAttribute('data-content-id') === contentId) {
+                        link.classList.add('active');
+                    } else {
+                        link.classList.remove('active');
+                    }
+                });
+
+                // --- Chargement des données spécifiques à chaque onglet lors de son activation ---
+                if (contentId === 'overviewDetails') {
+                    fetchCarStatsAndRenderChart();
+                } else if (contentId === 'carsDetails') {
+                    const topNCarsFilter = document.getElementById('topNCarsFilter');
+                    const periodCarsFilter = document.getElementById('periodCarsFilter');
+                    if (topNCarsFilter) topNCarsFilter.value = '5';
+                    if (periodCarsFilter) periodCarsFilter.value = 'all';
+                    fetchAndRenderMostRentedCars();
+                } else if (contentId === 'financialDetails') {
+                    const periodFinancialChart = document.getElementById('periodFinancialChart');
+                    if (periodFinancialChart) periodFinancialChart.value = '3months';
+                    
+                    // Initialiser les sélecteurs de mois et année pour le rapport mensuel
+                    // C'est ici que la correction prend effet : nous devons nous assurer que ces valeurs sont définies
+                    // AVANT d'appeler fetchAndDisplayMonthlyReport(), surtout si JSTL ne les a pas pré-remplies.
+                    const monthSelector = document.getElementById('monthSelector');
+                    const yearSelector = document.getElementById('yearSelector');
+                    const currentMonth = new Date().getMonth() + 1; // getMonth() est basé sur 0
+                    const currentYear = new Date().getFullYear();
+                    
+                    // Vérifier si les valeurs sont déjà définies par JSTL ou si elles doivent être initialisées par JS
+                    if (monthSelector && (monthSelector.value === "" || parseInt(monthSelector.value) !== currentMonth)) {
+                        monthSelector.value = currentMonth;
+                    }
+                    if (yearSelector && (yearSelector.value === "" || parseInt(yearSelector.value) !== currentYear)) {
+                        yearSelector.value = currentYear;
+                    }
+
+                    fetchAndRenderFinancialChart();
+                    // Appel initial pour le bilan mensuel
+                    fetchAndDisplayMonthlyReport();
+                }
+            }
+
+            // Exécute la fonction pour afficher le contenu initial et charger les données
             showDynamicContent(initialContentTab);
 
-            // Rendre la fonction downloadList disponible globalement pour onclick
+            // Rendre la fonction downloadList accessible globalement
             window.downloadList = downloadList;
         });
 
-        // Fonction pour gérer le téléchargement (déplacée en dehors de DOMContentLoaded pour être globale)
+        // Fonction globale pour le téléchargement des listes PDF
         function downloadList(listType) {
             console.log('Tentative de téléchargement de la liste : ' + listType);
-            const contextPath = "<%= request.getContextPath() %>";
-            const exportUrl = `${contextPath}/export?type=${listType}`;
-            window.location.href = exportUrl;
+            const contextPath = "<%= request.getContextPath() %>"; // Récupère le chemin du contexte JSP
+            const exportUrl = `${contextPath}/export?type=${listType}`; // Utilise le servlet /export
+            window.open(exportUrl, '_blank'); // Ouvre dans un nouvel onglet
         }
     </script>
 </body>

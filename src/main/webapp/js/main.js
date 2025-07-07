@@ -97,3 +97,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Ajoutez des écouteurs d'événements globaux ou des initialisations ici si nécessaire.
     // Par exemple, pour les champs de date, si vous utilisez des bibliothèques de date picker.
 });
+
+
+        
