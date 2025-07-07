@@ -24,10 +24,7 @@
     <%-- Contenu principal de l'application --%>
     <div class="content-area" id="contentArea">
         <main class="main-content-card">
-            <%-- TEST DE STYLE : Ce div devrait avoir un fond rouge et du texte blanc --%>
-            <div class="bg-red-500 text-white p-4 rounded-lg mb-4 text-center">
-                Ceci est un test de style. Si vous le voyez en rouge, le CSS fonctionne.
-            </div>
+            
 
             <%-- Barre de Navigation Horizontale (pour la navigation interne du tableau de bord) --%>
             <nav class="horizontal-nav flex justify-center mb-6 bg-gray-100 p-2 rounded-lg shadow-sm">
