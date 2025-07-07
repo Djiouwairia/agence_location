@@ -14,7 +14,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
+    <%-- Ajout d'un paramètre de version pour forcer le rechargement du CSS --%>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=<%= System.currentTimeMillis() %>">
 </head>
 <body>
     <%-- Inclusion de la barre de navigation existante (navbar.jsp) --%>
@@ -23,6 +24,10 @@
     <%-- Contenu principal de l'application --%>
     <div class="content-area" id="contentArea">
         <main class="main-content-card">
+            <%-- TEST DE STYLE : Ce div devrait avoir un fond rouge et du texte blanc --%>
+            <div class="bg-red-500 text-white p-4 rounded-lg mb-4 text-center">
+                Ceci est un test de style. Si vous le voyez en rouge, le CSS fonctionne.
+            </div>
 
             <%-- Barre de Navigation Horizontale (pour la navigation interne du tableau de bord) --%>
             <nav class="horizontal-nav flex justify-center mb-6 bg-gray-100 p-2 rounded-lg shadow-sm">
@@ -359,7 +364,10 @@
         </main>
     </div>
 
-    <script>
+   <script>
+        // DEBUG: Confirme que le script est chargé et exécuté
+        console.log("DEBUG: Script dashboard.jsp chargé et exécuté.");
+
         // Déclarations globales pour les instances de graphique
         let carStatusPieChartInstance = null;
         let financialChartInstance = null;
@@ -497,12 +505,22 @@
                 carsFilterError.classList.add('hidden');
 
                 try {
-                    const response = await fetch(`api/reports/most-rented-cars?limit=${topN}&period=${period}`);
+                    // Utilisation de URLSearchParams pour une gestion robuste des paramètres
+                    const params = new URLSearchParams();
+                    params.append('limit', topN);
+                    params.append('period', period);
+                    const requestUrl = "api/reports/most-rented-cars?" + params.toString();
+
+                    console.log('DEBUG (Avant construction URL Most Rented Cars): topN=' + topN + ', period=' + period);
+                    console.log('DEBUG: URL de la requête envoyée pour Most Rented Cars (URLSearchParams):', requestUrl);
+
+                    const response = await fetch(requestUrl);
                     if (!response.ok) {
                         const errorData = await response.json().catch(() => ({ message: response.statusText }));
                         throw new Error(`Échec de la récupération des voitures les plus louées: ${errorData.message || response.statusText}`);
                     }
                     const cars = await response.json();
+                    console.log('DEBUG: Données reçues pour Most Rented Cars:', cars); // Log des données reçues
 
                     tableBody.innerHTML = '';
                     if (cars.length > 0) {
@@ -587,7 +605,7 @@
                                     'rgba(75, 192, 192, 1)',
                                     'rgba(153, 102, 255, 1)',
                                     'rgba(255, 159, 64, 1)'
-                                ],
+                            ],
                                 borderWidth: 1
                             }]
                         },
@@ -652,44 +670,54 @@
                 const monthSelect = document.getElementById('monthSelector');
                 const yearSelect = document.getElementById('yearSelector');
 
-                // Récupération des valeurs, avec des valeurs par défaut si les éléments ne sont pas trouvés
-                const month = monthSelect ? parseInt(monthSelect.value) : (new Date().getMonth() + 1);
-                const year = yearSelect ? parseInt(yearSelect.value) : new Date().getFullYear();
+                const month = monthSelect && monthSelect.value ? parseInt(monthSelect.value) : (new Date().getMonth() + 1);
+                const year = yearSelect && yearSelect.value ? parseInt(yearSelect.value) : new Date().getFullYear();
 
                 const monthlyRevenueDisplay = document.getElementById('monthlyRevenueDisplay');
                 const monthlyReportMonthDisplay = document.getElementById('monthlyReportMonthDisplay');
                 const monthlyReportYearDisplay = document.getElementById('monthlyReportYearDisplay');
                 const monthlyReportError = document.getElementById('monthlyReportError');
 
-                // Vérification rapide que les éléments nécessaires existent
                 if (!monthlyRevenueDisplay || !monthlyReportMonthDisplay || !monthlyReportYearDisplay || !monthlyReportError) return;
 
                 monthlyRevenueDisplay.textContent = 'Chargement...';
-                monthlyReportMonthDisplay.textContent = '...'; // Indiquer chargement
-                monthlyReportYearDisplay.textContent = '...'; // Indiquer chargement
+                monthlyReportMonthDisplay.textContent = '...';
+                monthlyReportYearDisplay.textContent = '...';
                 monthlyReportError.classList.add('hidden');
 
                 const monthNames = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
 
                 try {
-                    const response = await fetch(`api/reports/monthly-financial-stats?year=${year}&month=${month}`);
+                    if (isNaN(month) || isNaN(year)) {
+                        throw new Error("Mois ou année non valides.");
+                    }
+                    
+                    // NOUVEAU LOG : Vérifie les valeurs juste avant l'interpolation
+                    console.log('DEBUG (Avant interpolation): month=' + month + ', year=' + year);
+
+                    // *** CORRECTION ICI : Utilisation de la concaténation simple au lieu des template literals ***
+                    const requestUrl = "api/reports/monthly-financial-stats?year=" + year + "&month=" + month;
+                    console.log('DEBUG: fetchAndDisplayMonthlyReport - Mois:', month, 'Année:', year);
+                    console.log('DEBUG: URL de la requête envoyée:', requestUrl); // Nouveau log pour la chaîne finale
+
+                    const response = await fetch(requestUrl);
                     if (!response.ok) {
-                        const errorData = await response.json().catch(() => ({ message: response.statusText }));
-                        throw new Error(`Échec de la récupération du bilan mensuel: ${errorData.message || response.statusText}`);
+                        const errorData = await response.json().catch(() => ({ message: response.statusText, status: response.status }));
+                        throw new Error(`Échec de la récupération du bilan mensuel: ${errorData.status || response.status} - ${errorData.message || response.statusText}`);
                     }
                     const data = await response.json();
 
                     monthlyRevenueDisplay.textContent = (data.totalRevenue !== undefined && data.totalRevenue !== null)
                         ? new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(data.totalRevenue)
-                        : '0,00 €'; // Afficher 0.00€ si null/undefined
+                        : '0,00 €';
                     monthlyReportMonthDisplay.textContent = monthNames[month - 1];
                     monthlyReportYearDisplay.textContent = year;
 
                 } catch (error) {
                     console.error('Erreur lors de la récupération du bilan mensuel:', error);
                     monthlyRevenueDisplay.textContent = 'N/A';
-                    monthlyReportMonthDisplay.textContent = monthNames[month - 1];
-                    monthlyReportYearDisplay.textContent = year;
+                    monthlyReportMonthDisplay.textContent = monthNames[month - 1] || 'N/A';
+                    monthlyReportYearDisplay.textContent = year || 'N/A';
                     if (monthlyReportError) {
                         monthlyReportError.textContent = `Erreur lors du chargement du bilan mensuel: ${error.message}`;
                         monthlyReportError.classList.remove('hidden');
@@ -702,13 +730,11 @@
             const applyMonthlyReportFilterButton = document.getElementById('applyMonthlyReportFilter');
             if (applyMonthlyReportFilterButton) {
                 applyMonthlyReportFilterButton.addEventListener('click', function(e) {
-                    e.preventDefault(); // Empêcher le rechargement de la page si le bouton est dans un formulaire
+                    e.preventDefault();
                     fetchAndDisplayMonthlyReport();
                 });
             }
 
-            // CORRECTION: Ajouter des écouteurs d'événements sur 'change' pour les sélecteurs de mois et d'année
-            // Cela garantira que le bilan mensuel est mis à jour dès que l'utilisateur sélectionne un nouveau mois ou une nouvelle année.
             document.getElementById('monthSelector')?.addEventListener('change', fetchAndDisplayMonthlyReport);
             document.getElementById('yearSelector')?.addEventListener('change', fetchAndDisplayMonthlyReport);
 
@@ -746,7 +772,7 @@
                     }
                 });
 
-                // --- Chargement des données spécifiques à chaque onglet lors de son activation ---
+                // --- Chargement des données spécifiques à chaque onglet lors de son activation ---\
                 if (contentId === 'overviewDetails') {
                     fetchCarStatsAndRenderChart();
                 } else if (contentId === 'carsDetails') {
@@ -759,24 +785,19 @@
                     const periodFinancialChart = document.getElementById('periodFinancialChart');
                     if (periodFinancialChart) periodFinancialChart.value = '3months';
                     
-                    // Initialiser les sélecteurs de mois et année pour le rapport mensuel
-                    // C'est ici que la correction prend effet : nous devons nous assurer que ces valeurs sont définies
-                    // AVANT d'appeler fetchAndDisplayMonthlyReport(), surtout si JSTL ne les a pas pré-remplies.
                     const monthSelector = document.getElementById('monthSelector');
                     const yearSelector = document.getElementById('yearSelector');
-                    const currentMonth = new Date().getMonth() + 1; // getMonth() est basé sur 0
+                    const currentMonth = new Date().getMonth() + 1;
                     const currentYear = new Date().getFullYear();
                     
-                    // Vérifier si les valeurs sont déjà définies par JSTL ou si elles doivent être initialisées par JS
-                    if (monthSelector && (monthSelector.value === "" || parseInt(monthSelector.value) !== currentMonth)) {
+                    if (monthSelector && (monthSelector.value === "" || isNaN(parseInt(monthSelector.value)))) {
                         monthSelector.value = currentMonth;
                     }
-                    if (yearSelector && (yearSelector.value === "" || parseInt(yearSelector.value) !== currentYear)) {
+                    if (yearSelector && (yearSelector.value === "" || isNaN(parseInt(yearSelector.value)))) {
                         yearSelector.value = currentYear;
                     }
 
                     fetchAndRenderFinancialChart();
-                    // Appel initial pour le bilan mensuel
                     fetchAndDisplayMonthlyReport();
                 }
             }
@@ -791,9 +812,9 @@
         // Fonction globale pour le téléchargement des listes PDF
         function downloadList(listType) {
             console.log('Tentative de téléchargement de la liste : ' + listType);
-            const contextPath = "<%= request.getContextPath() %>"; // Récupère le chemin du contexte JSP
-            const exportUrl = `${contextPath}/export?type=${listType}`; // Utilise le servlet /export
-            window.open(exportUrl, '_blank'); // Ouvre dans un nouvel onglet
+            const contextPath = "<%= request.getContextPath() %>";
+            const exportUrl = `${contextPath}/export?type=${listType}`;
+            window.open(exportUrl, '_blank');
         }
     </script>
 </body>
