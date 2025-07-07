@@ -522,18 +522,32 @@
                     const cars = await response.json();
                     console.log('DEBUG: Données reçues pour Most Rented Cars:', cars); // Log des données reçues
 
-                    tableBody.innerHTML = '';
+                    tableBody.innerHTML = ''; // Clear loading message
                     if (cars.length > 0) {
                         cars.forEach(car => {
-                            const row = `
-                                <tr>
-                                    <td class="whitespace-nowrap">${car.immatriculation}</td>
-                                    <td>${car.marque}</td>
-                                    <td>${car.modele}</td>
-                                    <td class="text-center">${car.rentalCount}</td>
-                                </tr>
-                            `;
-                            tableBody.insertAdjacentHTML('beforeend', row);
+                            // Création des éléments de manière programmatique
+                            const tr = document.createElement('tr');
+
+                            const tdImmatriculation = document.createElement('td');
+                            tdImmatriculation.classList.add('whitespace-nowrap');
+                            tdImmatriculation.textContent = car.immatriculation;
+                            tr.appendChild(tdImmatriculation);
+
+                            const tdMarque = document.createElement('td');
+                            tdMarque.textContent = car.marque;
+                            tr.appendChild(tdMarque);
+
+                            const tdModele = document.createElement('td');
+                            tdModele.textContent = car.modele;
+                            tr.appendChild(tdModele);
+
+                            const tdRentalCount = document.createElement('td');
+                            tdRentalCount.classList.add('text-center');
+                            tdRentalCount.textContent = car.rentalCount;
+                            tr.appendChild(tdRentalCount);
+
+                            tableBody.appendChild(tr);
+                            console.log('DEBUG: Ligne ajoutée pour voiture:', car.immatriculation); // Confirme l'ajout de chaque ligne
                         });
                     } else {
                         tableBody.innerHTML = '<tr><td colspan="4" class="text-center text-gray-500 py-4">Aucune donnée trouvée pour les critères sélectionnés.</td></tr>';
