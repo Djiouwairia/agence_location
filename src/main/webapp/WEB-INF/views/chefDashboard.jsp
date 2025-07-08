@@ -16,6 +16,12 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <%-- Ajout d'un paramètre de version pour forcer le rechargement du CSS --%>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=<%= System.currentTimeMillis() %>">
+    <style>
+        /* Styles pour masquer/afficher les éléments */
+        .hidden-element {
+            display: none;
+        }
+    </style>
 </head>
 <body>
     <%-- Inclusion de la barre de navigation existante (navbar.jsp) --%>
@@ -24,8 +30,6 @@
     <%-- Contenu principal de l'application --%>
     <div class="content-area" id="contentArea">
         <main class="main-content-card">
-            
-
             <%-- Barre de Navigation Horizontale (pour la navigation interne du tableau de bord) --%>
             <nav class="horizontal-nav flex justify-center mb-6 bg-gray-100 p-2 rounded-lg shadow-sm">
                 <a href="#" class="h-nav-link text-gray-700 hover:bg-gray-200 px-4 py-2 rounded-md font-semibold transition-colors flex items-center gap-2" data-content-id="overviewDetails">
@@ -39,6 +43,10 @@
                 </a>
                 <a href="#" class="h-nav-link text-gray-700 hover:bg-gray-200 px-4 py-2 rounded-md font-semibold transition-colors flex items-center gap-2" data-content-id="financialDetails">
                     <i class="fas fa-dollar-sign"></i> Bilan Financier
+                </a>
+                <%-- NOUVEL ONGLET : Gestionnaires --%>
+                <a href="#" class="h-nav-link text-gray-700 hover:bg-gray-200 px-4 py-2 rounded-md font-semibold transition-colors flex items-center gap-2" data-content-id="managersDetails">
+                    <i class="fas fa-users-cog"></i> Gestionnaires
                 </a>
             </nav>
 
@@ -354,6 +362,88 @@
                         <div class="card-title">Bilan pour <span id="monthlyReportMonthDisplay"><c:out value="${requestScope.moisBilan}"/></span> <span id="monthlyReportYearDisplay"><c:out value="${requestScope.anneeBilan}"/></span></div>
                         <div class="card-value"><span id="monthlyRevenueDisplay"><fmt:formatNumber value="${requestScope.bilanMensuel.totalRevenue}" pattern="#,##0.00"/></span> €</div>
                         <p class="js-error-message hidden" id="monthlyReportError"></p>
+                    </div>
+                </div>
+
+                <%-- NOUVELLE SECTION : Gestionnaires --%>
+                <div id="managersDetails" class="dynamic-content">
+                    <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Gestion des Gestionnaires</h1>
+
+                    <%-- Bouton pour afficher le formulaire d'ajout --%>
+                    <div class="flex justify-end mb-4">
+                        <button id="toggleAddManagerFormBtn" class="btn-secondary">
+                            <i class="fas fa-plus-circle mr-2"></i> Ajouter un nouveau gestionnaire
+                        </button>
+                    </div>
+
+                    <%-- Formulaire d'ajout de gestionnaire (initiallement masqué) --%>
+                    <div id="addManagerFormContainer" class="bg-white p-6 rounded-lg shadow-md mb-8 hidden-element">
+                        <h2 class="text-2xl font-semibold text-gray-700 mb-4">Ajouter un Nouveau Gestionnaire</h2>
+                        <form id="addManagerForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="managerUsername" class="block text-sm font-medium text-gray-700">Nom d'utilisateur :</label>
+                                <input type="text" id="managerUsername" name="username" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                            </div>
+                            <div>
+                                <label for="managerPassword" class="block text-sm font-medium text-gray-700">Mot de passe :</label>
+                                <input type="password" id="managerPassword" name="password" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                            </div>
+                            <div>
+                                <label for="managerNom" class="block text-sm font-medium text-gray-700">Nom :</label>
+                                <input type="text" id="managerNom" name="nom" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                            </div>
+                            <div>
+                                <label for="managerPrenom" class="block text-sm font-medium text-gray-700">Prénom :</label>
+                                <input type="text" id="managerPrenom" name="prenom" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                            </div>
+                            <div>
+                                <label for="managerDateRecrutement" class="block text-sm font-medium text-gray-700">Date de recrutement :</label>
+                                <input type="date" id="managerDateRecrutement" name="dateRecrutement" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                            </div>
+                            <div>
+                                <label for="managerEmail" class="block text-sm font-medium text-gray-700">Email :</label>
+                                <input type="email" id="managerEmail" name="email" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                            </div>
+                            <div>
+                                <label for="managerTelephone" class="block text-sm font-medium text-gray-700">Téléphone :</label>
+                                <input type="tel" id="managerTelephone" name="telephone" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label for="managerAdresse" class="block text-sm font-medium text-gray-700">Adresse :</label>
+                                <input type="text" id="managerAdresse" name="adresse" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                            </div>
+                            <div class="md:col-span-2 text-right">
+                                <button type="submit" class="btn-primary">Ajouter Gestionnaire</button>
+                                <button type="button" id="cancelAddManagerBtn" class="btn-secondary ml-2">Annuler</button>
+                            </div>
+                        </form>
+                        <p id="addManagerMessage" class="mt-4 text-center text-sm"></p>
+                    </div>
+
+                    <%-- Conteneur de la liste des gestionnaires --%>
+                    <div id="managersListContainer">
+                        <h2 class="text-2xl font-semibold text-gray-700 mt-8 mb-4">Liste des Gestionnaires</h2>
+                        <div class="overflow-x-auto rounded-lg shadow">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nom d'utilisateur</th>
+                                        <th>Nom</th>
+                                        <th>Prénom</th>
+                                        <th>Date de recrutement</th>
+                                        <th>Email</th>
+                                        <th>Téléphone</th>
+                                        <th>Adresse</th>
+                                        <th>Rôle</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="managersTableBody" class="text-gray-700 text-sm">
+                                    <tr><td colspan="9" class="text-center text-gray-500 py-4">Chargement des gestionnaires...</td></tr>
+                                </tbody>
+                            </table>
+                            <p class="js-error-message hidden-element" id="listManagersError"></p>
+                        </div>
                     </div>
                 </div>
 
@@ -706,7 +796,6 @@
                     // NOUVEAU LOG : Vérifie les valeurs juste avant l'interpolation
                     console.log('DEBUG (Avant interpolation): month=' + month + ', year=' + year);
 
-                    // *** CORRECTION ICI : Utilisation de la concaténation simple au lieu des template literals ***
                     const requestUrl = "api/reports/monthly-financial-stats?year=" + year + "&month=" + month;
                     console.log('DEBUG: fetchAndDisplayMonthlyReport - Mois:', month, 'Année:', year);
                     console.log('DEBUG: URL de la requête envoyée:', requestUrl); // Nouveau log pour la chaîne finale
@@ -748,6 +837,172 @@
 
             document.getElementById('monthSelector')?.addEventListener('change', fetchAndDisplayMonthlyReport);
             document.getElementById('yearSelector')?.addEventListener('change', fetchAndDisplayMonthlyReport);
+
+
+            // --- NOUVELLES FONCTIONS POUR LA GESTION DES GESTIONNAIRES ---
+            const addManagerFormContainer = document.getElementById('addManagerFormContainer');
+            const toggleAddManagerFormBtn = document.getElementById('toggleAddManagerFormBtn');
+            const cancelAddManagerBtn = document.getElementById('cancelAddManagerBtn');
+            const managersListContainer = document.getElementById('managersListContainer'); // Nouveau: Conteneur de la liste
+
+            function showAddManagerForm() {
+                if (addManagerFormContainer && managersListContainer) {
+                    addManagerFormContainer.classList.remove('hidden-element');
+                    managersListContainer.classList.add('hidden-element'); // Masquer la liste
+                    toggleAddManagerFormBtn.style.display = 'none'; // Masquer le bouton "Ajouter"
+                }
+            }
+
+            function hideAddManagerForm() {
+                if (addManagerFormContainer && managersListContainer) {
+                    addManagerFormContainer.classList.add('hidden-element');
+                    managersListContainer.classList.remove('hidden-element'); // Afficher la liste
+                    toggleAddManagerFormBtn.style.display = 'block'; // Afficher le bouton "Ajouter"
+                    document.getElementById('addManagerForm').reset(); // Réinitialiser le formulaire
+                    document.getElementById('addManagerMessage').textContent = ''; // Effacer le message
+                    document.getElementById('addManagerMessage').classList.remove('text-green-600', 'text-red-600', 'text-gray-600');
+                }
+            }
+
+            if (toggleAddManagerFormBtn) {
+                toggleAddManagerFormBtn.addEventListener('click', showAddManagerForm);
+            }
+
+            if (cancelAddManagerBtn) {
+                cancelAddManagerBtn.addEventListener('click', hideAddManagerForm);
+            }
+
+            async function fetchAndRenderManagers() {
+                const managersTableBody = document.getElementById('managersTableBody');
+                const listManagersError = document.getElementById('listManagersError');
+
+                if (!managersTableBody || !managersListContainer) return;
+
+                managersTableBody.innerHTML = '<tr><td colspan="9" class="text-center text-gray-500 py-4">Chargement des gestionnaires...</td></tr>';
+                listManagersError.classList.add('hidden-element');
+
+                try {
+                    const response = await fetch('api/managers/list');
+                    if (!response.ok) {
+                        console.error('DEBUG: Response not OK. Status:', response.status, 'Status Text:', response.statusText);
+                        const errorData = await response.json().catch(() => ({ message: response.statusText }));
+                        throw new Error(`Échec de la récupération des gestionnaires: ${errorData.message || response.statusText}`);
+                    }
+                    const managers = await response.json();
+                    console.log('DEBUG: Données reçues pour les Gestionnaires:', managers);
+
+                    managersTableBody.innerHTML = ''; // Clear loading message
+                    if (managers.length > 0) {
+                        managers.forEach(manager => {
+                            console.log('DEBUG: Manager object in loop (before rendering):', manager); 
+
+                            const tr = document.createElement('tr');
+
+                            // Création explicite des cellules <td> et attribution de textContent avec String()
+                            const tdId = document.createElement('td');
+                            tdId.textContent = String(manager.id || 'N/A');
+                            tr.appendChild(tdId);
+
+                            const tdUsername = document.createElement('td');
+                            tdUsername.textContent = String(manager.username || 'N/A');
+                            tr.appendChild(tdUsername);
+
+                            const tdNom = document.createElement('td');
+                            tdNom.textContent = String(manager.nom || 'N/A');
+                            tr.appendChild(tdNom);
+
+                            const tdPrenom = document.createElement('td');
+                            tdPrenom.textContent = String(manager.prenom || 'N/A');
+                            tr.appendChild(tdPrenom);
+
+                            const tdDateRecrutement = document.createElement('td');
+                            // Formatage de la date pour l'affichage
+                            tdDateRecrutement.textContent = manager.dateRecrutement ? new Date(manager.dateRecrutement).toLocaleDateString('fr-FR') : 'N/A';
+                            tr.appendChild(tdDateRecrutement);
+
+                            const tdEmail = document.createElement('td');
+                            tdEmail.textContent = String(manager.email || 'N/A');
+                            tr.appendChild(tdEmail);
+
+                            const tdTelephone = document.createElement('td');
+                            tdTelephone.textContent = String(manager.telephone || 'N/A');
+                            tr.appendChild(tdTelephone);
+
+                            const tdAdresse = document.createElement('td');
+                            tdAdresse.textContent = String(manager.adresse || 'N/A');
+                            tr.appendChild(tdAdresse);
+
+                            const tdRole = document.createElement('td');
+                            tdRole.textContent = String(manager.role || 'N/A');
+                            tr.appendChild(tdRole);
+                            
+                            managersTableBody.appendChild(tr);
+                        });
+                    } else {
+                        managersTableBody.innerHTML = '<tr><td colspan="9" class="text-center text-gray-500 py-4">Aucun gestionnaire trouvé.</td></tr>';
+                    }
+                } catch (error) {
+                    console.error('Erreur lors de la récupération des gestionnaires:', error);
+                    if (listManagersError) {
+                        listManagersError.textContent = `Erreur lors du chargement des gestionnaires: ${error.message}`;
+                        listManagersError.classList.remove('hidden-element');
+                    }
+                    managersTableBody.innerHTML = '<tr><td colspan="9" class="text-center text-red-500 py-4">Échec du chargement des données. Veuillez vérifier les logs du serveur.</td></tr>';
+                }
+            }
+
+            const addManagerForm = document.getElementById('addManagerForm');
+            const addManagerMessage = document.getElementById('addManagerMessage');
+
+            if (addManagerForm) {
+                addManagerForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    addManagerMessage.textContent = 'Envoi...';
+                    addManagerMessage.classList.remove('text-green-600', 'text-red-600');
+                    addManagerMessage.classList.add('text-gray-600');
+
+                    const formData = new FormData(addManagerForm);
+                    const managerData = {};
+                    formData.forEach((value, key) => {
+                        managerData[key] = value;
+                    });
+
+                    if (managerData.dateRecrutement) {
+                        // Assurez-vous que la date est au format ISO (YYYY-MM-DD) pour Gson
+                        // Le champ input type="date" fournit déjà ce format
+                        managerData.dateRecrutement = managerData.dateRecrutement;
+                    }
+
+                    try {
+                        const response = await fetch('api/managers/add', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(managerData)
+                        });
+
+                        const result = await response.json();
+
+                        if (response.ok) {
+                            addManagerMessage.textContent = result.message;
+                            addManagerMessage.classList.remove('text-gray-600', 'text-red-600');
+                            addManagerMessage.classList.add('text-green-600');
+                            hideAddManagerForm(); // Masquer le formulaire après succès et afficher la liste
+                            fetchAndRenderManagers(); // Recharge la liste des gestionnaires
+                        } else {
+                            addManagerMessage.textContent = result.message || 'Erreur lors de l\'ajout du gestionnaire.';
+                            addManagerMessage.classList.remove('text-gray-600', 'text-green-600');
+                            addManagerMessage.classList.add('text-red-600');
+                        }
+                    } catch (error) {
+                        console.error('Erreur lors de l\'ajout du gestionnaire:', error);
+                        addManagerMessage.textContent = `Erreur réseau ou interne: ${error.message}`;
+                        addManagerMessage.classList.remove('text-gray-600', 'text-green-600');
+                        addManagerMessage.classList.add('text-red-600');
+                    }
+                });
+            }
 
 
             // --- Gestion de l'affichage initial des sections ---
@@ -810,6 +1065,11 @@
 
                     fetchAndRenderFinancialChart();
                     fetchAndDisplayMonthlyReport();
+                } else if (contentId === 'managersDetails') {
+                    // Pour l'onglet gestionnaires, toujours afficher la liste initialement
+                    fetchAndRenderManagers();
+                    // Assurez-vous que le formulaire est masqué initialement
+                    hideAddManagerForm();
                 }
             }
 
