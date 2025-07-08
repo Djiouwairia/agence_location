@@ -19,7 +19,60 @@
     <style>
         /* Styles pour masquer/afficher les éléments */
         .hidden-element {
-            display: none;
+            display: none !important; /* Utiliser !important pour s'assurer que le style est appliqué */
+        }
+        /* Styles pour les boutons d'action */
+        .action-button {
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.375rem; /* rounded-md */
+            font-weight: 600; /* font-semibold */
+            transition: background-color 0.2s ease-in-out;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .action-button.edit {
+            background-color: #3B82F6; /* blue-500 */
+            color: white;
+        }
+        .action-button.edit:hover {
+            background-color: #2563EB; /* blue-600 */
+        }
+        .action-button.delete {
+            background-color: #EF4444; /* red-500 */
+            color: white;
+        }
+        .action-button.delete:hover {
+            background-color: #DC2626; /* red-600 */
+        }
+        /* Styles pour le modal de confirmation */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
         }
     </style>
 </head>
@@ -164,7 +217,7 @@
                                         <c:forEach var="location" items="${requestScope.voituresLoueesAvecInfosLocataires}">
                                             <tr>
                                                 <td class="whitespace-nowrap">${location.voiture.immatriculation}</td>
-                                                <td>${location.voiture.marque}</td>
+                                                <td>${location.voiture.marque}</td> <%-- CORRECTION ICI: de 'voitre' à 'voiture' --%>
                                                 <td>${location.voiture.modele}</td>
                                                 <td>${location.client.cin}</td>
                                                 <td>${location.client.prenom} ${location.client.nom}</td>
@@ -376,10 +429,11 @@
                         </button>
                     </div>
 
-                    <%-- Formulaire d'ajout de gestionnaire (initiallement masqué) --%>
-                    <div id="addManagerFormContainer" class="bg-white p-6 rounded-lg shadow-md mb-8 hidden-element">
-                        <h2 class="text-2xl font-semibold text-gray-700 mb-4">Ajouter un Nouveau Gestionnaire</h2>
-                        <form id="addManagerForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <%-- Formulaire d'ajout/modification de gestionnaire (initiallement masqué) --%>
+                    <div id="managerFormContainer" class="bg-white p-6 rounded-lg shadow-md mb-8 hidden-element">
+                        <h2 id="managerFormTitle" class="text-2xl font-semibold text-gray-700 mb-4">Ajouter un Nouveau Gestionnaire</h2>
+                        <form id="managerForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <input type="hidden" id="managerId" name="id"> <%-- Champ caché pour l'ID en cas de modification --%>
                             <div>
                                 <label for="managerUsername" class="block text-sm font-medium text-gray-700">Nom d'utilisateur :</label>
                                 <input type="text" id="managerUsername" name="username" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
@@ -413,11 +467,11 @@
                                 <input type="text" id="managerAdresse" name="adresse" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                             </div>
                             <div class="md:col-span-2 text-right">
-                                <button type="submit" class="btn-primary">Ajouter Gestionnaire</button>
-                                <button type="button" id="cancelAddManagerBtn" class="btn-secondary ml-2">Annuler</button>
+                                <button type="submit" id="submitManagerBtn" class="btn-primary">Ajouter Gestionnaire</button>
+                                <button type="button" id="cancelManagerFormBtn" class="btn-secondary ml-2">Annuler</button>
                             </div>
                         </form>
-                        <p id="addManagerMessage" class="mt-4 text-center text-sm"></p>
+                        <p id="managerFormMessage" class="mt-4 text-center text-sm"></p>
                     </div>
 
                     <%-- Conteneur de la liste des gestionnaires --%>
@@ -436,10 +490,11 @@
                                         <th>Téléphone</th>
                                         <th>Adresse</th>
                                         <th>Rôle</th>
+                                        <th>Actions</th> <%-- Nouvelle colonne pour les actions --%>
                                     </tr>
                                 </thead>
                                 <tbody id="managersTableBody" class="text-gray-700 text-sm">
-                                    <tr><td colspan="9" class="text-center text-gray-500 py-4">Chargement des gestionnaires...</td></tr>
+                                    <tr><td colspan="10" class="text-center text-gray-500 py-4">Chargement des gestionnaires...</td></tr>
                                 </tbody>
                             </table>
                             <p class="js-error-message hidden-element" id="listManagersError"></p>
@@ -451,6 +506,18 @@
         </main>
     </div>
 
+    <%-- Modal de confirmation de suppression --%>
+    <div id="deleteConfirmModal" class="modal-overlay hidden-element">
+        <div class="modal-content">
+            <h3 class="text-xl font-bold mb-4">Confirmer la suppression</h3>
+            <p class="mb-6">Êtes-vous sûr de vouloir supprimer ce gestionnaire ? Cette action est irréversible.</p>
+            <div class="modal-buttons">
+                <button id="confirmDeleteBtn" class="action-button delete">Supprimer</button>
+                <button id="cancelDeleteBtn" class="action-button edit">Annuler</button>
+            </div>
+        </div>
+    </div>
+
    <script>
         // DEBUG: Confirme que le script est chargé et exécuté
         console.log("DEBUG: Script dashboard.jsp chargé et exécuté.");
@@ -460,6 +527,8 @@
         let financialChartInstance = null;
 
         document.addEventListener('DOMContentLoaded', function() {
+            console.log("DEBUG: DOMContentLoaded - Le DOM est entièrement chargé.");
+
             // Initialisation des sélecteurs mois/année au mois et année actuels (si non déjà définis par JSTL)
             const monthSelector = document.getElementById('monthSelector');
             const yearSelector = document.getElementById('yearSelector');
@@ -469,14 +538,16 @@
             // Assurez-vous que les sélecteurs ont une valeur initiale correcte
             if (monthSelector && monthSelector.value === "") { // Si JSTL n'a pas mis de valeur
                 monthSelector.value = currentMonth;
+                console.log("DEBUG: monthSelector initialisé à", currentMonth);
             }
             if (yearSelector && yearSelector.value === "") { // Si JSTL n'a pas mis de valeur
                  yearSelector.value = currentYear;
+                 console.log("DEBUG: yearSelector initialisé à", currentYear);
             }
-
 
             // --- Fonctions de chargement et rendu pour la section Vue d'ensemble ---
             async function fetchCarStatsAndRenderChart() {
+                console.log("DEBUG: Appel de fetchCarStatsAndRenderChart()");
                 const pieChartError = document.getElementById('pieChartError');
                 try {
                     const response = await fetch('api/reports/car-stats');
@@ -485,6 +556,7 @@
                         throw new Error(`Échec de la récupération des statistiques des voitures: ${errorData.message || response.statusText}`);
                     }
                     const stats = await response.json();
+                    console.log("DEBUG: Statistiques des voitures reçues:", stats);
 
                     document.getElementById('totalCarsValue').textContent = stats.totalCars || 0;
                     document.getElementById('availableCarsValue').textContent = stats.availableCars || 0;
@@ -494,7 +566,7 @@
                     renderCarStatusPieChart(stats.availableCars || 0, stats.rentedCars || 0, stats.pendingRequests || 0);
                     pieChartError.classList.add('hidden');
                 } catch (error) {
-                    console.error('Erreur lors de la récupération des statistiques des voitures:', error);
+                    console.error('ERREUR: lors de la récupération des statistiques des voitures:', error);
                     if (pieChartError) {
                         pieChartError.textContent = `Erreur lors du chargement des statistiques des voitures: ${error.message}`;
                         pieChartError.classList.remove('hidden');
@@ -513,21 +585,21 @@
             }
 
             function renderCarStatusPieChart(available, rented, pending) {
+                console.log("DEBUG: Appel de renderCarStatusPieChart() avec Disponibles:", available, "Louées:", rented, "En Attente:", pending);
                 const ctx = document.getElementById('carStatusPieChart');
                 if (!ctx) {
-                    console.warn('Élément canvas "carStatusPieChart" non trouvé.');
+                    console.warn('AVERTISSEMENT: Élément canvas "carStatusPieChart" non trouvé.');
                     return;
                 }
 
                 if (carStatusPieChartInstance) {
                     carStatusPieChartInstance.destroy();
+                    console.log("DEBUG: Ancien graphique de statut de voiture détruit.");
                 }
 
                 const totalForChart = available + rented + pending;
-                // Si toutes les données sont zéro, Chart.js peut ne pas rendre correctement.
-                // Fournir une donnée minimale ou éviter de rendre le graphique.
                 if (totalForChart === 0) {
-                     // Effacer le canvas si toutes les valeurs sont zéro
+                    console.log("DEBUG: Toutes les données de statut de voiture sont zéro, ne pas rendre le graphique.");
                     ctx.getContext('2d').clearRect(0, 0, ctx.width, ctx.height);
                     return;
                 }
@@ -577,10 +649,12 @@
                         }
                     }
                 });
+                console.log("DEBUG: Graphique de statut de voiture rendu.");
             }
 
             // --- Fonctions de chargement et rendu pour la section Voitures les plus louées ---
             async function fetchAndRenderMostRentedCars() {
+                console.log("DEBUG: Appel de fetchAndRenderMostRentedCars()");
                 const topN = document.getElementById('topNCarsFilter').value;
                 const period = document.getElementById('periodCarsFilter').value;
                 const tableBody = document.getElementById('mostRentedCarsTableBody');
@@ -592,14 +666,12 @@
                 carsFilterError.classList.add('hidden');
 
                 try {
-                    // Utilisation de URLSearchParams pour une gestion robuste des paramètres
                     const params = new URLSearchParams();
                     params.append('limit', topN);
                     params.append('period', period);
                     const requestUrl = "api/reports/most-rented-cars?" + params.toString();
 
-                    console.log('DEBUG (Avant construction URL Most Rented Cars): topN=' + topN + ', period=' + period);
-                    console.log('DEBUG: URL de la requête envoyée pour Most Rented Cars (URLSearchParams):', requestUrl);
+                    console.log('DEBUG: URL de la requête envoyée pour Most Rented Cars:', requestUrl);
 
                     const response = await fetch(requestUrl);
                     if (!response.ok) {
@@ -607,40 +679,27 @@
                         throw new Error(`Échec de la récupération des voitures les plus louées: ${errorData.message || response.statusText}`);
                     }
                     const cars = await response.json();
-                    console.log('DEBUG: Données reçues pour Most Rented Cars:', cars); // Log des données reçues
+                    console.log('DEBUG: Données reçues pour Most Rented Cars:', cars);
 
                     tableBody.innerHTML = ''; // Clear loading message
                     if (cars.length > 0) {
                         cars.forEach(car => {
-                            // Création des éléments de manière programmatique
                             const tr = document.createElement('tr');
-
-                            const tdImmatriculation = document.createElement('td');
-                            tdImmatriculation.classList.add('whitespace-nowrap');
-                            tdImmatriculation.textContent = car.immatriculation;
-                            tr.appendChild(tdImmatriculation);
-
-                            const tdMarque = document.createElement('td');
-                            tdMarque.textContent = car.marque;
-                            tr.appendChild(tdMarque);
-
-                            const tdModele = document.createElement('td');
-                            tdModele.textContent = car.modele;
-                            tr.appendChild(tdModele);
-
-                            const tdRentalCount = document.createElement('td');
-                            tdRentalCount.classList.add('text-center');
-                            tdRentalCount.textContent = car.rentalCount;
-                            tr.appendChild(tdRentalCount);
-
+                            tr.innerHTML = `
+                                <td class="whitespace-nowrap">${car.immatriculation}</td>
+                                <td>${car.marque}</td>
+                                <td>${car.modele}</td>
+                                <td class="text-center">${car.rentalCount}</td>
+                            `;
                             tableBody.appendChild(tr);
-                            console.log('DEBUG: Ligne ajoutée pour voiture:', car.immatriculation); // Confirme l'ajout de chaque ligne
                         });
+                        console.log("DEBUG: Tableau des voitures les plus louées rendu avec", cars.length, "éléments.");
                     } else {
                         tableBody.innerHTML = '<tr><td colspan="4" class="text-center text-gray-500 py-4">Aucune donnée trouvée pour les critères sélectionnés.</td></tr>';
+                        console.log("DEBUG: Aucune voiture trouvée pour les critères de voitures les plus louées.");
                     }
                 } catch (error) {
-                    console.error('Erreur lors de la récupération des voitures les plus louées:', error);
+                    console.error('ERREUR: lors de la récupération des voitures les plus louées:', error);
                     if (carsFilterError) {
                         carsFilterError.textContent = `Erreur lors du chargement des voitures les plus louées: ${error.message}`;
                         carsFilterError.classList.remove('hidden');
@@ -653,6 +712,7 @@
             const applyCarsFilterBtn = document.getElementById('applyCarsFilter');
             if (applyCarsFilterBtn) {
                 applyCarsFilterBtn.addEventListener('click', fetchAndRenderMostRentedCars);
+                console.log("DEBUG: Écouteur d'événement pour applyCarsFilterBtn ajouté.");
             }
             document.getElementById('topNCarsFilter')?.addEventListener('change', fetchAndRenderMostRentedCars);
             document.getElementById('periodCarsFilter')?.addEventListener('change', fetchAndRenderMostRentedCars);
@@ -660,14 +720,19 @@
 
             // --- Fonctions de chargement et rendu pour la section Bilan Financier ---
             async function fetchAndRenderFinancialChart() {
+                console.log("DEBUG: Appel de fetchAndRenderFinancialChart()");
                 const period = document.getElementById('periodFinancialChart').value;
                 const financialChartCanvas = document.getElementById('financialChart');
                 const financialChartError = document.getElementById('financialChartError');
 
-                if (!financialChartCanvas) return;
+                if (!financialChartCanvas) {
+                    console.warn('AVERTISSEMENT: Élément canvas "financialChart" non trouvé.');
+                    return;
+                }
 
                 if (financialChartInstance) {
                     financialChartInstance.destroy();
+                    console.log("DEBUG: Ancien graphique financier détruit.");
                 }
 
                 financialChartError.classList.add('hidden');
@@ -679,34 +744,27 @@
                         throw new Error(`Échec de la récupération des données du graphique financier: ${errorData.message || response.statusText}`);
                     }
                     const data = await response.json();
+                    console.log("DEBUG: Données du graphique financier reçues:", data);
 
                     const labels = data.map(item => item.label);
                     const revenues = data.map(item => item.totalRevenue);
 
                     const ctx = financialChartCanvas.getContext('2d');
                     financialChartInstance = new Chart(ctx, {
-                        type: 'polarArea', // Tel que défini dans votre code
+                        type: 'polarArea',
                         data: {
                             labels: labels,
                             datasets: [{
                                 label: 'Revenu Total (€)',
                                 data: revenues,
                                 backgroundColor: [
-                                    'rgba(255, 99, 132, 0.7)',
-                                    'rgba(54, 162, 235, 0.7)',
-                                    'rgba(255, 206, 86, 0.7)',
-                                    'rgba(75, 192, 192, 0.7)',
-                                    'rgba(153, 102, 255, 0.7)',
-                                    'rgba(255, 159, 64, 0.7)'
+                                    'rgba(255, 99, 132, 0.7)', 'rgba(54, 162, 235, 0.7)', 'rgba(255, 206, 86, 0.7)',
+                                    'rgba(75, 192, 192, 0.7)', 'rgba(153, 102, 255, 0.7)', 'rgba(255, 159, 64, 0.7)'
                                 ],
                                 borderColor: [
-                                    'rgba(255, 99, 132, 1)',
-                                    'rgba(54, 162, 235, 1)',
-                                    'rgba(255, 206, 86, 1)',
-                                    'rgba(75, 192, 192, 1)',
-                                    'rgba(153, 102, 255, 1)',
-                                    'rgba(255, 159, 64, 1)'
-                            ],
+                                    'rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)',
+                                    'rgba(75, 192, 192, 1)', 'rgba(153, 102, 255, 1)', 'rgba(255, 159, 64, 1)'
+                                ],
                                 borderWidth: 1
                             }]
                         },
@@ -724,7 +782,6 @@
                                         label: function(context) {
                                             let label = context.label || '';
                                             if (label) { label += ': '; }
-                                            // Utilisation de parsed.r pour polarArea, et formatage monétaire
                                             if (context.parsed.r !== null) {
                                                 label += new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(context.parsed.r);
                                             }
@@ -738,21 +795,18 @@
                                     pointLabels: {
                                         display: true,
                                         centerPointLabels: true,
-                                        font: {
-                                            size: 14
-                                        }
+                                        font: { size: 14 }
                                     },
-                                    grid: {
-                                        color: 'rgba(0, 0, 0, 0.1)'
-                                    }
+                                    grid: { color: 'rgba(0, 0, 0, 0.1)' }
                                 }
                             }
                         }
                     });
                     financialChartError.classList.add('hidden');
+                    console.log("DEBUG: Graphique financier rendu.");
 
                 } catch (error) {
-                    console.error('Erreur lors de la récupération des données du graphique financier:', error);
+                    console.error('ERREUR: lors de la récupération des données du graphique financier:', error);
                     if (financialChartCanvas.getContext('2d')) {
                         financialChartCanvas.getContext('2d').clearRect(0, 0, financialChartCanvas.width, financialChartCanvas.height);
                     }
@@ -768,6 +822,7 @@
             }
 
             async function fetchAndDisplayMonthlyReport() {
+                console.log("DEBUG: Appel de fetchAndDisplayMonthlyReport()");
                 const monthSelect = document.getElementById('monthSelector');
                 const yearSelect = document.getElementById('yearSelector');
 
@@ -779,7 +834,10 @@
                 const monthlyReportYearDisplay = document.getElementById('monthlyReportYearDisplay');
                 const monthlyReportError = document.getElementById('monthlyReportError');
 
-                if (!monthlyRevenueDisplay || !monthlyReportMonthDisplay || !monthlyReportYearDisplay || !monthlyReportError) return;
+                if (!monthlyRevenueDisplay || !monthlyReportMonthDisplay || !monthlyReportYearDisplay || !monthlyReportError) {
+                    console.warn("AVERTISSEMENT: Éléments du rapport mensuel non trouvés.");
+                    return;
+                }
 
                 monthlyRevenueDisplay.textContent = 'Chargement...';
                 monthlyReportMonthDisplay.textContent = '...';
@@ -793,12 +851,9 @@
                         throw new Error("Mois ou année non valides.");
                     }
                     
-                    // NOUVEAU LOG : Vérifie les valeurs juste avant l'interpolation
-                    console.log('DEBUG (Avant interpolation): month=' + month + ', year=' + year);
-
-                    const requestUrl = "api/reports/monthly-financial-stats?year=" + year + "&month=" + month;
                     console.log('DEBUG: fetchAndDisplayMonthlyReport - Mois:', month, 'Année:', year);
-                    console.log('DEBUG: URL de la requête envoyée:', requestUrl); // Nouveau log pour la chaîne finale
+                    const requestUrl = "api/reports/monthly-financial-stats?year=" + year + "&month=" + month;
+                    console.log('DEBUG: URL de la requête envoyée pour le rapport mensuel:', requestUrl);
 
                     const response = await fetch(requestUrl);
                     if (!response.ok) {
@@ -806,15 +861,17 @@
                         throw new Error(`Échec de la récupération du bilan mensuel: ${errorData.status || response.status} - ${errorData.message || response.statusText}`);
                     }
                     const data = await response.json();
+                    console.log("DEBUG: Données du rapport mensuel reçues:", data);
 
                     monthlyRevenueDisplay.textContent = (data.totalRevenue !== undefined && data.totalRevenue !== null)
                         ? new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(data.totalRevenue)
                         : '0,00 €';
                     monthlyReportMonthDisplay.textContent = monthNames[month - 1];
                     monthlyReportYearDisplay.textContent = year;
+                    console.log("DEBUG: Rapport mensuel affiché.");
 
                 } catch (error) {
-                    console.error('Erreur lors de la récupération du bilan mensuel:', error);
+                    console.error('ERREUR: lors de la récupération du bilan mensuel:', error);
                     monthlyRevenueDisplay.textContent = 'N/A';
                     monthlyReportMonthDisplay.textContent = monthNames[month - 1] || 'N/A';
                     monthlyReportYearDisplay.textContent = year || 'N/A';
@@ -833,72 +890,192 @@
                     e.preventDefault();
                     fetchAndDisplayMonthlyReport();
                 });
+                console.log("DEBUG: Écouteur d'événement pour applyMonthlyReportFilterButton ajouté.");
             }
-
             document.getElementById('monthSelector')?.addEventListener('change', fetchAndDisplayMonthlyReport);
             document.getElementById('yearSelector')?.addEventListener('change', fetchAndDisplayMonthlyReport);
 
 
             // --- NOUVELLES FONCTIONS POUR LA GESTION DES GESTIONNAIRES ---
-            const addManagerFormContainer = document.getElementById('addManagerFormContainer');
+            const managerFormContainer = document.getElementById('managerFormContainer');
             const toggleAddManagerFormBtn = document.getElementById('toggleAddManagerFormBtn');
-            const cancelAddManagerBtn = document.getElementById('cancelAddManagerBtn');
-            const managersListContainer = document.getElementById('managersListContainer'); // Nouveau: Conteneur de la liste
+            const cancelManagerFormBtn = document.getElementById('cancelManagerFormBtn');
+            const managersListContainer = document.getElementById('managersListContainer');
+            const managerForm = document.getElementById('managerForm');
+            const managerFormTitle = document.getElementById('managerFormTitle');
+            const submitManagerBtn = document.getElementById('submitManagerBtn');
+            const managerFormMessage = document.getElementById('managerFormMessage');
 
-            function showAddManagerForm() {
-                if (addManagerFormContainer && managersListContainer) {
-                    addManagerFormContainer.classList.remove('hidden-element');
-                    managersListContainer.classList.add('hidden-element'); // Masquer la liste
-                    toggleAddManagerFormBtn.style.display = 'none'; // Masquer le bouton "Ajouter"
+            function showManagerForm(isEditMode = false, managerData = {}) {
+                console.log("DEBUG: Appel de showManagerForm() - Mode édition:", isEditMode, "Données:", managerData);
+                if (managerFormContainer && managersListContainer) {
+                    managerFormContainer.classList.remove('hidden-element');
+                    managersListContainer.classList.add('hidden-element');
+                    if (toggleAddManagerFormBtn) toggleAddManagerFormBtn.style.display = 'none';
+
+                    // Réinitialiser le formulaire
+                    managerForm.reset();
+                    managerFormMessage.textContent = '';
+                    managerFormMessage.classList.remove('text-green-600', 'text-red-600', 'text-gray-600');
+
+                    if (isEditMode) {
+                        managerFormTitle.textContent = "Modifier le Gestionnaire";
+                        submitManagerBtn.textContent = "Enregistrer les modifications";
+                        submitManagerBtn.classList.remove('btn-primary');
+                        submitManagerBtn.classList.add('action-button', 'edit');
+
+                        // Pré-remplir le formulaire avec les données du gestionnaire
+                        document.getElementById('managerId').value = managerData.id || '';
+                        document.getElementById('managerUsername').value = managerData.username || '';
+                        document.getElementById('managerPassword').value = ''; // Ne jamais pré-remplir le mot de passe
+                        document.getElementById('managerNom').value = managerData.nom || '';
+                        document.getElementById('managerPrenom').value = managerData.prenom || '';
+                        if (managerData.dateRecrutement) {
+                            document.getElementById('managerDateRecrutement').value = managerData.dateRecrutement;
+                        } else {
+                            document.getElementById('managerDateRecrutement').value = '';
+                        }
+                        document.getElementById('managerEmail').value = managerData.email || '';
+                        document.getElementById('managerTelephone').value = managerData.telephone || '';
+                        document.getElementById('managerAdresse').value = managerData.adresse || '';
+
+                        document.getElementById('managerUsername').setAttribute('readonly', 'true');
+                        document.getElementById('managerUsername').classList.add('bg-gray-100', 'cursor-not-allowed');
+                        console.log("DEBUG: Formulaire en mode édition, champs pré-remplis.");
+
+                    } else {
+                        managerFormTitle.textContent = "Ajouter un Nouveau Gestionnaire";
+                        submitManagerBtn.textContent = "Ajouter Gestionnaire";
+                        submitManagerBtn.classList.remove('action-button', 'edit');
+                        submitManagerBtn.classList.add('btn-primary');
+
+                        document.getElementById('managerUsername').removeAttribute('readonly');
+                        document.getElementById('managerUsername').classList.remove('bg-gray-100', 'cursor-not-allowed');
+                        console.log("DEBUG: Formulaire en mode ajout.");
+                    }
+                } else {
+                    console.warn("AVERTISSEMENT: Éléments du formulaire de gestionnaire non trouvés pour showManagerForm.");
                 }
             }
 
-            function hideAddManagerForm() {
-                if (addManagerFormContainer && managersListContainer) {
-                    addManagerFormContainer.classList.add('hidden-element');
-                    managersListContainer.classList.remove('hidden-element'); // Afficher la liste
-                    toggleAddManagerFormBtn.style.display = 'block'; // Afficher le bouton "Ajouter"
-                    document.getElementById('addManagerForm').reset(); // Réinitialiser le formulaire
-                    document.getElementById('addManagerMessage').textContent = ''; // Effacer le message
-                    document.getElementById('addManagerMessage').classList.remove('text-green-600', 'text-red-600', 'text-gray-600');
+            function hideManagerForm() {
+                console.log("DEBUG: Appel de hideManagerForm()");
+                if (managerFormContainer && managersListContainer) {
+                    managerFormContainer.classList.add('hidden-element');
+                    managersListContainer.classList.remove('hidden-element');
+                    if (toggleAddManagerFormBtn) toggleAddManagerFormBtn.style.display = 'block';
+                    managerForm.reset();
+                    managerFormMessage.textContent = '';
+                    managerFormMessage.classList.remove('text-green-600', 'text-red-600', 'text-gray-600');
+                    document.getElementById('managerUsername').removeAttribute('readonly');
+                    document.getElementById('managerUsername').classList.remove('bg-gray-100', 'cursor-not-allowed');
+                    console.log("DEBUG: Formulaire de gestionnaire masqué.");
+                } else {
+                    console.warn("AVERTISSEMENT: Éléments du formulaire de gestionnaire non trouvés pour hideManagerForm.");
                 }
             }
 
             if (toggleAddManagerFormBtn) {
-                toggleAddManagerFormBtn.addEventListener('click', showAddManagerForm);
+                toggleAddManagerFormBtn.addEventListener('click', () => showManagerForm(false));
+                console.log("DEBUG: Écouteur d'événement pour toggleAddManagerFormBtn ajouté.");
             }
 
-            if (cancelAddManagerBtn) {
-                cancelAddManagerBtn.addEventListener('click', hideAddManagerForm);
+            if (cancelManagerFormBtn) {
+                cancelManagerFormBtn.addEventListener('click', hideManagerForm);
+                console.log("DEBUG: Écouteur d'événement pour cancelManagerFormBtn ajouté.");
             }
+
+            // Gestion de la soumission du formulaire d'ajout/modification
+            if (managerForm) {
+                managerForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    console.log("DEBUG: Formulaire de gestionnaire soumis.");
+                    managerFormMessage.textContent = 'Envoi...';
+                    managerFormMessage.classList.remove('text-green-600', 'text-red-600');
+                    managerFormMessage.classList.add('text-gray-600');
+
+                    const formData = new FormData(managerForm);
+                    const managerData = {};
+                    formData.forEach((value, key) => {
+                        managerData[key] = value;
+                    });
+                    console.log("DEBUG: Données du formulaire:", managerData);
+
+                    const isEdit = managerData.id && managerData.id !== '';
+                    const apiUrl = isEdit ? 'api/managers/update' : 'api/managers/add';
+                    const method = isEdit ? 'PUT' : 'POST';
+                    console.log(`DEBUG: Mode: ${isEdit ? 'Modification' : 'Ajout'}, URL: ${apiUrl}, Méthode: ${method}`);
+
+                    if (isEdit && managerData.password === '') {
+                        delete managerData.password;
+                        console.log("DEBUG: Mot de passe non modifié en mode édition, supprimé des données.");
+                    }
+
+                    try {
+                        const response = await fetch(apiUrl, {
+                            method: method,
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(managerData)
+                        });
+
+                        const result = await response.json();
+                        console.log("DEBUG: Réponse de l'API d'ajout/modification:", result);
+
+                        if (response.ok) {
+                            managerFormMessage.textContent = result.message;
+                            managerFormMessage.classList.remove('text-gray-600', 'text-red-600');
+                            managerFormMessage.classList.add('text-green-600');
+                            hideManagerForm();
+                            fetchAndRenderManagers(); // Recharge la liste des gestionnaires
+                            console.log("DEBUG: Opération réussie, liste rechargée.");
+                        } else {
+                            managerFormMessage.textContent = result.message || `Erreur lors de ${isEdit ? 'la modification' : 'l\'ajout'} du gestionnaire.`;
+                            managerFormMessage.classList.remove('text-gray-600', 'text-green-600');
+                            managerFormMessage.classList.add('text-red-600');
+                            console.error("ERREUR: Opération échouée:", result);
+                        }
+                    } catch (error) {
+                        console.error(`ERREUR: lors de ${isEdit ? 'la modification' : 'l\'ajout'} du gestionnaire:`, error);
+                        managerFormMessage.textContent = `Erreur réseau ou interne: ${error.message}`;
+                        managerFormMessage.classList.remove('text-gray-600', 'text-green-600');
+                        managerFormMessage.classList.add('text-red-600');
+                    }
+                });
+                console.log("DEBUG: Écouteur d'événement pour managerForm submit ajouté.");
+            }
+
 
             async function fetchAndRenderManagers() {
+                console.log("DEBUG: Appel de fetchAndRenderManagers()");
                 const managersTableBody = document.getElementById('managersTableBody');
                 const listManagersError = document.getElementById('listManagersError');
 
-                if (!managersTableBody || !managersListContainer) return;
+                if (!managersTableBody || !managersListContainer) {
+                    console.warn("AVERTISSEMENT: Éléments du tableau des gestionnaires non trouvés.");
+                    return;
+                }
 
-                managersTableBody.innerHTML = '<tr><td colspan="9" class="text-center text-gray-500 py-4">Chargement des gestionnaires...</td></tr>';
+                managersTableBody.innerHTML = '<tr><td colspan="10" class="text-center text-gray-500 py-4">Chargement des gestionnaires...</td></tr>';
                 listManagersError.classList.add('hidden-element');
 
                 try {
                     const response = await fetch('api/managers/list');
                     if (!response.ok) {
-                        console.error('DEBUG: Response not OK. Status:', response.status, 'Status Text:', response.statusText);
+                        console.error('ERREUR: Réponse de /api/managers/list non OK. Statut:', response.status, 'Texte Statut:', response.statusText);
                         const errorData = await response.json().catch(() => ({ message: response.statusText }));
                         throw new Error(`Échec de la récupération des gestionnaires: ${errorData.message || response.statusText}`);
                     }
                     const managers = await response.json();
-                    console.log('DEBUG: Données reçues pour les Gestionnaires:', managers);
+                    console.log('DEBUG: Données reçues pour les Gestionnaires (/api/managers/list):', managers);
 
                     managersTableBody.innerHTML = ''; // Clear loading message
                     if (managers.length > 0) {
                         managers.forEach(manager => {
-                            console.log('DEBUG: Manager object in loop (before rendering):', manager); 
+                            console.log('DEBUG: Traitement du gestionnaire pour rendu:', manager); 
 
                             const tr = document.createElement('tr');
+                            tr.setAttribute('data-manager-id', manager.id);
 
-                            // Création explicite des cellules <td> et attribution de textContent avec String()
                             const tdId = document.createElement('td');
                             tdId.textContent = String(manager.id || 'N/A');
                             tr.appendChild(tdId);
@@ -916,8 +1093,8 @@
                             tr.appendChild(tdPrenom);
 
                             const tdDateRecrutement = document.createElement('td');
-                            // Formatage de la date pour l'affichage
-                            tdDateRecrutement.textContent = manager.dateRecrutement ? new Date(manager.dateRecrutement).toLocaleDateString('fr-FR') : 'N/A';
+                            const formattedDate = manager.dateRecrutement ? new Date(manager.dateRecrutement).toLocaleDateString('fr-FR') : 'N/A';
+                            tdDateRecrutement.textContent = formattedDate;
                             tr.appendChild(tdDateRecrutement);
 
                             const tdEmail = document.createElement('td');
@@ -936,105 +1113,184 @@
                             tdRole.textContent = String(manager.role || 'N/A');
                             tr.appendChild(tdRole);
                             
+                            // Nouvelle cellule pour les actions
+                            const tdActions = document.createElement('td');
+                            tdActions.classList.add('whitespace-nowrap', 'text-center');
+
+                            // Bouton Modifier
+                            const editButton = document.createElement('button');
+                            editButton.classList.add('action-button', 'edit', 'mr-2');
+                            editButton.innerHTML = '<i class="fas fa-edit"></i> Modifier';
+                            editButton.onclick = () => {
+                                console.log("DEBUG: Bouton Modifier cliqué pour le gestionnaire:", manager.id);
+                                editManager(manager);
+                            };
+                            tdActions.appendChild(editButton);
+
+                            // Bouton Supprimer
+                            const deleteButton = document.createElement('button');
+                            deleteButton.classList.add('action-button', 'delete');
+                            deleteButton.innerHTML = '<i class="fas fa-trash-alt"></i> Supprimer';
+                            deleteButton.onclick = () => {
+                                console.log("DEBUG: Bouton Supprimer cliqué pour le gestionnaire:", manager.id);
+                                showDeleteConfirmModal(manager.id, manager.username);
+                            };
+                            tdActions.appendChild(deleteButton);
+
+                            tr.appendChild(tdActions);
+                            
                             managersTableBody.appendChild(tr);
                         });
+                        console.log("DEBUG: Tableau des gestionnaires rendu avec", managers.length, "éléments.");
                     } else {
-                        managersTableBody.innerHTML = '<tr><td colspan="9" class="text-center text-gray-500 py-4">Aucun gestionnaire trouvé.</td></tr>';
+                        managersTableBody.innerHTML = '<tr><td colspan="10" class="text-center text-gray-500 py-4">Aucun gestionnaire trouvé.</td></tr>';
+                        console.log("DEBUG: Aucun gestionnaire trouvé, affichage du message 'Aucun gestionnaire'.");
                     }
                 } catch (error) {
-                    console.error('Erreur lors de la récupération des gestionnaires:', error);
+                    console.error('ERREUR: lors de la récupération des gestionnaires:', error);
                     if (listManagersError) {
                         listManagersError.textContent = `Erreur lors du chargement des gestionnaires: ${error.message}`;
                         listManagersError.classList.remove('hidden-element');
                     }
-                    managersTableBody.innerHTML = '<tr><td colspan="9" class="text-center text-red-500 py-4">Échec du chargement des données. Veuillez vérifier les logs du serveur.</td></tr>';
+                    managersTableBody.innerHTML = '<tr><td colspan="10" class="text-center text-red-500 py-4">Échec du chargement des données. Veuillez vérifier les logs du serveur.</td></tr>';
                 }
             }
 
-            const addManagerForm = document.getElementById('addManagerForm');
-            const addManagerMessage = document.getElementById('addManagerMessage');
+            // Fonction pour éditer un gestionnaire
+            function editManager(manager) {
+                console.log("DEBUG: Appel de editManager() pour ID:", manager.id);
+                showManagerForm(true, manager);
+            }
 
-            if (addManagerForm) {
-                addManagerForm.addEventListener('submit', async function(e) {
-                    e.preventDefault();
-                    addManagerMessage.textContent = 'Envoi...';
-                    addManagerMessage.classList.remove('text-green-600', 'text-red-600');
-                    addManagerMessage.classList.add('text-gray-600');
+            // --- Gestion du modal de confirmation de suppression ---
+            const deleteConfirmModal = document.getElementById('deleteConfirmModal');
+            const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+            const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+            let managerIdToDelete = null; // Variable pour stocker l'ID du gestionnaire à supprimer
 
-                    const formData = new FormData(addManagerForm);
-                    const managerData = {};
-                    formData.forEach((value, key) => {
-                        managerData[key] = value;
-                    });
+            function showDeleteConfirmModal(id, username) {
+                console.log("DEBUG: Appel de showDeleteConfirmModal() pour ID:", id, "Username:", username);
+                managerIdToDelete = id;
+                if (deleteConfirmModal) {
+                    deleteConfirmModal.querySelector('p').innerHTML = `Êtes-vous sûr de vouloir supprimer le gestionnaire <strong>${username}</strong> ? Cette action est irréversible.`;
+                    deleteConfirmModal.classList.remove('hidden-element');
+                    console.log("DEBUG: Modal de confirmation affiché.");
+                } else {
+                    console.error("ERREUR: Élément deleteConfirmModal non trouvé.");
+                }
+            }
 
-                    if (managerData.dateRecrutement) {
-                        // Assurez-vous que la date est au format ISO (YYYY-MM-DD) pour Gson
-                        // Le champ input type="date" fournit déjà ce format
-                        managerData.dateRecrutement = managerData.dateRecrutement;
-                    }
+            function hideDeleteConfirmModal() {
+                console.log("DEBUG: Appel de hideDeleteConfirmModal()");
+                if (deleteConfirmModal) {
+                    deleteConfirmModal.classList.add('hidden-element');
+                    managerIdToDelete = null;
+                    console.log("DEBUG: Modal de confirmation masqué.");
+                } else {
+                    console.error("ERREUR: Élément deleteConfirmModal non trouvé pour le masquer.");
+                }
+            }
 
-                    try {
-                        const response = await fetch('api/managers/add', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(managerData)
-                        });
+            if (cancelDeleteBtn) {
+                cancelDeleteBtn.addEventListener('click', hideDeleteConfirmModal);
+                console.log("DEBUG: Écouteur d'événement pour cancelDeleteBtn ajouté.");
+            }
 
-                        const result = await response.json();
-
-                        if (response.ok) {
-                            addManagerMessage.textContent = result.message;
-                            addManagerMessage.classList.remove('text-gray-600', 'text-red-600');
-                            addManagerMessage.classList.add('text-green-600');
-                            hideAddManagerForm(); // Masquer le formulaire après succès et afficher la liste
-                            fetchAndRenderManagers(); // Recharge la liste des gestionnaires
-                        } else {
-                            addManagerMessage.textContent = result.message || 'Erreur lors de l\'ajout du gestionnaire.';
-                            addManagerMessage.classList.remove('text-gray-600', 'text-green-600');
-                            addManagerMessage.classList.add('text-red-600');
-                        }
-                    } catch (error) {
-                        console.error('Erreur lors de l\'ajout du gestionnaire:', error);
-                        addManagerMessage.textContent = `Erreur réseau ou interne: ${error.message}`;
-                        addManagerMessage.classList.remove('text-gray-600', 'text-green-600');
-                        addManagerMessage.classList.add('text-red-600');
+            if (confirmDeleteBtn) {
+                confirmDeleteBtn.addEventListener('click', async () => {
+                    console.log("DEBUG: Bouton Confirmer Suppression cliqué.");
+                    if (managerIdToDelete) {
+                        hideDeleteConfirmModal();
+                        await deleteManager(managerIdToDelete);
+                    } else {
+                        console.warn("AVERTISSEMENT: managerIdToDelete est null lors de la confirmation de suppression.");
                     }
                 });
+                console.log("DEBUG: Écouteur d'événement pour confirmDeleteBtn ajouté.");
+            }
+
+            // Fonction pour supprimer un gestionnaire
+            async function deleteManager(id) {
+                console.log("DEBUG: Appel de deleteManager() pour ID:", id);
+                const messageElement = document.getElementById('listManagersError');
+                if (messageElement) messageElement.classList.add('hidden-element');
+
+                try {
+                    const response = await fetch(`api/managers/delete?id=${id}`, {
+                        method: 'DELETE'
+                    });
+
+                    const result = await response.json();
+                    console.log("DEBUG: Réponse de l'API de suppression:", result);
+
+                    if (response.ok) {
+                        if (messageElement) {
+                            messageElement.textContent = result.message;
+                            messageElement.classList.remove('text-red-600');
+                            messageElement.classList.add('text-green-600');
+                            messageElement.classList.remove('hidden-element');
+                        }
+                        fetchAndRenderManagers();
+                        console.log("DEBUG: Suppression réussie, liste rechargée.");
+                    } else {
+                        if (messageElement) {
+                            messageElement.textContent = result.message || 'Erreur lors de la suppression du gestionnaire.';
+                            messageElement.classList.remove('text-green-600');
+                            messageElement.classList.add('text-red-600');
+                            messageElement.classList.remove('hidden-element');
+                        }
+                        console.error("ERREUR: Échec de la suppression:", result);
+                    }
+                } catch (error) {
+                    console.error('ERREUR: lors de la suppression du gestionnaire:', error);
+                    if (messageElement) {
+                        messageElement.textContent = `Erreur réseau ou interne lors de la suppression: ${error.message}`;
+                        messageElement.classList.remove('text-green-600');
+                        messageElement.classList.add('text-red-600');
+                        messageElement.classList.remove('hidden-element');
+                    }
+                }
             }
 
 
             // --- Gestion de l'affichage initial des sections ---
             const urlParams = new URLSearchParams(window.location.search);
             const initialContentTab = urlParams.get('content') || 'overviewDetails';
+            console.log("DEBUG: Onglet initial à charger:", initialContentTab);
 
             document.querySelectorAll('.horizontal-nav a').forEach(link => {
                 link.addEventListener('click', function(e) {
                     e.preventDefault();
                     const contentId = this.getAttribute('data-content-id');
+                    console.log("DEBUG: Clic sur le lien de navigation:", contentId);
                     showDynamicContent(contentId);
                 });
             });
 
             // Fonction pour afficher une section de contenu dynamique
             function showDynamicContent(contentId) {
+                console.log("DEBUG: Appel de showDynamicContent() pour ID:", contentId);
                 document.querySelectorAll('.dynamic-content').forEach(content => {
+                    content.classList.add('hidden-element'); // Masquer tous les contenus
                     content.classList.remove('active');
-                    content.style.display = 'none';
                 });
 
                 const activeContent = document.getElementById(contentId);
                 if (activeContent) {
+                    activeContent.classList.remove('hidden-element'); // Afficher le contenu actif
                     activeContent.classList.add('active');
-                    activeContent.style.display = 'block';
+                    console.log("DEBUG: Contenu", contentId, "affiché.");
+                } else {
+                    console.warn("AVERTISSEMENT: Contenu dynamique avec ID", contentId, "non trouvé.");
                 }
 
                 document.querySelectorAll('.horizontal-nav a').forEach(link => {
                     if (link.getAttribute('data-content-id') === contentId) {
                         link.classList.add('active');
+                        link.classList.add('bg-gray-200'); // Ajouter une classe pour l'état actif visuel
                     } else {
                         link.classList.remove('active');
+                        link.classList.remove('bg-gray-200');
                     }
                 });
 
@@ -1066,15 +1322,16 @@
                     fetchAndRenderFinancialChart();
                     fetchAndDisplayMonthlyReport();
                 } else if (contentId === 'managersDetails') {
-                    // Pour l'onglet gestionnaires, toujours afficher la liste initialement
+                    console.log("DEBUG: Onglet Gestionnaires activé. Appel de fetchAndRenderManagers().");
                     fetchAndRenderManagers();
                     // Assurez-vous que le formulaire est masqué initialement
-                    hideAddManagerForm();
+                    hideManagerForm();
                 }
             }
 
             // Exécute la fonction pour afficher le contenu initial et charger les données
             showDynamicContent(initialContentTab);
+            console.log("DEBUG: showDynamicContent initial appelé.");
 
             // Rendre la fonction downloadList accessible globalement
             window.downloadList = downloadList;
@@ -1082,7 +1339,7 @@
 
         // Fonction globale pour le téléchargement des listes PDF
         function downloadList(listType) {
-            console.log('Tentative de téléchargement de la liste : ' + listType);
+            console.log('DEBUG: Tentative de téléchargement de la liste : ' + listType);
             const contextPath = "<%= request.getContextPath() %>";
             const exportUrl = `${contextPath}/export?type=${listType}`;
             window.open(exportUrl, '_blank');
