@@ -74,6 +74,19 @@
             gap: 1rem;
             margin-top: 1.5rem;
         }
+
+        /* --- STYLES DE DÉBOGAGE TEMPORAIRES (À RETIRER UNE FOIS LE PROBLÈME RÉSOLU) --- */
+        /*
+        #mostRentedCarsTableBody tr,
+        #mostRentedCarsTableBody td,
+        #mostRentedCarsTableBody th {
+            border: 1px solid red !important;
+            padding: 8px !important;
+            background-color: rgba(255, 255, 0, 0.1) !important;
+            color: black !important;
+        }
+        */
+        /* --- FIN DES STYLES DE DÉBOGAGE --- */
     </style>
 </head>
 <body>
@@ -660,7 +673,10 @@
                 const tableBody = document.getElementById('mostRentedCarsTableBody');
                 const carsFilterError = document.getElementById('carsFilterError');
 
-                if (!tableBody) return;
+                if (!tableBody) {
+                    console.warn("AVERTISSEMENT: Élément 'mostRentedCarsTableBody' non trouvé.");
+                    return;
+                }
 
                 tableBody.innerHTML = '<tr><td colspan="4" class="text-center text-gray-500 py-4">Chargement des données...</td></tr>';
                 carsFilterError.classList.add('hidden');
@@ -680,18 +696,35 @@
                     }
                     const cars = await response.json();
                     console.log('DEBUG: Données reçues pour Most Rented Cars:', cars);
+                    console.log('DEBUG: Nombre de voitures reçues:', cars.length);
 
                     tableBody.innerHTML = ''; // Clear loading message
                     if (cars.length > 0) {
-                        cars.forEach(car => {
+                        cars.forEach((car, index) => {
+                            console.log(`DEBUG: Rendu de la voiture ${index + 1}: Immatriculation=${car.immatriculation}, Marque=${car.marque}, Modèle=${car.modele}, Locations=${car.rentalCount}`);
                             const tr = document.createElement('tr');
-                            tr.innerHTML = `
-                                <td class="whitespace-nowrap">${car.immatriculation}</td>
-                                <td>${car.marque}</td>
-                                <td>${car.modele}</td>
-                                <td class="text-center">${car.rentalCount}</td>
-                            `;
+
+                            // Création explicite des cellules et assignation de textContent
+                            const tdImmatriculation = document.createElement('td');
+                            tdImmatriculation.classList.add('whitespace-nowrap');
+                            tdImmatriculation.textContent = car.immatriculation;
+                            tr.appendChild(tdImmatriculation);
+
+                            const tdMarque = document.createElement('td');
+                            tdMarque.textContent = car.marque;
+                            tr.appendChild(tdMarque);
+
+                            const tdModele = document.createElement('td');
+                            tdModele.textContent = car.modele;
+                            tr.appendChild(tdModele);
+
+                            const tdRentalCount = document.createElement('td');
+                            tdRentalCount.classList.add('text-center');
+                            tdRentalCount.textContent = car.rentalCount;
+                            tr.appendChild(tdRentalCount);
+
                             tableBody.appendChild(tr);
+                            console.log(`DEBUG: Ligne complète ajoutée au tableau pour la voiture: ${car.immatriculation}`);
                         });
                         console.log("DEBUG: Tableau des voitures les plus louées rendu avec", cars.length, "éléments.");
                     } else {
