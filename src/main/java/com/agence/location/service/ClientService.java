@@ -41,6 +41,7 @@ public class ClientService {
         return client;
     }
 
+    
     /**
      * Enregistre un nouveau client.
      * @param client Le client à enregistrer.
