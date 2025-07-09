@@ -16,7 +16,7 @@ body {
     flex-direction: column; /* Assure que le footer reste en bas */
 }
 
-/* Utilitaires de layout (simule Tailwind CSS) */
+/*u Utilitaires de layout (simule Tailwind CSS) */
 .container-base { /* Pour les conteneurs généraux de contenu */
     max-width: 1200px;
     margin: 2rem auto;
