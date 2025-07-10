@@ -1,9 +1,13 @@
 package com.agence.location.dao;
 
 import com.agence.location.model.Voiture;
-import javax.persistence.EntityManager; // Importez EntityManager
+import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
+import javax.persistence.NoResultException;
+import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * DAO spécifique pour l'entité Voiture.
@@ -11,6 +15,8 @@ import java.util.List;
  * Les opérations de modification sont gérées par la couche Service via les méthodes de GenericDAO.
  */
 public class VoitureDAO extends GenericDAO<Voiture, String> {
+
+    private static final Logger LOGGER = Logger.getLogger(VoitureDAO.class.getName());
 
     /**
      * Constructeur par défaut.
@@ -20,7 +26,7 @@ public class VoitureDAO extends GenericDAO<Voiture, String> {
     }
 
     /**
-     * Recherche des voitures selon plusieurs critères (marque, kilométrage max, année min, type de carburant, catégorie, statut).
+     * Recherche des voitures selon plusieurs critères (marque, kilométrage max, année min, type de carburant, catégorie, statut, nbPlaces, prixLocationJ).
      * Tous les paramètres sont optionnels. Si un paramètre est null ou vide, il n'est pas inclus dans la recherche.
      * Cette méthode de lecture obtient et ferme son propre EntityManager.
      * @param marque La marque de la voiture.
@@ -29,14 +35,16 @@ public class VoitureDAO extends GenericDAO<Voiture, String> {
      * @param typeCarburant Le type de carburant.
      * @param categorie La catégorie de la voiture.
      * @param statut Le statut de la voiture ('Disponible', 'Louee', etc.).
+     * @param nbPlaces Le nombre de places minimum.
+     * @param prixLocationJMax Le prix de location journalier maximum.
      * @return Une liste de voitures correspondant aux critères.
      */
     public List<Voiture> searchVoitures(String marque, Double kilometrageMax, Integer anneeMiseCirculationMin,
-                                        String typeCarburant, String categorie, String statut) {
+                                        String typeCarburant, String categorie, String statut, Integer nbPlaces, Double prixLocationJMax) {
         EntityManager em = JPAUtil.getEntityManager();
-        List<Voiture> voitures = null;
+        List<Voiture> voitures = Collections.emptyList();
         try {
-            StringBuilder jpql = new StringBuilder("SELECT v FROM Voiture v WHERE 1=1"); // Débute avec une condition toujours vraie
+            StringBuilder jpql = new StringBuilder("SELECT v FROM Voiture v WHERE 1=1");
 
             if (marque != null && !marque.trim().isEmpty()) {
                 jpql.append(" AND v.marque LIKE :marque");
@@ -45,17 +53,22 @@ public class VoitureDAO extends GenericDAO<Voiture, String> {
                 jpql.append(" AND v.kilometrage <= :kilometrageMax");
             }
             if (anneeMiseCirculationMin != null) {
-                // Pour l'année, utilisez YEAR() si votre dialecte MySQL le supporte
                 jpql.append(" AND FUNCTION('YEAR', v.dateMiseCirculation) >= :anneeMiseCirculationMin");
             }
             if (typeCarburant != null && !typeCarburant.trim().isEmpty()) {
                 jpql.append(" AND v.typeCarburant = :typeCarburant");
             }
             if (categorie != null && !categorie.trim().isEmpty()) {
-                jpql.append(" AND v.categorie = :categorie");
+                jpql.append(" AND v.categorie LIKE :categorie");
             }
             if (statut != null && !statut.trim().isEmpty()) {
                 jpql.append(" AND v.statut = :statut");
+            }
+            if (nbPlaces != null && nbPlaces > 0) {
+                jpql.append(" AND v.nbPlaces >= :nbPlaces");
+            }
+            if (prixLocationJMax != null && prixLocationJMax > 0) {
+                jpql.append(" AND v.prixLocationJ <= :prixLocationJMax");
             }
 
             TypedQuery<Voiture> query = em.createQuery(jpql.toString(), Voiture.class);
@@ -73,16 +86,22 @@ public class VoitureDAO extends GenericDAO<Voiture, String> {
                 query.setParameter("typeCarburant", typeCarburant);
             }
             if (categorie != null && !categorie.trim().isEmpty()) {
-                query.setParameter("categorie", categorie);
+                query.setParameter("categorie", "%" + categorie + "%");
             }
             if (statut != null && !statut.trim().isEmpty()) {
                 query.setParameter("statut", statut);
             }
+            if (nbPlaces != null && nbPlaces > 0) {
+                query.setParameter("nbPlaces", nbPlaces);
+            }
+            if (prixLocationJMax != null && prixLocationJMax > 0) {
+                query.setParameter("prixLocationJMax", prixLocationJMax);
+            }
 
             voitures = query.getResultList();
+            LOGGER.info("Recherche de voitures effectuée. Nombre de résultats: " + voitures.size());
         } catch (Exception e) {
-            System.err.println("Erreur lors de la recherche de voitures: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Erreur lors de la recherche de voitures: " + e.getMessage(), e);
         } finally {
             if (em != null && em.isOpen()) {
                 em.close();
@@ -92,19 +111,18 @@ public class VoitureDAO extends GenericDAO<Voiture, String> {
     }
 
     /**
-     * Récupère la liste des voitures actuellement louées (statut 'Louee').
+     * Récupère la liste des voitures louées (statut 'Louee').
      * Cette méthode de lecture obtient et ferme son propre EntityManager.
      * @return Une liste de voitures dont le statut est 'Louee'.
      */
     public List<Voiture> getVoituresLouees() {
         EntityManager em = JPAUtil.getEntityManager();
-        List<Voiture> voituresLouees = null;
+        List<Voiture> voituresLouees = Collections.emptyList();
         try {
             TypedQuery<Voiture> query = em.createQuery("SELECT v FROM Voiture v WHERE v.statut = 'Louee'", Voiture.class);
             voituresLouees = query.getResultList();
         } catch (Exception e) {
-            System.err.println("Erreur lors de la récupération des voitures louées: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Erreur lors de la récupération des voitures louées: " + e.getMessage(), e);
         } finally {
             if (em != null && em.isOpen()) {
                 em.close();
@@ -120,18 +138,39 @@ public class VoitureDAO extends GenericDAO<Voiture, String> {
      */
     public List<Voiture> getVoituresDisponibles() {
         EntityManager em = JPAUtil.getEntityManager();
-        List<Voiture> voituresDisponibles = null;
+        List<Voiture> voituresDisponibles = Collections.emptyList();
         try {
             TypedQuery<Voiture> query = em.createQuery("SELECT v FROM Voiture v WHERE v.statut = 'Disponible'", Voiture.class);
             voituresDisponibles = query.getResultList();
         } catch (Exception e) {
-            System.err.println("Erreur lors de la récupération des voitures disponibles: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Erreur lors de la récupération des voitures disponibles: " + e.getMessage(), e);
         } finally {
             if (em != null && em.isOpen()) {
                 em.close();
             }
         }
         return voituresDisponibles;
+    }
+
+    /**
+     * Compte le nombre de voitures disponibles.
+     * @return Le nombre de voitures dont le statut est 'Disponible'.
+     */
+    public long countAvailableVoitures() {
+        EntityManager em = JPAUtil.getEntityManager();
+        long count = 0;
+        try {
+            TypedQuery<Long> query = em.createQuery("SELECT COUNT(v) FROM Voiture v WHERE v.statut = 'Disponible'", Long.class);
+            count = query.getSingleResult();
+        } catch (NoResultException e) {
+            LOGGER.info("Aucune voiture disponible trouvée pour le comptage.");
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Erreur lors du comptage des voitures disponibles: " + e.getMessage(), e);
+        } finally {
+            if (em != null && em.isOpen()) {
+                em.close();
+            }
+        }
+        return count;
     }
 }

@@ -1,0 +1,1169 @@
+/* style.css */
+
+/* Styles généraux pour le corps de la page */
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+    color: #333;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #f4f7f6; /* Un fond gris très clair et doux pour l'ensemble de l'application */
+    display: flex; /* Active Flexbox pour le layout global (navbar + contenu) */
+    min-height: 100vh; /* S'assure que le corps prend au moins toute la hauteur de la fenêtre */
+    padding-top: 3.75rem; /* Ajusté pour remonter le contenu sous la navbar fixe */
+    flex-direction: column; /* Assure que le footer reste en bas */
+}
+
+/*u Utilitaires de layout (simule Tailwind CSS) */
+.container-base { /* Pour les conteneurs généraux de contenu */
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 1rem;
+}
+
+/* Ce dashboard-container est l'ancien conteneur de niveau supérieur, maintenu pour compatibilité */
+.dashboard-container {
+    max-width: 20000px; /* Largeur d'origine que vous avez fournie */
+    margin: 2rem auto;
+    padding: 1.5rem;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+}
+/* Nouveau conteneur principal pour le contenu de l'application */
+.content-area {
+    margin-left: auto; /* Centre le contenu si pas de sidebar fixe */
+    margin-right: auto;
+    flex-grow: 1; /* Permet au contenu de prendre l'espace disponible */
+    padding: 2rem 1.5rem; /* Padding pour aligner avec la navbar */
+    max-width: 2000000px; /* Max-width pour aligner avec la navbar, légèrement plus petit que l'ancien pour une meilleure lisibilité */
+    background-color: #f4f7f6; /* Même couleur de fond que le body */
+    transition: margin-left 0.3s ease-in-out;
+    margin-top: 0; /* Assure qu'il n'y a pas de marge supérieure par défaut */
+}
+/* Carte englobant le contenu principal (ex: dashboard, formulaires) */
+.main-content-card {
+    background-color: #ffffff;
+    border-radius: 0.75rem; /* rounded-xl */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08); /* shadow-lg */
+    padding: 2rem;
+    min-height: calc(100vh - 4rem - 4rem); /* Hauteur minimale pour que le footer ne chevauche pas */
+    margin-top: 0; /* Assure qu'il n'y a pas de marge supérieure par défaut */
+}
+
+
+.flex { display: flex; }
+.inline-flex { display: inline-flex; }
+.block { display: block; }
+.hidden { display: none; } /* Pour masquer des éléments sur mobile par exemple */
+.items-center { align-items: center; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+.self-end { align-self: flex-end; }
+.min-h-screen { min-height: 100vh; }
+.mx-auto { margin-left: auto; margin-right: auto; }
+.max-w-7xl { max-width: 80rem; } /* Pour les conteneurs très larges */
+.w-full { width: 100%; }
+.h-full { height: 100%; } /* Nouveau */
+.flex-grow { flex-grow: 1; } /* Nouveau */
+.flex-col { flex-direction: column; } /* Nouveau */
+
+
+/* GRID LAYOUT (Correction de l'imbrication des @media) */
+.grid { display: grid; }
+.grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+/* Corrected @media nesting */
+@media (min-width: 768px) {
+    .md\:grid-cols-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+@media (min-width: 1024px) {
+    .lg\:grid-cols-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+.gap-4 { gap: 1rem; }
+.gap-6 { gap: 1.5rem; }
+.gap-8 { gap: 2rem; }
+.col-span-2 { grid-column: span 2 / span 2; } /* Nouveau */
+
+
+/* Espacement (Marges et Paddings) */
+.p-2 { padding: 0.5rem; }
+.p-3 { padding: 0.75rem; }
+.p-4 { padding: 1rem; }
+.p-6 { padding: 1.5rem; }
+.py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+.px-4 { padding-left: 1rem; padding-right: 1rem; }
+.py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+.px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+.py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; } /* Nouveau */
+.px-3 { padding-left: 0.75rem; padding-right: 0.75rem; } /* Nouveau */
+.py-4 { padding-top: 1rem; padding-bottom: 1rem; } /* Nouveau */
+
+
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-3 { margin-bottom: 0.75rem; }
+.mb-4 { margin-bottom: 1rem; }
+.mb-6 { margin-bottom: 1.5rem; }
+.mb-8 { margin-bottom: 2rem; }
+.mb-10 { margin-bottom: 2.5rem; } /* Nouveau */
+
+.mt-2 { margin-top: 0.5rem; }
+.mt-4 { margin-top: 1rem; }
+.mt-6 { margin-top: 1.5rem; }
+.mt-8 { margin-top: 2rem; }
+.mt-auto { margin-top: auto; } /* Nouveau */
+
+
+.mr-2 { margin-right: 0.5rem; }
+.mr-4 { margin-right: 1rem; }
+
+.space-x-2 > *:not([hidden]) ~ *:not([hidden]) { margin-left: 0.5rem; }
+.space-x-4 > *:not([hidden]) ~ *:not([hidden]) { margin-left: 1rem; }
+.space-x-6 > *:not([hidden]) ~ *:not([hidden]) { margin-left: 1.5rem; }
+.space-y-4 > *:not([hidden]) ~ *:not([hidden]) { margin-top: 1rem; }
+.space-y-6 > *:not([hidden]) ~ *:not([hidden]) { margin-top: 1.5rem; }
+
+
+/* Typographie */
+.text-xs { font-size: 0.75rem; }
+.text-sm { font-size: 0.875rem; }
+.text-base { font-size: 1rem; }
+.text-lg { font-size: 1.125rem; }
+.text-xl { font-size: 1.25rem; }
+.text-2xl { font-size: 1.5rem; }
+.text-3xl { font-size: 1.875rem; } /* Ajusté pour la cohérence */
+.text-4xl { font-size: 2.25rem; }
+.text-5xl { font-size: 3rem; } /* Pour les grands chiffres */
+
+.font-light { font-weight: 300; }
+.font-normal { font-weight: 400; }
+.font-medium { font-weight: 500; }
+.font-semibold { font-weight: 600; }
+.font-bold { font-weight: 700; }
+.font-extrabold { font-weight: 800; }
+.tracking-tight { letter-spacing: -0.025em; }
+.text-center { text-align: center; }
+
+/* Couleurs de texte */
+.text-white { color: #ffffff; }
+.text-gray-100 { color: #f7fafc; }
+.text-gray-200 { color: #edf2f7; }
+.text-gray-300 { color: #cbd5e0; }
+.text-gray-400 { color: #a0aec0; }
+.text-gray-500 { color: #718096; } /* Pour N/A et texte par défaut */
+.text-gray-600 { color: #4b5563; }
+.text-gray-700 { color: #4a5568; }
+.text-gray-800 { color: #2d3748; }
+.text-gray-900 { color: #1a202c; } /* Pour les titres les plus sombres */
+
+/* Couleurs de fond */
+.bg-white { background-color: #ffffff; }
+.bg-gray-50 { background-color: #f9fafb; }
+.bg-gray-100 { background-color: #f7fafc; }
+.bg-gray-800 { background-color: #2d3748; } /* Fond de la navbar et potentiel sidebar */
+.bg-indigo-600 { background-color: #4f46e5; } /* Couleur principale pour les accents */
+.bg-indigo-100 { background-color: #e0e7ff; } /* Nouveau */
+
+
+/* Couleurs pour les statuts et boutons d'action */
+/* Base couleurs */
+.text-blue-400 { color: #60a5fa; }
+.text-red-500 { color: #ef4444; }
+.text-yellow-600 { color: #d97706; }
+.text-green-600 { color: #16a34a; }
+.text-purple-600 { color: #9333ea; }
+.text-indigo-600 { color: #4f46e5; } /* Nouveau */
+
+/* Boutons / Cartes */
+.bg-blue-500 { background-color: #3b82f6; }
+.hover\:bg-blue-600:hover { background-color: #2563eb; }
+.hover\:bg-blue-700:hover { background-color: #1d4ed8; } /* Nouveau */
+
+
+.bg-green-500 { background-color: #22c55e; }
+.hover\:bg-green-600:hover { background-color: #16a34a; }
+.bg-green-100 { background-color: #dcfce7; } /* Nouveau */
+.text-green-800 { color: #166534; } /* Nouveau */
+
+.bg-red-500 { background-color: #ef4444; }
+.hover\:bg-red-600:hover { background-color: #dc2626; }
+
+.bg-yellow-500 { background-color: #f59e0b; }
+.hover\:bg-yellow-600:hover { background-color: #d97706; }
+
+.bg-purple-500 { background-color: #a855f7; }
+.hover\:bg-purple-600:hover { background-color: #9333ea; }
+
+.bg-gray-700 { background-color: #374151; }
+.hover\:bg-gray-800:hover { background-color: #1f2937; }
+
+.hover\:bg-indigo-200:hover { background-color: #c7d2fe; } /* Nouveau */
+.hover\:text-blue-600:hover { color: #2563eb; } /* Nouveau */
+.hover\:text-indigo-900:hover { color: #3730a3; } /* Nouveau */
+.hover\:bg-red-500:hover { background-color: #ef4444; } /* Nouveau */
+
+
+/* Bordures et Ombres */
+.border { border-width: 1px; }
+.border-gray-200 { border-color: #e5e7eb; }
+.border-gray-300 { border-color: #d1d5db; }
+.rounded-md { border-radius: 0.375rem; }
+.rounded-lg { border-radius: 0.5rem; }
+.rounded-xl { border-radius: 0.75rem; }
+.rounded-2xl { border-radius: 1rem; } /* Nouveau, plus rond */
+.rounded-full { border-radius: 9999px; }
+
+.shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
+.shadow-md { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
+.shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+.shadow-xl { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
+.shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); } /* Nouveau, ombre plus forte */
+
+
+/* Transitions et Transformations */
+.transition { transition-property: all; transition-duration: 150ms; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); } /* Général */
+.duration-150 { transition-duration: 150ms; }
+.ease-in-out { transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); }
+.transition-colors { transition-property: color, background-color, border-color, text-decoration-color, fill, stroke; transition-duration: 200ms; }
+.transition-transform { transition-property: transform; transition-duration: 150ms; }
+.transform { transform: var(--tw-transform); }
+.hover\:scale-105:hover { transform: scale(1.05); }
+.hover\:translate-y-\[-2px\]:hover { transform: translateY(-2px); }
+
+
+/* Styles pour la barre de navigation (navbar.jsp) */
+.navbar {
+    background-color: #2d3748; /* Gris foncé pour la navbar */
+    padding: 1rem 0; /* padding vertical, largeur gérée par container */
+    color: white;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); /* Ombre plus visible */
+    border-bottom: 4px solid #4f46e5; /* Petite barre indigo en bas */
+    position: fixed; /* Nouveau: La navbar est fixe en haut */
+    width: 100%; /* Prend toute la largeur */
+    top: 0; /* Positionne en haut */
+    left: 0; /* Positionne à gauche */
+    z-index: 50; /* S'assure qu'elle reste au-dessus des autres éléments */
+}
+
+.navbar-container {
+    max-width: 1280px; /* Equivalent max-w-7xl */
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 1.5rem; /* px-6 */
+}
+
+.navbar-brand {
+    font-size: 2rem; /* text-3xl */
+    font-weight: 800; /* font-extrabold */
+    color: white;
+    text-decoration: none;
+    display: flex; /* Pour aligner l'icône et le texte */
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0; /* Léger padding pour la zone de clic */
+}
+.navbar-brand i {
+    color: #60a5fa; /* icône bleue */
+    font-size: 1.8rem;
+}
+
+.navbar-links ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: row; /* Force l'alignement horizontal sur desktop */
+}
+
+.navbar-links li {
+    /* Espace géré par space-x-6 sur l'UL */
+}
+
+.navbar-links a {
+    color: #cbd5e0; /* text-gray-300 pour les liens par défaut */
+    text-decoration: none;
+    padding: 0.6rem 1rem; /* Plus de padding pour une meilleure zone de clic */
+    border-radius: 8px; /* rounded-lg */
+    transition: all 0.2s ease-in-out; /* Transition plus globale */
+    font-weight: 500; /* font-medium */
+    white-space: nowrap; /* Empêche le retour à la ligne des liens */
+}
+
+.navbar-links a:hover {
+    color: #ffffff; /* Texte blanc au survol */
+    background-color: rgba(96, 165, 250, 0.15); /* Fond bleu transparent */
+    transform: translateY(-1px); /* Léger effet 3D */
+}
+
+/* Gestion du menu mobile (masqué par défaut, affiché sur md) */
+.navbar-links.hidden.md\:flex {
+    display: none;
+}
+@media (min-width: 768px) {
+    .navbar-links.hidden.md\:flex {
+        display: flex;
+    }
+}
+
+
+/* Styles pour les titres et sections de tableau de bord */
+.dashboard-heading {
+    font-size: 2.5rem; /* text-4xl */
+    font-weight: 800; /* font-extrabold */
+    color: #1a202c; /* text-gray-900 */
+    margin-bottom: 2.5rem; /* mb-10 */
+    text-align: center;
+    line-height: 1.2;
+}
+
+.dashboard-subheading {
+    font-size: 2rem; /* text-3xl */
+    font-weight: 700; /* font-bold */
+    color: #2d3748; /* text-gray-800 */
+    margin-top: 2rem; /* mt-8 */
+    margin-bottom: 1.5rem; /* mb-6 */
+    text-align: center;
+}
+
+
+/* Cartes de Dashboard (pour personnel et client) - Nouveaux styles génériques pour les cartes */
+.card {
+    background-color: #ffffff;
+    padding: 1.5rem; /* p-6 */
+    border-radius: 12px; /* rounded-xl ou plus pour un look doux */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* shadow-lg */
+    display: flex;
+    flex-direction: column; /* Nouveau: pour empiler titre et valeur */
+    align-items: center; /* Nouveau: pour centrer le contenu */
+    justify-content: center; /* Nouveau: pour centrer le contenu */
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    cursor: default;
+    border: 1px solid #e2e8f0; /* Petite bordure pour la définition */
+}
+.card:hover {
+    transform: translateY(-5px); /* Effet 3D plus prononcé au survol */
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15); /* Ombre plus intense au survol */
+}
+
+.card-title {
+    font-size: 1.125rem; /* text-lg */
+    font-weight: 600; /* font-semibold */
+    color: #4a5568; /* text-gray-700 */
+    margin-bottom: 0.75rem; /* mb-3 */
+    text-align: center; /* Pour centrer le titre dans la carte */
+}
+
+.card-value {
+    font-size: 3rem; /* text-5xl pour les grands chiffres */
+    font-weight: 700; /* font-bold */
+    line-height: 1; /* Pour éviter l'espacement excessif */
+    color: #4c51bf; /* Couleur principale pour les valeurs des cartes (indigo-700) */
+}
+.card-value.blue { color: #3b82f6; } /* Exemple de couleurs pour les valeurs */
+.card-value.green { color: #16a34a; }
+.card-value.yellow { color: #d97706; }
+.card-value.red { color: #dc2626; }
+
+
+/* Styles pour le conteneur du graphique */
+.chart-container {
+    position: relative;
+    height: 350px; /* Hauteur fixe pour le graphique */
+    background-color: #ffffff;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+.chart-container canvas {
+     max-height: 100%;
+     max-width: 100%;
+}
+
+
+/* Styles des éléments de formulaire */
+.form-group {
+    margin-bottom: 1.25rem; /* Plus d'espace */
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.6rem; /* Plus d'espace */
+    font-weight: 600;
+    color: #2d3748; /* text-gray-800 */
+    font-size: 0.95rem; /* Légèrement plus grand */
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group input[type="email"],
+.form-group input[type="date"],
+.form-group input[type="password"],
+.form-group select,
+.form-group textarea { /* Ajout de textarea */
+    width: 100%;
+    padding: 0.75rem 1rem; /* Plus de padding */
+    border: 1px solid #cbd5e0; /* border-gray-300 */
+    border-radius: 8px; /* rounded-lg */
+    box-sizing: border-box;
+    font-size: 1rem;
+    color: #2d3748;
+    background-color: #ffffff;
+    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #4f46e5; /* indigo-600 */
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.25); /* ring-indigo-500 avec opacité */
+}
+
+
+/* Styles spécifiques pour les résultats de recherche dans les formulaires (ex: locationForm.jsp) */
+.search-results {
+    max-height: 250px; /* Plus grand */
+    overflow-y: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px; /* rounded-lg */
+    margin-top: 0.75rem;
+    background-color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.search-results div {
+    padding: 0.8rem 1.2rem; /* Plus de padding */
+    cursor: pointer;
+    border-bottom: 1px solid #edf2f7;
+    transition: background-color 0.2s ease;
+}
+
+.search-results div:last-child {
+    border-bottom: none;
+}
+
+.search-results div:hover {
+    background-color: #e6f0ff; /* Un bleu très clair au survol */
+}
+
+
+/* Boutons principaux (formulaires, actions générales) */
+.btn-primary {
+    background-color: #4f46e5; /* indigo-600 */
+    color: white;
+    padding: 0.8rem 1.8rem; /* py-3 px-7 ou ajusté */
+    border: none;
+    border-radius: 8px; /* rounded-lg */
+    font-size: 1.05rem; /* Légèrement plus grand */
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, transform 0.15s ease-in-out, box-shadow 0.2s ease-in-out;
+    display: inline-flex; /* Pour centrer le contenu si texte + icône */
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem; /* Espace pour les icônes */
+}
+.btn-primary:hover {
+    background-color: #4338ca; /* indigo-700 */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+.btn-primary:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+
+/* Messages (erreur et succès) */
+.error-message {
+    color: #dc2626; /* Rouge 600 */
+    background-color: #fee2e2; /* Rouge 100 */
+    border: 1px solid #ef4444; /* Rouge 500 */
+    padding: 1rem;
+    margin-bottom: 1.5rem; /* Plus d'espace */
+    border-radius: 8px; /* rounded-lg */
+    text-align: center;
+    font-weight: 500;
+}
+.js-error-message { /* Nouveau style pour les messages d'erreur JavaScript */
+    color: #dc2626;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    text-align: center;
+    display: block;
+}
+
+.success-message {
+    color: #16a34a;
+    background-color: #dcfce7;
+    border: 1px solid #22c55e;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 500;
+}
+
+/* Styles pour les tableaux */
+table {
+    width: 100%;
+    border-collapse: separate; /* Important pour border-radius sur les coins */
+    border-spacing: 0; /* Élimine l'espace entre les cellules */
+    margin-top: 1.5rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08); /* Plus belle ombre */
+    border-radius: 10px; /* Plus arrondi */
+    overflow: hidden; /* Important pour que les coins arrondis s'appliquent correctement */
+}
+
+th, td {
+    border: 1px solid #e2e8f0; /* border-gray-200 */
+    padding: 0.9rem 1.2rem; /* Plus de padding */
+    text-align: left;
+    vertical-align: middle;
+    font-size: 0.95rem; /* Légèrement plus grand */
+    color: #333; /* Texte plus foncé */
+}
+/* Supprime les bordures superflues pour un look plus moderne */
+th:last-child, td:last-child {
+    border-right: none;
+}
+tr:last-child td {
+    border-bottom: none;
+}
+
+th {
+    background-color: #e9f0f3; /* Un gris-bleu très clair */
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    color: #4a5568;
+    white-space: nowrap;
+}
+
+tr:nth-child(even) {
+    background-color: #fcfdfe; /* Quasi blanc pour les lignes paires */
+}
+tr:hover {
+    background-color: #e6f0ff; /* Bleu très clair au survol des lignes */
+    transition: background-color 0.2s ease;
+}
+
+
+/* Styles pour les badges de statut */
+.badge-status {
+    padding: 0.3rem 0.8rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    text-transform: capitalize;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+/* Couleurs des badges */
+.badge-status.yellow { background-color: #fffac8; color: #8a6000; } /* Jaune (En attente) */
+.badge-status.blue { background-color: #d1e9ff; color: #0056b3; } /* Bleu (En cours) */
+.badge-status.green-status { background-color: #d9f7be; color: #276749; } /* Vert (Terminee) */
+.badge-status.red-status { background-color: #ffdada; color: #9b2c2c; } /* Rouge (Annulee) */
+.badge-status.gray-status { background-color: #e9ecef; color: #4a5568; } /* Gris (Par défaut/Autres) */
+
+/* Groupe de boutons d'action dans le tableau */
+.action-buttons-group {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+}
+/* Styles génériques pour les liens/boutons d'action */
+.action-buttons-group a,
+.action-buttons-group button {
+    padding: 0.6rem 0.9rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 0.88rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+    border: none;
+    color: white;
+    white-space: nowrap;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+.action-buttons-group a:hover,
+.action-buttons-group button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+
+/* Styles pour les icônes de téléchargement */
+.download-icon-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 0.375rem;
+    transition: all 0.2s ease-in-out;
+    color: #718096;
+    margin-left: 0.5rem;
+}
+.download-icon-button:hover {
+    color: #4f46e5;
+    background-color: rgba(79, 70, 229, 0.1);
+    transform: translateY(-1px);
+}
+
+/* Styles pour les formulaires de filtre */
+.filter-form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1.5rem;
+    background-color: #f0f4f8;
+    border-radius: 0.75rem;
+    align-items: flex-end;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+}
+.filter-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #2d3748;
+}
+.filter-group select, .filter-group input[type="number"] {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #cbd5e0;
+    border-radius: 0.375rem;
+    background-color: #ffffff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.filter-group select:focus, .filter-group input[type="number"]:focus {
+    outline: none;
+    border-color: #4c51bf;
+    box-shadow: 0 0 0 3px rgba(76, 81, 191, 0.2);
+}
+.filter-button {
+    background-color: #4c51bf;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    transition: background-color 0.2s;
+    cursor: pointer;
+    align-self: flex-end;
+}
+.filter-button:hover {
+    background-color: #3b3f9b;
+}
+
+/* Styles pour le contenu dynamique des onglets (Chef d'Agence) */
+.dynamic-content {
+    display: none;
+    animation: fadeIn 0.5s ease-in-out;
+}
+.dynamic-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Styles pour la navigation horizontale (Chef d'Agence) */
+.horizontal-nav {
+    display: flex;
+    justify-content: center;
+    background-color: #ffffff;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 0.5rem; /* Déplacé ici depuis le JSP */
+}
+.horizontal-nav a { /* Cible les liens directs dans la nav horizontale */
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.375rem;
+    color: #4a5568; /* text-gray-700 */
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color 0.2s, color 0.2s, transform 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.horizontal-nav a:hover {
+    background-color: #edf2f7; /* bg-gray-200 */
+    transform: translateY(-2px);
+}
+.horizontal-nav a.active {
+    background-color: #4c51bf; /* bg-indigo-600 */
+    color: #ffffff;
+    box-shadow: 0 2px 4px rgba(76, 81, 191, 0.3);
+}
+.horizontal-nav a i {
+    font-size: 1.1rem;
+}
+
+
+/* Media Queries pour la réactivité */
+@media (max-width: 1024px) { /* Pour les tablettes et petits desktops */
+    .content-area {
+        padding: 1.5rem;
+    }
+    .main-content-card {
+        padding: 1.5rem;
+    }
+}
+
+@media (max-width: 768px) { /* Pour les mobiles */
+    body {
+        padding-top: 3.5rem; /* Ajuster pour la navbar mobile */
+    }
+    .navbar {
+        position: static; /* Retire la position fixe pour le mobile */
+        box-shadow: none; /* Enlève l'ombre si non fixe */
+    }
+    .navbar-container {
+        flex-direction: column; /* Empile les éléments verticalement */
+        align-items: flex-start;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+    }
+    .navbar-links ul {
+        flex-direction: column !important; /* Stack links vertically on mobile */
+        width: 100%;
+        margin-top: 0.5rem;
+        gap: 0.25rem;
+    }
+    .navbar-links li {
+        margin-left: 0;
+        width: 100%;
+    }
+    .navbar-links a {
+        display: block;
+        width: 100%;
+        text-align: center;
+        padding: 0.4rem 0.8rem;
+    }
+    .navbar-links.hidden.md\:flex { /* Afficher les liens même sur mobile */
+        display: flex;
+    }
+    .navbar-links ul {
+        flex-wrap: wrap; /* Permet aux liens de passer à la ligne sur mobile */
+        justify-content: center; /* Centrer les liens si ils sont wrapés */
+    }
+
+
+    .content-area {
+        margin-left: 0;
+        margin-right: 0;
+        padding: 1rem;
+        max-width: 100%;
+    }
+    .main-content-card {
+        margin: 0;
+        padding: 1rem;
+    }
+    .card-value {
+        font-size: 2.25rem;
+    }
+    .chart-container {
+        height: 250px;
+        padding: 0.75rem;
+    }
+    .filter-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Ajustement pour les titres de section avec icônes de téléchargement sur mobile */
+    .flex.items-center.justify-between.mt-8.mb-4 {
+        flex-direction: column;
+        align-items: flex-start;
+        margin-bottom: 0.5rem;
+    }
+    .flex.items-center.justify-between.mt-8.mb-4 h2 {
+        margin-bottom: 0.5rem;
+    }
+    .flex.items-center.justify-between.mt-8.mb-4 button {
+        width: 100%;
+        text-align: left;
+        justify-content: flex-start;
+        padding: 0.5rem 0.75rem;
+        margin-left: 0;
+    }
+
+    /* Navigation horizontale (Chef d'Agence sur mobile) */
+    .horizontal-nav {
+        flex-direction: column; /* Empile les liens horizontalement */
+        align-items: stretch; /* Étend les liens sur toute la largeur */
+        padding: 0.75rem;
+        gap: 0.5rem;
+    }
+    .horizontal-nav a {
+        text-align: center;
+        margin-bottom: 0; /* Pas de marge bottom si déjà un gap */
+    }
+}
+
+
+
+
+
+/* Navigation en onglets de type carte */
+.tabs-nav {
+    display: flex;
+    justify-content: center;
+    background-color: #f0f2f5; /* Fond gris clair pour le conteneur */
+    padding: 20px;
+    border-radius: 12px; /* Coins arrondis pour l'ensemble du conteneur de navigation */
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.05); /* Ombre intérieure pour la profondeur */
+}
+
+.tab-item {
+    display: flex;
+    flex-direction: column; /* Empile l'icône et le texte */
+    align-items: center;
+    justify-content: center;
+    background-color: #fff;
+    padding: 15px 25px;
+    margin: 0 10px; /* Espace entre les onglets */
+    border-radius: 10px; /* Coins arrondis pour chaque onglet */
+    text-decoration: none;
+    color: #444;
+    font-size: 15px;
+    font-weight: 500;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Ombre douce pour l'effet de carte */
+    transition: all 0.3s ease;
+    min-width: 120px; /* Largeur minimale pour la cohérence */
+}
+
+.tab-item i {
+    font-size: 24px; /* Taille d'icône plus grande */
+    margin-bottom: 8px; /* Espace entre l'icône et le texte */
+    color: #6c757d; /* Couleur de l'icône */
+}
+
+/* États de survol et actif */
+.tab-item:hover {
+    transform: translateY(-5px); /* Effet de soulèvement au survol */
+    box-shadow: 0 8px 16px rgba(0,0,0,0.15); /* Ombre plus proéminente au survol */
+    color: #007bff;
+}
+
+.tab-item:hover i {
+    color: #007bff;
+}
+
+.tab-item.active {
+    background-color: #007bff; /* Fond de l'onglet actif */
+    color: #fff; /* Couleur du texte de l'onglet actif */
+    box-shadow: 0 6px 12px rgba(0,123,255,0.3); /* Ombre plus forte pour l'onglet actif */
+    transform: translateY(-2px); /* Légèrement soulevé */
+}
+
+.tab-item.active i {
+    color: #fff; /* Couleur de l'icône de l'onglet actif */
+}
+
+
+
+
+
+
+
+/* --- Styles pour le Filtre Horizontal Embelli (Optimisé pour votre HTML existant) --- */
+
+/* Conteneur principal du filtre : le fait ressembler à une carte */
+.filter-form-grid {
+    background-color: #ffffff; /* Fond blanc propre */
+    border-radius: 0.75rem; /* Coins arrondis pour un look de carte */
+    box-shadow: 0 6px 15px rgba(0,0,0,0.08); /* Ombre douce et élégante */
+    padding: 1.5rem 2rem; /* Espacement intérieur généreux */
+    margin-bottom: 2rem; /* Marge en bas pour le séparer du contenu suivant */
+    border: 1px solid #e5e7eb; /* Bordure subtile pour la définition */
+
+    /* Laisser 'display: grid' ici pour le conteneur si vous voulez que les éléments
+       directement dans .filter-form-grid (qui ne sont pas le form) soient aussi en grille.
+       Cependant, votre HTML montre le <form> *à l'intérieur* de .filter-form-grid.
+       Donc, la définition de la grille doit être sur le FORM lui-même. */
+    /* Assurez-vous que les styles existants ici n'annulent pas les styles du formulaire */
+    display: block; /* Ou laissez-le comme il est si d'autres utilitaires le gèrent */
+}
+
+/* Styles pour le formulaire de filtre lui-même */
+.filter-form-grid form {
+    /* Vos classes HTML 'grid grid-cols-1 md:grid-cols-3 gap-4 items-end'
+       devraient déjà gérer le layout en grille. On s'assure juste que rien ne les annule. */
+    display: grid !important; /* Force la grille, au cas où des styles généraux l'annuleraient */
+    grid-template-columns: repeat(1, minmax(0, 1fr)) !important; /* Pour mobile */
+    gap: 1rem !important; /* Gap pour mobile */
+    align-items: flex-end !important; /* Alignement des éléments en bas de leur "cellule" de grille */
+
+    padding: 0; /* Supprime tout padding interne au formulaire qui pourrait causer des doubles paddings */
+    margin: 0; /* Supprime toute marge interne au formulaire */
+}
+
+/* Media query pour les écrans moyens (md) et plus grands */
+@media (min-width: 768px) {
+    .filter-form-grid form {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important; /* 3 colonnes pour md et plus */
+        gap: 1rem !important; /* Gap entre les colonnes */
+    }
+}
+
+/* Styles pour les groupes de formulaire individuels (labels + inputs) */
+.filter-form-grid .form-group {
+    margin-bottom: 0; /* Le 'gap' du grid gère l'espacement, pas de marge individuelle */
+}
+
+.filter-form-grid .form-group label {
+    display: block; /* Assure que le label est au-dessus de l'input */
+    margin-bottom: 0.5rem; /* Espace sous le label */
+    font-weight: 600; /* Labels plus visibles */
+    color: #4a5568; /* Couleur de texte plus profonde pour les labels */
+    font-size: 0.9rem; /* Taille de police légèrement plus petite pour les labels, pour la compacité */
+}
+
+.filter-form-grid .form-group input[type="text"],
+.filter-form-grid .form-group input[type="number"],
+.filter-form-grid .form-group select {
+    width: 100%; /* Les inputs prennent toute la largeur de leur colonne de grille */
+    padding: 0.75rem 1rem; /* Padding interne pour une meilleure ergonomie */
+    border: 1px solid #d1d5db; /* Bordure discrète */
+    border-radius: 0.5rem; /* Coins légèrement arrondis */
+    background-color: #fcfcfc; /* Fond très légèrement coloré */
+    font-size: 1rem; /* Taille de texte standard */
+    color: #333;
+    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.filter-form-grid .form-group input:focus,
+.filter-form-grid .form-group select:focus {
+    outline: none;
+    border-color: #4f46e5; /* Bordure indigo au focus */
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.25); /* Anneau de focus élégant */
+}
+
+/* Styles pour les boutons de filtre */
+.filter-button {
+    /* Ces boutons sont déjà gérés par col-span-1 et items-end */
+    padding: 0.8rem 1.6rem; /* Padding généreux pour les boutons */
+    font-size: 1rem; /* Taille de texte des boutons */
+    font-weight: 600; /* Texte des boutons en gras */
+    border-radius: 0.5rem; /* Coins arrondis des boutons */
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1); /* Ombre pour donner du relief */
+    transition: background-color 0.2s ease-in-out, transform 0.15s ease-in-out, box-shadow 0.2s ease-in-out;
+    display: inline-flex; /* Pour aligner icône et texte */
+    align-items: center;
+    justify-content: center; /* Centrage du contenu */
+    gap: 0.5rem; /* Espace entre icône et texte */
+    margin-top: 0; /* Annule toute marge top potentielle si 'items-end' ne suffit pas */
+}
+
+.filter-button:hover {
+    transform: translateY(-2px); /* Effet "pop-up" au survol */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15); /* Ombre plus prononcée au survol */
+}
+
+/* Couleurs des boutons (reprises de vos utilitaires) */
+.filter-button.btn-primary {
+    background-color: #4f46e5; /* Indigo */
+    color: white;
+}
+
+.filter-button.btn-primary:hover {
+    background-color: #4338ca; /* Indigo plus foncé */
+}
+
+.filter-button.bg-gray-500 {
+    background-color: #6b7280; /* Gris */
+    color: white;
+}
+
+.filter-button.bg-gray-500:hover {
+    background-color: #4b5563; /* Gris plus foncé */
+}
+
+
+
+
+
+
+/* --- Styles pour le Contenu des Onglets (tab-content) --- */
+
+/* Conteneur principal pour le contenu de chaque onglet (comme #tab-content-cars) */
+.tab-content {
+    background-color: #ffffff; /* Fond blanc pour le contenu de l'onglet */
+    border-radius: 1rem; /* Coins arrondis pour l'ensemble du bloc de contenu */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08); /* Ombre douce pour un effet de "carte" */
+    padding: 2rem; /* Espacement intérieur généreux */
+    margin-top: 1.5rem; /* Marge au-dessus pour le séparer des onglets de navigation */
+    animation: fadeIn 0.6s ease-out forwards; /* Animation d'apparition en douceur */
+    min-height: 500px; /* Hauteur minimale pour éviter le collapse sur du contenu court */
+}
+
+/* Animation de fondu pour le contenu des onglets */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+/* --- Styles pour la Grille des Cartes de Voitures (car-card-grid) --- */
+
+.car-card-grid {
+    display: grid; /* Active CSS Grid pour organiser les cartes */
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Responsive grid: au moins 280px par carte, remplit l'espace */
+    gap: 1.5rem; /* Espacement entre les cartes (gap-6) */
+    margin-top: 2rem; /* Marge au-dessus pour le séparer du filtre */
+    padding-top: 1rem; /* Petit padding au-dessus de la grille */
+}
+
+/* --- Styles pour chaque Carte de Voiture (car-card) --- */
+
+.car-card {
+    background-color: #ffffff; /* Fond blanc */
+    border-radius: 1rem; /* Coins arrondis généreux */
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08); /* Ombre élégante */
+    overflow: hidden; /* Pour que l'image ne dépasse pas les coins arrondis */
+    display: flex;
+    flex-direction: column; /* Empile l'image, le contenu et le bouton */
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* Transitions douces */
+    border: 1px solid #e2e8f0; /* Bordure subtile */
+}
+
+.car-card:hover {
+    transform: translateY(-7px); /* Soulève la carte au survol */
+    box-shadow: 0 12px 25px rgba(0,0,0,0.15); /* Ombre plus intense au survol */
+}
+
+.car-card-image {
+    width: 100%;
+    height: 180px; /* Hauteur fixe pour l'image */
+    object-fit: cover; /* Recadre l'image pour couvrir l'espace sans déformation */
+    border-bottom: 1px solid #f0f2f5; /* Petite bordure sous l'image */
+}
+
+.car-card-content {
+    padding: 1.25rem; /* Padding interne pour le texte */
+    flex-grow: 1; /* Permet au contenu de prendre l'espace restant */
+    display: flex;
+    flex-direction: column;
+}
+
+.car-card-title {
+    font-size: 1.4rem; /* text-xl */
+    font-weight: 700; /* font-bold */
+    color: #1a202c; /* text-gray-900 */
+    margin-bottom: 0.75rem; /* mb-3 */
+    line-height: 1.2;
+    text-align: center; /* Centrer le titre de la carte */
+}
+
+.car-card-detail {
+    font-size: 0.95rem; /* text-sm */
+    color: #4a5568; /* text-gray-700 */
+    margin-bottom: 0.4rem; /* Petit espace entre les détails */
+}
+.car-card-detail strong {
+    font-weight: 600; /* Plus de contraste pour les labels des détails */
+    color: #2d3748;
+}
+
+.car-card-price {
+    font-size: 1.5rem; /* text-2xl */
+    font-weight: 800; /* font-extrabold */
+    color: #4c51bf; /* indigo-700 pour le prix */
+    margin-top: 0.75rem; /* Espace au-dessus du prix */
+    margin-bottom: 1rem; /* Espace sous le prix */
+    text-align: center; /* Centrer le prix */
+    border-top: 1px solid #edf2f7; /* Ligne de séparation au-dessus du prix */
+    padding-top: 0.75rem; /* Padding au-dessus de la ligne */
+}
+
+.car-card-button {
+    display: inline-flex; /* Pour centrer le contenu et ajouter une icône */
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background-color: #4f46e5; /* bg-indigo-600 */
+    color: white;
+    padding: 0.8rem 1.2rem; /* padding généreux */
+    border-radius: 0.75rem; /* Coins plus arrondis */
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color 0.2s ease-in-out, transform 0.15s ease-in-out, box-shadow 0.2s ease-in-out;
+    margin-top: auto; /* Pousse le bouton vers le bas de la carte */
+    width: 100%; /* Le bouton prend toute la largeur de la carte */
+}
+
+.car-card-button:hover {
+    background-color: #4338ca; /* indigo-700 */
+    transform: translateY(-2px); /* Léger soulèvement */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Ombre au survol */
+}
+
+/* Media Queries pour la réactivité */
+@media (max-width: 1024px) {
+    .car-card-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1.25rem;
+    }
+    .tab-content {
+        padding: 1.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .car-card-grid {
+        grid-template-columns: 1fr; /* Une seule colonne sur mobile */
+        gap: 1rem;
+    }
+    .car-card {
+        padding-bottom: 1.25rem; /* Ajuster le padding pour éviter que le bouton soit collé */
+    }
+    .car-card-button {
+        padding: 0.7rem 1rem;
+        font-size: 0.95rem;
+    }
+    .tab-content {
+        padding: 1rem; /* Réduire encore le padding sur les petits mobiles */
+    }
+    .car-card-image {
+        height: 160px; /* Légèrement plus petite sur mobile */
+    }
+    .car-card-title {
+        font-size: 1.25rem;
+    }
+    .car-card-price {
+        font-size: 1.3rem;
+    }
+}

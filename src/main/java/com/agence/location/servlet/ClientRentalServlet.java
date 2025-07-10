@@ -18,6 +18,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.List; // Importation de java.util.List
 import java.text.DecimalFormat; // Pour formater le double proprement
 import java.text.DecimalFormatSymbols; // Pour s'assurer du séparateur décimal (point)
 import java.util.Locale; // Pour définir la locale
@@ -40,7 +41,7 @@ public class ClientRentalServlet extends HttpServlet {
     public void init() throws ServletException {
         super.init();
         locationService = new LocationService();
-        voitureService = new VoitureService();
+        voitureService = new VoitureService(); // Initialise VoitureService
         LOGGER.info("ClientRentalServlet initialisée.");
     }
 
@@ -48,55 +49,79 @@ public class ClientRentalServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         HttpSession session = request.getSession(false);
 
-        // Vérification de l'authentification du client
+        // 1. Vérification de l'authentification du client
         if (session == null || session.getAttribute("client") == null || !"Client".equals(session.getAttribute("role"))) {
             LOGGER.warning("Accès non autorisé à ClientRentalServlet (GET). Redirection vers la page de connexion client.");
-            response.sendRedirect(request.getContextPath() + "/login.jsp?client=true");
+            response.sendRedirect(request.getContextPath() + "/clientLogin.jsp?client=true");
             return;
         }
 
-        Client client = (Client) session.getAttribute("client");
         String action = request.getParameter("action");
+        Client loggedInClient = (Client) session.getAttribute("client");
+        // String clientCin = loggedInClient.getCin(); // Pas directement utilisé ici, mais utile pour d'autres actions GET
 
-        if ("listMyRentals".equals(action)) {
-            LOGGER.info("Action: listMyRentals - Récupération des locations pour le client: " + client.getCin());
-            try {
-                request.setAttribute("clientLocations", locationService.getLocationsByClient(client.getCin()));
-                request.getRequestDispatcher("/WEB-INF/views/clientDashboard.jsp").forward(request, response);
-            } catch (Exception e) {
-                LOGGER.log(Level.SEVERE, "Erreur lors de la récupération des locations du client " + client.getCin() + " : " + e.getMessage(), e);
-                request.setAttribute("error", "Erreur lors de la récupération de vos locations.");
-                request.getRequestDispatcher("/WEB-INF/views/clientDashboard.jsp").forward(request, response);
-            }
-        } else if ("cancelRequest".equals(action)) {
-            String locationIdStr = request.getParameter("id");
-            if (locationIdStr != null && !locationIdStr.isEmpty()) {
-                try {
-                    Long locationId = Long.parseLong(locationIdStr);
-                    Location location = locationService.getLocationByIdWithDetails(locationId);
-                    if (location != null && location.getClient().getCin().equals(client.getCin()) && "En attente".equals(location.getStatut())) {
-                        locationService.cancelRentalRequest(locationId);
-                        session.setAttribute("message", "Demande de location annulée avec succès.");
-                        LOGGER.info("Demande de location ID " + locationId + " annulée par le client " + client.getCin());
-                    } else {
-                        session.setAttribute("error", "Impossible d'annuler cette demande. Elle n'existe pas, ne vous appartient pas ou n'est plus en attente.");
-                        LOGGER.warning("Tentative d'annulation échouée pour location ID " + locationId + " par client " + client.getCin());
+        // Récupérer les messages de la session si présents (après une redirection POST->GET)
+        if (session.getAttribute("message") != null) {
+            request.setAttribute("message", session.getAttribute("message"));
+            session.removeAttribute("message");
+        }
+        if (session.getAttribute("error") != null) {
+            request.setAttribute("error", session.getAttribute("error"));
+            session.removeAttribute("error");
+        }
+
+        try {
+            if ("showRentalForm".equals(action)) {
+                String immatriculationVoiture = request.getParameter("immatriculation");
+                Voiture selectedVoiture = voitureService.getVoitureByImmatriculation(immatriculationVoiture);
+
+                if (selectedVoiture != null) {
+                    request.setAttribute("selectedVoiture", selectedVoiture);
+                    // Initialiser formData pour le formulaire (même si vide, pour éviter NullPointer dans JSP)
+                    // Si vous avez des valeurs à pré-remplir (ex: depuis une erreur de soumission), utilisez-le ici.
+                    RentalFormData formData = (RentalFormData) request.getAttribute("formData"); // CORRECTION ICI: getAttribute
+                    if (formData == null) {
+                        formData = new RentalFormData("", "", "0.00"); // Valeurs par défaut
                     }
-                } catch (NumberFormatException e) {
-                    session.setAttribute("error", "ID de demande invalide.");
-                    LOGGER.log(Level.WARNING, "ID de demande invalide pour annulation: " + locationIdStr, e);
-                } catch (RuntimeException e) {
-                    session.setAttribute("error", "Erreur lors de l'annulation de la demande : " + e.getMessage());
-                    LOGGER.log(Level.SEVERE, "Erreur Runtime lors de l'annulation de la demande ID " + locationIdStr + ": " + e.getMessage(), e);
+                    request.setAttribute("formData", formData);
+
+                    request.getRequestDispatcher("/WEB-INF/views/clientRentalRequest.jsp").forward(request, response);
+                } else {
+                    LOGGER.warning("Voiture non trouvée pour l'immatriculation: " + immatriculationVoiture);
+                    session.setAttribute("error", "La voiture sélectionnée n'a pas été trouvée ou n'est plus disponible.");
+                    response.sendRedirect(request.getContextPath() + "/clientDashboard?tab=cars"); // Rediriger vers la liste des voitures
                 }
-            } else {
-                session.setAttribute("error", "ID de demande manquant.");
-                LOGGER.warning("ID de demande manquant pour annulation.");
+            } else if ("listMyRentals".equals(action)) {
+                // Cette action est normalement gérée par ClientDashboardServlet qui inclut clientLocations.jsp
+                // Mais si elle est appelée directement, assurez-vous que clientCin est disponible.
+                List<Location> clientLocations = locationService.getLocationsByClient(loggedInClient.getCin());
+                request.setAttribute("clientLocationList", clientLocations);
+                request.getRequestDispatcher("/WEB-INF/views/clientLocationList.jsp").forward(request, response);
+            } else if ("cancelRequest".equals(action)) { // Ajout de la gestion de l'annulation
+                Long locationId = null;
+                try {
+                    locationId = Long.parseLong(request.getParameter("id"));
+                    locationService.cancelRentalRequest(locationId);
+                    session.setAttribute("message", "La demande de location a été annulée avec succès.");
+                } catch (NumberFormatException e) {
+                    LOGGER.log(Level.WARNING, "ID de location invalide pour annulation: " + request.getParameter("id"), e);
+                    session.setAttribute("error", "ID de location invalide.");
+                } catch (RuntimeException e) {
+                    LOGGER.log(Level.SEVERE, "Erreur lors de l'annulation de la demande de location ID " + locationId + ": " + e.getMessage(), e);
+                    session.setAttribute("error", "Erreur lors de l'annulation de la demande : " + e.getMessage());
+                }
+                response.sendRedirect(request.getContextPath() + "/clientDashboard?tab=rentals");
             }
-            response.sendRedirect(request.getContextPath() + "/clientRental?action=listMyRentals");
-        } else {
-            LOGGER.warning("Action non reconnue pour ClientRentalServlet (GET): " + action + ". Redirection par défaut vers le dashboard client.");
-            response.sendRedirect(request.getContextPath() + "/clientVoitures?action=listAvailable");
+            // Ajoutez d'autres actions GET ici si nécessaire
+            else {
+                LOGGER.warning("Action non reconnue pour ClientRentalServlet (GET): " + action + ". Redirection par défaut vers le dashboard client.");
+                // Redirection par défaut si l'action n'est pas reconnue
+                response.sendRedirect(request.getContextPath() + "/clientDashboard?tab=overview");
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Erreur dans ClientRentalServlet doGet pour action " + action + ": " + e.getMessage(), e);
+            session.setAttribute("error", "Une erreur est survenue lors du traitement de votre demande.");
+            response.sendRedirect(request.getContextPath() + "/clientDashboard?tab=overview");
         }
     }
 
@@ -106,84 +131,100 @@ public class ClientRentalServlet extends HttpServlet {
 
         if (session == null || session.getAttribute("client") == null || !"Client".equals(session.getAttribute("role"))) {
             LOGGER.warning("Accès non autorisé à ClientRentalServlet (POST). Redirection vers la page de connexion client.");
-            response.sendRedirect(request.getContextPath() + "/login.jsp?client=true");
+            response.sendRedirect(request.getContextPath() + "/clientLogin.jsp?client=true");
             return;
         }
 
-        Client client = (Client) session.getAttribute("client");
         String action = request.getParameter("action");
+        Client loggedInClient = (Client) session.getAttribute("client");
+        String clientCin = loggedInClient.getCin();
+
+        // Variables pour repopuler le formulaire en cas d'erreur
+        String immatriculationVoiture = request.getParameter("immatriculationVoiture");
+        String dateDebutStr = request.getParameter("dateDebut");
+        String nombreJoursStr = request.getParameter("nombreJours");
+        String montantTotalEstimeStr = request.getParameter("montantTotalEstime");
+        // Nettoyer le montant total estimé pour s'assurer qu'il est parsable en double (remplacer virgule par point)
+        String cleanMontantTotalEstime = (montantTotalEstimeStr != null && !montantTotalEstimeStr.isEmpty()) ? montantTotalEstimeStr.replace(",", ".") : "0.00";
+
 
         if ("request".equals(action)) {
-            String immatriculationVoiture = request.getParameter("immatriculationVoiture");
-            String dateDebutStr = request.getParameter("dateDebut");
-            String nombreJoursStr = request.getParameter("nombreJours");
-            String montantTotalEstimeRaw = request.getParameter("montantTotalEstime"); // Nom différent pour la chaîne brute
-
-            LocalDate dateDebut = null;
-            int nombreJours = 0;
-            double montantTotalEstime = 0.0;
-            String cleanMontantTotalEstime = ""; // Variable pour stocker la version propre pour repopuler
-
             try {
-                dateDebut = LocalDate.parse(dateDebutStr);
-                nombreJours = Integer.parseInt(nombreJoursStr);
+                // Validation des entrées
+                if (immatriculationVoiture == null || immatriculationVoiture.isEmpty() ||
+                    dateDebutStr == null || dateDebutStr.isEmpty() ||
+                    nombreJoursStr == null || nombreJoursStr.isEmpty() ||
+                    montantTotalEstimeStr == null || montantTotalEstimeStr.isEmpty()) {
+                    throw new IllegalArgumentException("Tous les champs obligatoires doivent être remplis.");
+                }
 
-                // Nettoyer la chaîne avant de la parser en Double
-                // Remplacer la virgule par un point si la locale de la JSP utilise la virgule
-                // Enlever tous les caractères non numériques, sauf le point décimal
-                cleanMontantTotalEstime = montantTotalEstimeRaw.replace(" €", "").replace(",", "."); // Pour le format français
-                // Assurez-vous qu'il ne reste que des chiffres et un point décimal
-                montantTotalEstime = Double.parseDouble(cleanMontantTotalEstime);
+                LocalDate dateDebut = LocalDate.parse(dateDebutStr);
+                int nombreJours = Integer.parseInt(nombreJoursStr);
+                double montantTotalEstime = Double.parseDouble(cleanMontantTotalEstime);
 
+                // Vérifier que la date de début n'est pas passée
+                if (dateDebut.isBefore(LocalDate.now())) {
+                    throw new IllegalArgumentException("La date de début de location ne peut pas être antérieure à aujourd'hui.");
+                }
 
+                // Récupérer la voiture et le client
                 Voiture voiture = voitureService.getVoitureByImmatriculation(immatriculationVoiture);
+                Client client = (Client) session.getAttribute("client"); // Le client est déjà en session
 
-                if (voiture == null || !"Disponible".equals(voiture.getStatut())) {
-                    LOGGER.warning("Demande de location échouée: Voiture " + immatriculationVoiture + " non trouvée ou non disponible.");
+                if (voiture == null) {
+                    throw new RuntimeException("Voiture non trouvée.");
+                }
+                if (!"Disponible".equals(voiture.getStatut())) {
                     throw new RuntimeException("La voiture n'est pas disponible pour la location.");
                 }
 
-                Location nouvelleDemande = new Location();
-                nouvelleDemande.setClient(client);
-                nouvelleDemande.setVoiture(voiture);
-                nouvelleDemande.setUtilisateur(null);
-                nouvelleDemande.setDateDebut(dateDebut);
-                nouvelleDemande.setNombreJours(nombreJours);
-                nouvelleDemande.setDateRetourPrevue(dateDebut.plusDays(nombreJours));
-                nouvelleDemande.setMontantTotal(montantTotalEstime);
-                nouvelleDemande.setKilometrageDepart(voiture.getKilometrage());
-                nouvelleDemande.setKilometrageRetour(null);
-                nouvelleDemande.setStatut("En attente");
+                // Créer l'objet Location
+                Location nouvelleLocation = new Location();
+                nouvelleLocation.setClient(client);
+                nouvelleLocation.setVoiture(voiture);
+                nouvelleLocation.setDateDebut(dateDebut);
+                nouvelleLocation.setNombreJours(nombreJours);
+                nouvelleLocation.setMontantTotal(montantTotalEstime);
+                nouvelleLocation.setStatut("En attente"); // Statut initial
 
-                locationService.addRentalRequest(nouvelleDemande);
-                session.setAttribute("message", "Votre demande de location a été soumise avec succès ! Elle est en attente de validation par l'agence.");
-                LOGGER.info("Demande de location soumise par le client " + client.getCin() + " pour voiture " + immatriculationVoiture);
-                response.sendRedirect(request.getContextPath() + "/clientRental?action=listMyRentals");
+                // ** MODIFICATION AJOUTÉE ICI **
+                LocalDate dateRetourPrevue = dateDebut.plusDays(nombreJours);
+                nouvelleLocation.setDateRetourPrevue(dateRetourPrevue); 
+                // ** FIN DE LA MODIFICATION **
 
+                locationService.addRentalRequest(nouvelleLocation); // Appel de la méthode addRentalRequest
+
+                session.setAttribute("message", "Votre demande de location a été soumise avec succès et est en attente de validation !");
+                response.sendRedirect(request.getContextPath() + "/clientDashboard?tab=rentals"); // Rediriger vers l'onglet Mes Locations
             } catch (DateTimeParseException e) {
-                request.setAttribute("error", "Format de date invalide. Veuillez utiliser le format YYYY-MM-DD.");
-                LOGGER.log(Level.WARNING, "Format de date invalide pour la demande de location: " + dateDebutStr, e);
-                repopulateClientCardForm(request, immatriculationVoiture, dateDebutStr, nombreJoursStr, cleanMontantTotalEstime); // Passer la valeur propre
-                request.getRequestDispatcher("/WEB-INF/views/clientCard.jsp").forward(request, response);
+                LOGGER.log(Level.WARNING, "Format de date invalide: " + dateDebutStr, e);
+                request.setAttribute("error", "Le format de la date de début est invalide. Utilisez AAAA-MM-JJ.");
+                repopulateClientCardForm(request, immatriculationVoiture, dateDebutStr, nombreJoursStr, cleanMontantTotalEstime);
+                request.getRequestDispatcher("/WEB-INF/views/clientRentalRequest.jsp").forward(request, response);
             } catch (NumberFormatException e) {
-                request.setAttribute("error", "Nombre de jours ou montant invalide. Veuillez entrer des nombres valides.");
-                LOGGER.log(Level.WARNING, "Nombre de jours ou montant invalide: " + nombreJoursStr + ", " + montantTotalEstimeRaw, e);
-                repopulateClientCardForm(request, immatriculationVoiture, dateDebutStr, nombreJoursStr, cleanMontantTotalEstime); // Passer la valeur propre
-                request.getRequestDispatcher("/WEB-INF/views/clientCard.jsp").forward(request, response);
+                LOGGER.log(Level.WARNING, "Format numérique invalide pour nombreJours ou montantTotalEstime: " + e.getMessage(), e);
+                request.setAttribute("error", "Le nombre de jours ou le montant estimé est invalide.");
+                repopulateClientCardForm(request, immatriculationVoiture, dateDebutStr, nombreJoursStr, cleanMontantTotalEstime);
+                request.getRequestDispatcher("/WEB-INF/views/clientRentalRequest.jsp").forward(request, response);
+            } catch (IllegalArgumentException e) {
+                LOGGER.log(Level.WARNING, "Validation échouée pour la demande de location: " + e.getMessage(), e);
+                request.setAttribute("error", e.getMessage());
+                repopulateClientCardForm(request, immatriculationVoiture, dateDebutStr, nombreJoursStr, cleanMontantTotalEstime);
+                request.getRequestDispatcher("/WEB-INF/views/clientRentalRequest.jsp").forward(request, response);
             } catch (RuntimeException e) {
-                request.setAttribute("error", "Erreur lors de la soumission de la demande : " + e.getMessage());
-                LOGGER.log(Level.SEVERE, "Erreur Runtime lors de la soumission de la demande: " + e.getMessage(), e);
-                repopulateClientCardForm(request, immatriculationVoiture, dateDebutStr, nombreJoursStr, cleanMontantTotalEstime); // Passer la valeur propre
-                request.getRequestDispatcher("/WEB-INF/views/clientCard.jsp").forward(request, response);
+                request.setAttribute("error", "Une erreur est survenue lors de la soumission de votre demande : " + e.getMessage());
+                LOGGER.log(Level.SEVERE, "Erreur Runtime dans doPost pour l'action 'request': " + e.getMessage(), e);
+                repopulateClientCardForm(request, immatriculationVoiture, dateDebutStr, nombreJoursStr, cleanMontantTotalEstime);
+                request.getRequestDispatcher("/WEB-INF/views/clientRentalRequest.jsp").forward(request, response);
             } catch (Exception e) {
                 request.setAttribute("error", "Une erreur inattendue est survenue : " + e.getClass().getName() + " - " + e.getMessage());
                 LOGGER.log(Level.SEVERE, "Erreur inattendue dans doPost pour l'action 'request': " + e.getMessage(), e);
                 repopulateClientCardForm(request, immatriculationVoiture, dateDebutStr, nombreJoursStr, cleanMontantTotalEstime); // Passer la valeur propre
-                request.getRequestDispatcher("/WEB-INF/views/clientCard.jsp").forward(request, response);
+                request.getRequestDispatcher("/WEB-INF/views/clientRentalRequest.jsp").forward(request, response);
             }
         } else {
             LOGGER.warning("Action non reconnue pour ClientRentalServlet (POST): " + action + ". Redirection par défaut.");
-            response.sendRedirect(request.getContextPath() + "/clientVoitures?action=listAvailable");
+            response.sendRedirect(request.getContextPath() + "/clientDashboard?tab=cars");
         }
     }
 
@@ -191,7 +232,7 @@ public class ClientRentalServlet extends HttpServlet {
     private void repopulateClientCardForm(HttpServletRequest request, String immatriculationVoiture, String dateDebutStr, String nombreJoursStr, String montantTotalEstimeClean) {
         Voiture voiture = voitureService.getVoitureByImmatriculation(immatriculationVoiture);
         if (voiture != null) {
-            request.setAttribute("voiture", voiture);
+            request.setAttribute("selectedVoiture", voiture);
         }
 
         // Utilisation du DTO RentalFormData avec la valeur numérique propre

@@ -1,13 +1,20 @@
 package com.agence.location.service;
 
 import com.agence.location.dao.ClientDAO;
+import com.agence.location.dao.JPAUtil;
 import com.agence.location.model.Client;
 
+import javax.persistence.EntityManager;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
- * Service pour la gestion de l'authentification des clients.
+ * Service d'authentification pour les clients.
+ * Gère la logique métier liée à la connexion des clients.
  */
 public class ClientAuthService {
 
+    private static final Logger LOGGER = Logger.getLogger(ClientAuthService.class.getName());
     private ClientDAO clientDAO;
 
     public ClientAuthService() {
@@ -15,25 +22,29 @@ public class ClientAuthService {
     }
 
     /**
-     * Authentifie un client.
-     * @param cin Le CIN du client.
+     * Authentifie un client en utilisant son CIN et son mot de passe.
+     * @param cin Le numéro CIN du client.
      * @param password Le mot de passe du client.
      * @return L'objet Client si l'authentification réussit, sinon null.
      */
     public Client authenticate(String cin, String password) {
-        // Recherche le client par CIN et mot de passe dans la base de données via le DAO.
-        // NOTE IMPORTANTE: Dans une application réelle, le mot de passe ne doit JAMAIS
-        // être stocké en clair. Utilisez des techniques de hachage comme BCrypt pour sécuriser les mots de passe.
-        // Pour cet exemple, nous comparons directement le mot de passe fourni avec celui stocké.
-        Client client = clientDAO.findByCinAndPassword(cin, password);
-
-        // Vérifie si un client a été trouvé et si le mot de passe correspond.
-        // Si findByCinAndPassword renvoie déjà null en cas de non-concordance du mot de passe
-        // ou de l'utilisateur, cette vérification supplémentaire est redondante mais ne nuit pas.
-        // Cependant, l'implémentation actuelle de findByCinAndPassword inclut déjà la vérification du mot de passe.
-        if (client != null) {
-            return client; // Retourne le client authentifié
+        LOGGER.info("Tentative d'authentification pour le client avec CIN: " + cin);
+        EntityManager em = JPAUtil.getEntityManager(); // Obtient un EntityManager pour cette opération
+        try {
+            Client client = clientDAO.findByCinAndPassword(cin, password); // Appelle la méthode du DAO
+            if (client != null) {
+                LOGGER.info("Client " + cin + " authentifié avec succès.");
+            } else {
+                LOGGER.warning("Échec de l'authentification pour le client avec CIN: " + cin + ". Identifiants incorrects.");
+            }
+            return client;
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Erreur lors de l'authentification du client avec CIN: " + cin, e);
+            return null;
+        } finally {
+            if (em != null && em.isOpen()) {
+                em.close(); // Ferme l'EntityManager
+            }
         }
-        return null; // L'authentification a échoué
     }
 }

@@ -182,10 +182,5 @@ public class ClientService {
             }
         }
     }
-    
-    
-    
-    
-    
-    
+     
 }

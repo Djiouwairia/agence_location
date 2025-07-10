@@ -164,10 +164,7 @@
                     <%-- NOUVELLE SECTION: Voitures Disponibles dans le Parc (ajoutée ici) --%>
                     <div class="flex items-center justify-between mt-8 mb-4">
                         <h2 class="text-2xl font-semibold text-gray-700">Voitures Disponibles dans le Parc</h2>
-                        <button onclick="downloadList('available')" title="Télécharger la liste des voitures disponibles"
-                                class="download-icon-button">
-                            <i class="fas fa-download fa-lg"></i>
-                        </button>
+                        
                     </div>
                     <div class="overflow-x-auto rounded-lg shadow mb-8">
                         <table>
@@ -206,10 +203,7 @@
                     <%-- Voitures actuellement louées --%>
                     <div class="flex items-center justify-between mt-8 mb-4">
                         <h2 class="text-2xl font-semibold text-gray-700">Voitures Actuellement Louées</h2>
-                        <button onclick="downloadList('rented')" title="Télécharger la liste des voitures louées"
-                                class="download-icon-button">
-                            <i class="fas fa-download fa-lg"></i>
-                        </button>
+                        
                     </div>
                     <div class="overflow-x-auto rounded-lg shadow">
                         <table>
@@ -289,10 +283,11 @@
 
                     <div class="flex items-center justify-between mt-8 mb-4">
                         <h2 class="text-2xl font-semibold text-gray-700">Voitures Disponibles pour Location</h2>
-                        <button onclick="downloadList('available')" title="Télécharger la liste des voitures disponibles"
-                                class="download-icon-button">
-                            <i class="fas fa-download fa-lg"></i>
-                        </button>
+                        <button  title="Télécharger la liste des voitures disponibles"
+                                >
+ 							<a href="locations?action=exportList" class="btn-primary bg-blue-600 hover:bg-blue-700">
+                          <i class="fas fa-file-pdf mr-2"></i> 
+                         </a></button>
                     </div>
                     <div class="overflow-x-auto rounded-lg shadow">
                         <table>

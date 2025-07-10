@@ -49,7 +49,7 @@
             <c:if test="${empty sessionScope.utilisateur}">
                 <%-- LIEN DE CONNEXION (si non connecté) --%>
                 <a href="${pageContext.request.contextPath}/login.jsp" class="bg-blue-600 text-white py-2 px-4 rounded-full text-sm font-semibold hover:bg-blue-700 transition-colors shadow-md">
-                    <i class="fas fa-sign-in-alt mr-1"></i> Connexion
+                    <i class="fas fa-sign-in-alt mr-1"></i> Deconnexion
                 </a>
             </c:if>
         </div>

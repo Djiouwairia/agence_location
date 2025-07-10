@@ -40,20 +40,24 @@ public class ClientAuthServlet extends HttpServlet {
                 session.invalidate();
                 System.out.println("Client déconnecté, session invalidée.");
             }
-            response.sendRedirect("login.jsp?client=true"); // Redirige vers la page de connexion client
+            // Redirige vers la page de connexion client
+            response.sendRedirect(request.getContextPath() + "/login.jsp"); // Redirection vers la page de login client
         } else {
             // Affiche la page de connexion client si aucune action spécifique n'est demandée.
             System.out.println("Accès à la page de connexion client.");
-            request.getRequestDispatcher("login.jsp?client=true").forward(request, response);
+            request.getRequestDispatcher("clientLogin.jsp").forward(request, response);
         }
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // CORRECTION ICI: Récupérer le 'cin' au lieu de 'email'
         String cin = request.getParameter("cin");
         String password = request.getParameter("password");
 
-        Client client = clientAuthService.authenticate(cin, password);
+        // Utilise le service d'authentification client pour vérifier les identifiants
+        // Assurez-vous que votre ClientAuthService.authenticate prend CIN et password
+        Client client = clientAuthService.authenticate(cin, password); 
 
         if (client != null) {
             HttpSession session = request.getSession();
@@ -61,12 +65,12 @@ public class ClientAuthServlet extends HttpServlet {
             session.setAttribute("role", "Client"); // Définit le rôle comme "Client"
             LOGGER.info("Client " + client.getCin() + " authentifié avec succès. Rôle: Client.");
 
-            // CORRECTION ICI: Utiliser forward au lieu de sendRedirect pour accéder à une JSP sous WEB-INF
-            request.getRequestDispatcher("/WEB-INF/views/clientDashboard.jsp").forward(request, response);
+            // CORRECTION MAJEURE ICI: Rediriger vers le tableau de bord client, PAS le tableau de bord général
+            response.sendRedirect(request.getContextPath() + "/clientDashboard"); // Redirection vers le nouveau servlet clientDashboard
         } else {
             LOGGER.info("Échec de l'authentification pour CIN: " + cin);
             request.setAttribute("error", "CIN ou mot de passe incorrect.");
-            request.getRequestDispatcher("login.jsp?client=true").forward(request, response);
+            request.getRequestDispatcher("clientLogin.jsp").forward(request, response);
         }
     }
 }

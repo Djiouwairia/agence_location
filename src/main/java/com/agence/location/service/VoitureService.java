@@ -6,11 +6,11 @@ import com.agence.location.model.Voiture;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
-import javax.persistence.NoResultException; // Ajouté pour gérer les cas de non-résultat
-import java.util.ArrayList; // Ajouté pour initialiser les listes vides
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.logging.Level; // Ajouté pour les niveaux de log
-import java.util.logging.Logger; // Ajouté pour le logging
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Service pour la gestion des voitures.
@@ -78,10 +78,39 @@ public class VoitureService {
                                         String typeCarburant, String categorie, String statut) {
         LOGGER.info("Recherche de voitures avec les critères: Marque=" + marque + ", KilométrageMax=" + kilometrageMax + ", AnnéeMin=" + anneeMiseCirculationMin + ", Carburant=" + typeCarburant + ", Catégorie=" + categorie + ", Statut=" + statut);
         try {
-            return voitureDAO.searchVoitures(marque, kilometrageMax, anneeMiseCirculationMin, typeCarburant, categorie, statut);
+            // Appel à la méthode searchVoitures du DAO avec les 8 paramètres.
+            // Les deux derniers (nbPlaces et prixLocationJMax) sont passés comme null
+            // pour correspondre à la signature élargie du DAO.
+            return voitureDAO.searchVoitures(marque, kilometrageMax, anneeMiseCirculationMin, typeCarburant, categorie, statut, null, null);
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Erreur lors de la recherche de voitures: " + e.getMessage(), e);
             return new ArrayList<>(); // Retourne une liste vide en cas d'erreur
+        }
+    }
+
+    /**
+     * Recherche des voitures disponibles selon plusieurs critères,
+     * y compris le nombre de places et le prix maximum.
+     * Cette méthode est appelée par le ClientDashboardServlet.
+     * @param marque La marque de la voiture (optionnel).
+     * @param kilometrageMax Le kilométrage maximum (optionnel).
+     * @param anneeMiseCirculationMin L'année de mise en circulation minimale (optionnel).
+     * @param typeCarburant Le type de carburant (optionnel).
+     * @param categorie La catégorie de la voiture (optionnel).
+     * @param nbPlaces Le nombre de places minimum (optionnel).
+     * @param prixMax Le prix de location journalier maximum (optionnel).
+     * @return Une liste de voitures correspondant aux critères et ayant le statut 'Disponible'.
+     */
+    public List<Voiture> searchAvailableVoitures(String marque, Double kilometrageMax, Integer anneeMiseCirculationMin,
+                                                 String typeCarburant, String categorie, Integer nbPlaces, Double prixMax) {
+        LOGGER.info("Recherche de voitures disponibles avec filtres: Marque=" + marque + ", KilométrageMax=" + kilometrageMax + ", AnnéeMin=" + anneeMiseCirculationMin + ", Carburant=" + typeCarburant + ", Catégorie=" + categorie + ", NbPlaces=" + nbPlaces + ", PrixMax=" + prixMax);
+        try {
+            // Déléguer la recherche filtrée au DAO, en passant explicitement "Disponible" pour le statut
+            return voitureDAO.searchVoitures(marque, kilometrageMax, anneeMiseCirculationMin,
+                                            typeCarburant, categorie, "Disponible", nbPlaces, prixMax);
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Erreur lors de la recherche de voitures disponibles avec filtres: " + e.getMessage(), e);
+            return Collections.emptyList(); // Retourne une liste vide en cas d'erreur
         }
     }
 
@@ -218,6 +247,19 @@ public class VoitureService {
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Erreur lors de la récupération des voitures disponibles: " + e.getMessage(), e);
             return new ArrayList<>(); // Retourne une liste vide en cas d'erreur
+        }
+    }
+
+    /**
+     * Récupère le nombre total de voitures disponibles.
+     * @return Le nombre de voitures disponibles.
+     */
+    public long getAvailableVoituresCount() {
+        try {
+            return voitureDAO.countAvailableVoitures(); 
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Erreur lors du comptage des voitures disponibles: " + e.getMessage(), e);
+            return 0;
         }
     }
 }
