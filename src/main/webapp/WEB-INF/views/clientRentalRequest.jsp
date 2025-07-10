@@ -13,8 +13,18 @@
     <title>Soumettre une Demande de Location</title>
     <link rel="stylesheet" href="css/style.css"> 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
 </head>
 <body>
+<video autoplay muted loop id="video-background">
+
+<source src="${pageContext.request.contextPath}/videos/video1.mp4" type="video/mp4">
+
+Votre navigateur ne supporte pas les vidéos HTML5.
+
+</video>
+
+<div class="video-overlay"></div>
 <jsp:include page="navbar.jsp"/>
 
     <div class="content-area flex items-center justify-center min-h-screen-minus-navbar">

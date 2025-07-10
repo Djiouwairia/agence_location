@@ -3,7 +3,6 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 
 
-
     <div class="content-area"> <%-- Conteneur principal pour le padding et la largeur max --%>
         <main class="main-content-card"> <%-- Arrière-plan et ombre pour le contenu principal --%>
             <h2 class="dashboard-heading text-3xl font-bold text-gray-800 mb-4 text-center">Mes Locations</h2>

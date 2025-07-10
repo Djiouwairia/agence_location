@@ -11,7 +11,63 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="js/client-dashboard.js" defer></script> <%-- Assurez-vous que ce fichier existe --%>
 </head>
+	<style>
+	    body {
+	
+		margin: 0;
+		
+		}
+
+		/* CSS pour l'arrière-plan vidéo */
+		
+		#video-background {
+		
+			position: fixed;
+			
+			right: 0;
+			
+			bottom: 0;
+			
+			min-width: 100%;
+			
+			min-height: 100%;
+			
+			width: auto;
+			
+			height: auto;
+			
+			z-index: -100;
+			
+			object-fit: cover;
+	}
+	
+	/* CSS pour l'overlay (filtre sombre sur la vidéo pour la lisibilité) */
+	
+	.video-overlay {
+	
+		position: fixed;
+		
+		top: 0;
+		
+		left: 0;
+		
+		width: 100%;
+		
+		height: 100%;
+		
+		background-color: rgba(0, 0, 0, 0.5);
+		
+		z-index: -99;
+	
+	}
+	</style>
 <body class="has-dashboard">
+	<video autoplay muted loop id="video-background">
+		<source src="${pageContext.request.contextPath}/videos/video1.mp4" type="video/mp4">
+		Votre navigateur ne supporte pas les vidéos HTML5.
+		
+	</video>
+
     <%-- Inclusion de la barre de navigation --%>
     <jsp:include page="navbar.jsp"/>
 

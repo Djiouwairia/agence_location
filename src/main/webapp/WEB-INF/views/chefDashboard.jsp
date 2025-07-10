@@ -17,6 +17,56 @@
     <%-- Ajout d'un paramètre de version pour forcer le rechargement du CSS --%>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=<%= System.currentTimeMillis() %>">
     <style>
+	    body {
+	
+		margin: 0;
+		}
+		
+		/* CSS pour l'arrière-plan vidéo */
+		
+		#video-background {
+		
+		position: fixed;
+		
+		right: 0;
+		
+		bottom: 0;
+		
+		min-width: 100%;
+		
+		min-height: 100%;
+		
+		width: auto;
+		
+		height: auto;
+		
+		z-index: -100;
+		
+		object-fit: cover;
+		
+	}
+	
+	
+	
+	/* CSS pour l'overlay (filtre sombre sur la vidéo pour la lisibilité) */
+	
+	.video-overlay {
+	
+		position: fixed;
+		
+		top: 0;
+		
+		left: 0;
+		
+		width: 100%;
+		
+		height: 100%;
+		
+		background-color: rgba(0, 0, 0, 0.5);
+		
+		z-index: -99;
+	
+	}
         /* Styles pour masquer/afficher les éléments */
         .hidden-element {
             display: none !important; /* Utiliser !important pour s'assurer que le style est appliqué */
@@ -90,6 +140,13 @@
     </style>
 </head>
 <body>
+	<video autoplay muted loop id="video-background">
+		<source src="${pageContext.request.contextPath}/videos/video5.mp4" type="video/mp4">
+		Votre navigateur ne supporte pas les vidéos HTML5.
+		
+	</video>
+
+<div class="video-overlay"></div>
     <%-- Inclusion de la barre de navigation existante (navbar.jsp) --%>
     <jsp:include page="navbar.jsp"/>
 
@@ -153,12 +210,27 @@
                                     <c:out value="${requestScope.pendingRequestsCount != null ? requestScope.pendingRequestsCount : 'N/A'}"/>
                                 </p>
                             </div>
+                            
+                            
+                            
+                         
+                            
                         </div>
 
                         <div class="card md:col-span-1 chart-container">
                              <canvas id="carStatusPieChart"></canvas>
                              <p class="js-error-message hidden" id="pieChartError"></p>
                         </div>
+                        
+                        
+                        
+                         <%-- Nouvelle Carte: Capacité du Parking (ajoutée ici) --%>
+                            <div class="card">
+                                <h3 class="card-title">Capacité du Parking</h3>
+                                <p class="card-value text-blue-600">
+                                    50
+                                </p>
+                            </div>
                     </div>
 
                     <%-- NOUVELLE SECTION: Voitures Disponibles dans le Parc (ajoutée ici) --%>
@@ -278,8 +350,8 @@
 
                 <%-- Section: Parking (Détails) --%>
                 <div id="parkingDetails" class="dynamic-content">
-                    <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Parking des Voitures</h1>
-                    <p class="mb-4 text-gray-600">Voici la liste des voitures actuellement disponibles dans notre parc.</p>
+                    <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Parking des Voitures(Capacite:50)</h1>
+                    <p class="mb-4 text-gray-600"></p>
 
                     <div class="flex items-center justify-between mt-8 mb-4">
                         <h2 class="text-2xl font-semibold text-gray-700">Voitures Disponibles pour Location</h2>

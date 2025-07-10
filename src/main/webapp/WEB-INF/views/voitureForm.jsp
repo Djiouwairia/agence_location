@@ -16,11 +16,73 @@
     </title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
+    <style>
+	    body {
+	
+		margin: 0;
+		
+		}
+
+		/* CSS pour l'arrière-plan vidéo */
+		
+		#video-background {
+		
+			position: fixed;
+			
+			right: 0;
+			
+			bottom: 0;
+			
+			min-width: 100%;
+			
+			min-height: 100%;
+			
+			width: auto;
+			
+			height: auto;
+			
+			z-index: -100;
+			
+			object-fit: cover;
+	}
+	
+	/* CSS pour l'overlay (filtre sombre sur la vidéo pour la lisibilité) */
+	
+	.video-overlay {
+	
+		position: fixed;
+		
+		top: 0;
+		
+		left: 0;
+		
+		width: 100%;
+		
+		height: 100%;
+		
+		background-color: rgba(0, 0, 0, 0.5);
+		
+		z-index: -99;
+	
+	}
+	.dashboard-container {
+    max-width: 1500px; /* Ou une autre valeur appropriée comme 1000px, 1400px, etc. */
+    margin: 2rem auto;
+    padding: 7rem;
+    background-color: #ffffff; 
+    border-radius: 12px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+}
+	</style> 
 </head>
 <body>
     <jsp:include page="navbar.jsp"/>
-
+	<video autoplay muted loop id="video-background">
+		<source src="${pageContext.request.contextPath}/videos/video2.mp4" type="video/mp4">
+		Votre navigateur ne supporte pas les vidéos HTML5.
+		
+	</video>
+	
     <div class="dashboard-container">
         <h2 class="text-2xl font-bold mb-6">
             <%-- Correction JSTL ici aussi --%>
@@ -48,7 +110,7 @@
             </c:if>
 
             <div>
-                <label for="immatriculation" class="block text-sm font-medium text-gray-700">Numéro d'immatriculation :</label>
+                <label for="immatriculation" class="block text-sm font-medium text-gray-700">Numéro d'immatriculation :</label></label>
                 <input type="text" id="immatriculation" name="immatriculation" value="${voiture.immatriculation}" required
                        <c:if test="${voiture != null}">readonly</c:if>
                        class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">

@@ -223,7 +223,7 @@ text-decoration: underline;
 
 <video autoplay muted loop id="video-background">
 
-<source src="${pageContext.request.contextPath}/videos/backgroundConnexion.mp4" type="video/mp4">
+<source src="${pageContext.request.contextPath}/videos/video1.mp4" type="video/mp4">
 
 Votre navigateur ne supporte pas les vidéos HTML5.
 

@@ -13,6 +13,62 @@
     <!-- Chart.js pour les diagrammes -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+    <style>
+	    body {
+	
+		margin: 0;
+		
+		}
+		/* Conteneur de la vidéo d'arrière-plan */
+.video-background {
+    position: fixed; /* Fixe la vidéo à l'arrière-plan de la fenêtre d'affichage */
+    top: 0;
+    left: 0;
+    width: 100vw; /* Prend toute la largeur de la fenêtre */
+    height: 100vh; /* Prend toute la hauteur de la fenêtre */
+    overflow: hidden; /* Cache les débordements de la vidéo */
+    z-index: -1; /* Place la vidéo derrière tout le contenu */
+}
+
+.video-background video {
+    min-width: 100%; /* S'assure que la vidéo couvre au moins 100% de la largeur */
+    min-height: 100%; /* S'assure que la vidéo couvre au moins 100% de la hauteur */
+    width: auto; /* Permet à la vidéo de s'adapter proportionnellement */
+    height: auto; /* Permet à la vidéo de s'adapter proportionnellement */
+    position: absolute; /* Positionne la vidéo absolument dans son conteneur */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* Centre la vidéo par rapport à son conteneur */
+    object-fit: cover; /* Recadre la vidéo si nécessaire pour couvrir le conteneur sans déformer */
+    filter: brightness(0.6) grayscale(0.2); /* Optionnel: assombrit légèrement et déssature la vidéo pour améliorer la lisibilité du contenu */
+}
+
+/* Vous devrez peut-être ajuster le z-index de votre dashboard-container */
+/* Assurez-vous que votre contenu est au-dessus de la vidéo */
+.dashboard-container {
+    position: relative; /* Important pour que le z-index fonctionne */
+    z-index: 1; /* Place le dashboard-container au-dessus de la vidéo */
+    /* ... vos autres styles pour le dashboard-container ... */
+    background-color: rgba(255, 255, 255, 0); /* Fond totalement transparent */
+    padding: 2rem; /* Exemple de padding */
+    border-radius: 1rem; /* Exemple de border-radius */
+    margin: 2rem auto; /* Pour centrer le conteneur sur la page */
+    max-width: 1200px; /* Limiter la largeur du tableau de bord */
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+/* Pour le contenu textuel au-dessus de la vidéo */
+/* Si vous avez un overlay, il doit être entre la vidéo et le contenu */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.4); /* Un overlay sombre et semi-transparent */
+    z-index: 0; /* Entre la vidéo (-1) et le contenu (1) */
+}
+    
         /* Styles spécifiques au tableau de bord gestionnaire */
         .card {
             background-color: #ffffff;
@@ -51,8 +107,8 @@
         }
         .section-title {
             font-size: 1.8rem;
-            color: #2d3748;
-            margin-top: 2rem;
+            color:  #ffffff;
+            margin-top: 4rem;
             margin-bottom: 1.5rem;
             padding-bottom: 0.5rem;
             border-bottom: 2px solid #a0aec0;
@@ -110,10 +166,19 @@
     </style>
 </head>
 <body>
+	
     <jsp:include page="navbar.jsp" />
+    <div class="video-background">
+    	<video autoplay muted loop id="video-background">
+		<source src="${pageContext.request.contextPath}/videos/video2.mp4" type="video/mp4">
+		Votre navigateur ne supporte pas les vidéos HTML5.
+		
+	</video>
+	</div>
 
     <div class="dashboard-container">
-        <h1 class="text-3xl font-bold mb-6 text-gray-800">
+    
+        <h1 class="text-3xl font-bold mb-6 text-white">
             <i class="fas fa-tachometer-alt mr-2"></i> Tableau de Bord Gestionnaire
         </h1>
 
@@ -150,7 +215,25 @@
                     <p class="card-metric">${pendingRequestsCount}</p>
                 </div>
             </div>
+            
+            
+  
         </div>
+        
+        
+        <br/> <br/><br/>
+            <div class="card" >
+                <div class="">
+                    <h3 class="card-title">Capacité du Parking</h3>
+                </div>
+                <div class="card-body">
+                    <p class="card-value text-blue-600">
+                                    50
+                                </p>
+                </div>
+            </div>
+        
+        
 
         <h2 class="section-title"><i class="fas fa-chart-bar mr-2"></i> Statistiques du Parc Automobile</h2>
         <div class="card">
