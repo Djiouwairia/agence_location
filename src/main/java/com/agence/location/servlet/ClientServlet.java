@@ -162,8 +162,9 @@ public class ClientServlet extends HttpServlet {
         String adresse = request.getParameter("adresse");
         String email = request.getParameter("email");
         String telephone = request.getParameter("telephone");
-
-        Client client = new Client(cin, permis, prenom, nom, sexe, adresse, email, telephone);
+        String password = request.getParameter("password");
+        
+        Client client = new Client(cin, permis, prenom, nom, sexe, adresse, email, telephone,password);
 
         try {
             if ("add".equals(action)) {

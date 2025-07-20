@@ -174,6 +174,15 @@
                 <input type="email" id="email" name="email" value="${client.email}"
                        class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300">
             </div>
+            
+            
+            <div class="form-group">
+
+<label for="password_client">Mot de passe :</label>
+
+<input type="password" id="password_client" name="password" required>
+
+</div>
 
             <div class="flex justify-end space-x-4 mt-6">
                 <button type="submit" class="bg-green-600 text-white py-2 px-6 rounded-md hover:bg-green-700">
